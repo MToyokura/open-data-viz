@@ -35,7 +35,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               >
                 <img
                   style={{ height: "2rem" }}
-                  src="../site_logo.png"
+                  src="/site_logo.png"
                   alt="Website Logo"
                 />
                 <div style={{ fontSize: "1.5rem" }}>{appName}</div>
