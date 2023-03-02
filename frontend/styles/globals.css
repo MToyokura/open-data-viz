@@ -1,0 +1,61 @@
+/* Default Stuff */
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    color: white;
+    background: black;
+  }
+}
+
+/* Custom stuff */
+
+.text_content {
+  width: 640px;
+  margin: 0rem 1rem;
+}
+
+.page_title {
+  display: flex;
+  justify-content: center;
+  margin: 3rem 0rem;
+}
+
+@media (min-width: 640px) {
+  .hide_on_large_screens {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .hide_on_small_screens {
+    display: none;
+  }
+}
+
+.icon_button {
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 100px;
+}
+
+.icon_button:hover {
+  border: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+.icon_button:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}

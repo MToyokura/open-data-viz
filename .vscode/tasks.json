@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "command": "yarn dev",
+      "label": "yarn dev",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "new"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/frontend/"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    }
+  ]
+}

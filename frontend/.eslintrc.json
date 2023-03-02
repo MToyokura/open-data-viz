@@ -1,0 +1,14 @@
+{
+  "extends": ["next/core-web-vitals", "prettier", "eslint:recommended"],
+  "rules": {
+    "no-irregular-whitespace": "off", // サイト名とかで全角スペースがたまにあるから
+    "@next/next/no-img-element": "off", // Image Component を使わないから
+    "react/jsx-curly-brace-presence": [
+      "error",
+      { "props": "never", "children": "never" }
+    ]
+  },
+  "globals": {
+    "NodeJS": true
+  }
+}
