@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: { unoptimized: true }, //https://nextjs.org/docs/messages/export-image-api
-  basePath: "/open-data-viz",
+  basePath: process.env.NODE_ENV === "production" ? "/open-data-viz" : "",
 };
 
 module.exports = nextConfig;
