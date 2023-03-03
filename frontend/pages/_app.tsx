@@ -1,5 +1,6 @@
 import type { AppProps } from "next/app";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { ByIcon, CcIcon } from "../page_modules/components/SvgIcons";
 import "../styles/globals.css";
 
@@ -15,6 +16,7 @@ function getStaticAssetsBaseUrl(nodeEnv: NodeJS.Process["env"]["NODE_ENV"]) {
 }
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter();
   return (
     <>
       <div style={{ minHeight: "85vh" }}>
@@ -35,7 +37,9 @@ function MyApp({ Component, pageProps }: AppProps) {
               >
                 <img
                   style={{ height: "2rem" }}
-                  src="/site_logo.png"
+                  // https://stackoverflow.com/questions/64921521/how-to-change-base-path-for-assets-images-etc/65113234#65113234
+                  // https://stackoverflow.com/questions/68194255/how-to-obtain-a-path-without-using-link-when-basepath-is-set-in-next-js/68201934#68201934
+                  src={`${router.basePath}/site_logo.png`}
                   alt="Website Logo"
                 />
                 <div style={{ fontSize: "1.5rem" }}>{appName}</div>
