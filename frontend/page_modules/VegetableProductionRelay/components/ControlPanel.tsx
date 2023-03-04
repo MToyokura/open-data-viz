@@ -118,7 +118,7 @@ export const ControlPanel = (props: {
           disablePortal
           id="combo-box-demo"
           options={vegetableSelect}
-          sx={{ width: "10rem" }}
+          sx={{ width: "12rem" }}
           renderInput={(params) => <TextField {...params} label="品目" />}
           value={props.queryParams.vegetable}
           onChange={(event, value) => {
