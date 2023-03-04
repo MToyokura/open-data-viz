@@ -3,6 +3,7 @@ files_list.txt
 jpn_adm_2019_shp
 jpn_adm_2019_shp.zip
 monthly_vegetable_market_amount_by_prefecture
+workers_by_age_employment_type_education_sex_files
 
 ../raw_data/jpn_adm_2019_shp:
 jpn_admbnda_adm0_2019.cpg
@@ -2040,3 +2041,6 @@ getStatsList_response_生しいたけ.json
 0001911062_202001-202012_生しいたけ_10月.csv
 0001911063_202001-202012_生しいたけ_11月.csv
 0001911064_202001-202012_生しいたけ_12月.csv
+
+../raw_data/workers_by_age_employment_type_education_sex_files:
+0003006608_年齢階級，教育，雇用形態別雇用者数(2002年～).csv
