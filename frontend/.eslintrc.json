@@ -8,7 +8,14 @@
       { "props": "never", "children": "never" }
     ]
   },
-  "globals": {
-    "NodeJS": true
-  }
+  "overrides": [
+    {
+      "files": ["*.tsx"],
+      "rules": {
+        // _app.tsx で Error: 'NodeJS' is not defined. を防ぐため
+        // https://github.com/Chatie/eslint-config/issues/45#issuecomment-1003990077
+        "no-undef": "off"
+      }
+    }
+  ]
 }
