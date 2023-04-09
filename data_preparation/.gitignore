@@ -165,3 +165,9 @@ cython_debug/
 !/raw_data/files_list.txt
 /processed_data/*
 !/processed_data/files_list.txt
+
+**/raw_data
+**/intermediate_data
+**/final_data
+
+**/files_list_for_comparison.txt
