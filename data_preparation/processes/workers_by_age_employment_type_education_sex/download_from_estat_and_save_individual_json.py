@@ -1,19 +1,17 @@
+import os
+from pathlib import Path
+
 import pandas
 import processes.estat.utils as estat_utils
-from processes.common import (
-    create_processed_data_dir_base_path,
-    create_raw_data_dir_base_path,
-)
 from processes.estat.variables import ESTAT_APP_ID
 from processes.workers_by_age_employment_type_education_sex import utils
 
 # estat からデータをダウンロードして、フロントエンド向けにファイルを作成したりする
 
+current_file_location = Path(os.path.dirname(os.path.realpath(__file__)))
 files_dir_name = "workers_by_age_employment_type_education_sex_files"
-raw_data_dir = create_raw_data_dir_base_path(files_dir_name)
-processed_data_dir = create_processed_data_dir_base_path(files_dir_name)
-raw_data_dir.mkdir(parents=True, exist_ok=True)
-processed_data_dir.mkdir(parents=True, exist_ok=True)
+raw_data_dir = Path(current_file_location, "raw_data")
+final_data_dir = Path(current_file_location, "final_data")
 
 statsDataId = "0003006608"
 # https://www.e-stat.go.jp/dbview?sid=0003006608
@@ -33,4 +31,4 @@ downloaded_csv_path = estat_utils.download_stats_data_as_CSV(
 
 csv_df = pandas.read_csv(downloaded_csv_path).replace(["…"], None)  # 2011年が "…"
 
-utils.create_json_files(csv_df=csv_df, processed_data_dir=processed_data_dir)
+utils.create_json_files(csv_df=csv_df, processed_data_dir=final_data_dir)

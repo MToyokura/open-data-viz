@@ -1,18 +1,13 @@
 import os
 from pathlib import Path
 
-import utils
-from processes.common import (
-    create_processed_data_dir_base_path,
-    create_raw_data_dir_base_path,
-)
 from processes.estat.variables import ESTAT_APP_ID
+from processes.monthly_vegetable_market_amount_by_prefecture import utils
 
+current_file_location = Path(os.path.dirname(os.path.realpath(__file__)))
 files_dir_name = "monthly_vegetable_market_amount_by_prefecture"
-raw_data_dir = create_raw_data_dir_base_path(files_dir_name)
-processed_data_dir = create_processed_data_dir_base_path(files_dir_name)
-raw_data_dir.mkdir(parents=True, exist_ok=True)
-processed_data_dir.mkdir(parents=True, exist_ok=True)
+raw_data_dir = Path(current_file_location, "raw_data")
+final_data_dir = Path(current_file_location, "final_data")
 
 # https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/index.html#7
 vegetables = [
@@ -79,7 +74,7 @@ for vegetable in vegetables:
         getStatsList_response_json_dict
     )
 
-    frontend_json_file_path = Path(processed_data_dir, f"{vegetable}.json")
+    frontend_json_file_path = Path(final_data_dir, f"{vegetable}.json")
     if not frontend_json_file_path.is_file():
         list_of_month_prefecture_total_dicts = []
         vegetable_csv_download_dir = Path(raw_data_dir, vegetable)
@@ -89,6 +84,6 @@ for vegetable in vegetables:
             vegetable=vegetable,
             vegetable_csv_download_dir=vegetable_csv_download_dir,
             list_of_month_prefecture_total_dicts=list_of_month_prefecture_total_dicts,
-            processed_data_dir=processed_data_dir,
+            processed_data_dir=final_data_dir,
         )
     print(frontend_json_file_path)
