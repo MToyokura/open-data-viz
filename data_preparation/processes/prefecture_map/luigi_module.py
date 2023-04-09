@@ -70,8 +70,8 @@ class UnzipShapeFileZip(luigi.Task):
         return DownloadShapeFileZip()
 
     def run(self):
-        input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
-        shutil.unpack_archive(filename=input.path, extract_dir=Path(raw_data_dir))
+        luigi_input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
+        shutil.unpack_archive(filename=luigi_input.path, extract_dir=Path(raw_data_dir))
 
     def output(self):
         return luigi.LocalTarget(self.output_file_path)
@@ -84,7 +84,7 @@ class ConvertShapefileToGeoJson(luigi.Task):
         return UnzipShapeFileZip()
 
     def run(self):
-        input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
+        luigi_input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
         with open(file=self.output_file_path, mode="w") as output_file:
             subprocess.run(
                 # yarn だとファイルパス指定で変な動きをするので npx を使う
@@ -94,7 +94,7 @@ class ConvertShapefileToGeoJson(luigi.Task):
                     "shp2json",
                     "--encoding",
                     "UTF8",
-                    input.path,
+                    luigi_input.path,
                 ],
                 stdout=output_file,
             )
@@ -110,12 +110,12 @@ class ConvertGeoJsonToTopoJson(luigi.Task):
         return ConvertShapefileToGeoJson()
 
     def run(self):
-        input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
+        luigi_input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
         with open(file=self.output_file_path, mode="w") as output_file:
             subprocess.run(
                 # yarn だとファイルパス指定で変な動きをするので npx を使う
                 # https://github.com/topojson/topojson-server/blob/master/README.md#geo2topo
-                ["npx", "geo2topo", "-q", "1e6", f"japan={input.path}"],
+                ["npx", "geo2topo", "-q", "1e6", f"japan={luigi_input.path}"],
                 stdout=output_file,
             )
 
@@ -130,7 +130,7 @@ class SimplifyTopoJson(luigi.Task):
         return ConvertGeoJsonToTopoJson()
 
     def run(self):
-        input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
+        luigi_input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
         with open(
             file=self.output_file_path,
             mode="w",
@@ -138,7 +138,7 @@ class SimplifyTopoJson(luigi.Task):
             subprocess.run(
                 # yarn だとファイルパス指定で変な動きをするので npx を使う
                 # https://github.com/topojson/topojson-simplify#toposimplify
-                ["npx", "toposimplify", "-P", "0.05", "-f", input.path],
+                ["npx", "toposimplify", "-P", "0.05", "-f", luigi_input.path],
                 stdout=output_file,
             )
 
@@ -153,8 +153,8 @@ class ConvertSimplifiedTopoJsonToGeoJson(luigi.Task):
         return SimplifyTopoJson()
 
     def run(self):
-        input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
-        with open(file=input.path, mode="r") as input_file:
+        luigi_input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
+        with open(file=luigi_input.path, mode="r") as input_file:
             subprocess.run(
                 # yarn だとファイルパス指定で変な動きをするので npx を使う
                 # https://github.com/topojson/topojson-client#topo2geo
@@ -177,8 +177,10 @@ class OmitIslands(luigi.Task):
         return ConvertSimplifiedTopoJsonToGeoJson()
 
     def run(self):
-        input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
-        omit_islands(input_file_path=input.path, output_file_path=self.output_file_path)
+        luigi_input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
+        omit_islands(
+            input_file_path=luigi_input.path, output_file_path=self.output_file_path
+        )
 
     def output(self):
         return luigi.LocalTarget(self.output_file_path)
@@ -193,8 +195,8 @@ class ExportFinalDataToFrontend(luigi.Task):
         return OmitIslands()
 
     def run(self):
-        input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
-        subprocess.run(["cp", input.path, self.output_file_path])
+        luigi_input: typing.Any = self.input()  # 本当は type は luigi.LocalTarget
+        subprocess.run(["cp", luigi_input.path, self.output_file_path])
 
     def output(self):
         return luigi.LocalTarget(self.output_file_path)
