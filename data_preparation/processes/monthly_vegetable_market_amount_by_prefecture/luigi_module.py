@@ -76,23 +76,15 @@ class ListFiles(luigi.Task):
             file=self.files_list_for_comparison_path, mode="w"
         ) as output_file_for_comparison:
             raw_data = subprocess.run(
-                ["ls", "-R", "monthly_vegetable_market_amount_by_prefecture/raw_data"],
+                ["ls", "-R", f"{current_file_location}/raw_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             intermediate_data = subprocess.run(
-                [
-                    "ls",
-                    "-R",
-                    "monthly_vegetable_market_amount_by_prefecture/intermediate_data",
-                ],
+                ["ls", "-R", f"{current_file_location}/intermediate_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             final_data = subprocess.run(
-                [
-                    "ls",
-                    "-R",
-                    "monthly_vegetable_market_amount_by_prefecture/final_data",
-                ],
+                ["ls", "-R", f"{current_file_location}/final_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             output = f"{raw_data}\n{intermediate_data}\n{final_data}"

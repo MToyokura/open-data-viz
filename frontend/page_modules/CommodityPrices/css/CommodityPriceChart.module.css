@@ -1,0 +1,11 @@
+@media (min-width: 640px) {
+  .chart_wrapper {
+    margin: 0rem 3rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .chart_wrapper {
+    margin: 0rem 1rem;
+  }
+}
