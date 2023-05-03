@@ -51,7 +51,7 @@ export const EmploymentChart = () => {
         setDataNotFound(false);
         setPlotData([...plotData, createNullFilledPlotData(newPlotData)]);
       } catch (err) {
-        if (err instanceof Error) {
+        if (err instanceof Error && err.message === "404 Not Found") {
           setDataNotFound(true);
         }
       }

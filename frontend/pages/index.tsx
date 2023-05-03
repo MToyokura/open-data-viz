@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { TopPageCard } from "../page_modules/TopPageCard";
 import { CustomHead } from "../page_modules/components/CustomHead";
 import { pageTitles } from "../page_modules/constants";
-import { TopPageCard } from "../page_modules/TopPageCard";
 
 export default function Home() {
   return (
@@ -57,6 +57,9 @@ export default function Home() {
             </TopPageCard>
             <TopPageCard cardHref="/workers-by-age-employment-type-education-sex">
               {pageTitles["workers-by-age-employment-type-education-sex"]}
+            </TopPageCard>
+            <TopPageCard cardHref="/commodity-prices">
+              {pageTitles["commodity-prices"]}
             </TopPageCard>
           </div>
         </div>

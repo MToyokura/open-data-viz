@@ -2,8 +2,6 @@ import { CustomHead } from "../page_modules/components/CustomHead";
 import { pageTitles } from "../page_modules/constants";
 import { EmploymentChart } from "../page_modules/WorkersByAgeEmploymentTypeEducationSex/components/WorkersByAgeEmploymentTypeEducationSex";
 
-// https://github.com/apexcharts/vue-apexcharts/issues/307#issuecomment-863501543
-
 const pageTitle = pageTitles["workers-by-age-employment-type-education-sex"];
 
 export default function WorkersByAgeEmploymentTypeEducationSex() {
@@ -32,7 +30,7 @@ export default function WorkersByAgeEmploymentTypeEducationSex() {
             </li>
           </ul>
           <p>
-            労働力調査の概要，結果等の解説については下のリンクから閲覧できます。
+            労働力調査の概要、結果等の解説については下のリンクから閲覧できます。
           </p>
           <ul>
             <li>
