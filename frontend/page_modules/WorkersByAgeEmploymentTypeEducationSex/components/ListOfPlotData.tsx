@@ -55,7 +55,7 @@ export const ListOfPlotData = (props: {
               <TableBody>
                 {props.plotData.map((shownRowdata) => {
                   return (
-                    <TableRow>
+                    <TableRow key={shownRowdata.index}>
                       <TableCell>
                         {shownRowdata["年齢階級(詳細集計）"]}
                       </TableCell>
