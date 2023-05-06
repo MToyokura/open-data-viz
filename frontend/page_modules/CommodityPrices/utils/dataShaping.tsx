@@ -4,23 +4,6 @@ import {
 } from "../types/CommodityPriceData";
 
 /**
- * すべてが null の time_series を作成する
- */
-export function createNullFilledTimeSeries(
-  monthCodeNamePairs: Map<string, string>
-): IndividualTimeSeries[] {
-  const nullFilledTimeSeries: IndividualTimeSeries[] = [];
-  monthCodeNamePairs.forEach((value, key) => {
-    nullFilledTimeSeries.push({
-      time_code: key,
-      time_name: value,
-      value: null,
-    });
-  });
-  return nullFilledTimeSeries;
-}
-
-/**
  * xaxis で用いる月のコードと名前のペアを作成する
  */
 export function createMonthCodeNamePairs(
@@ -48,6 +31,23 @@ export function createMonthCodeNamePairs(
     })
   );
   return sortedMonthCodeNamePairs;
+}
+
+/**
+ * すべてが null の time_series を作成する
+ */
+export function createNullFilledTimeSeries(
+  monthCodeNamePairs: Map<string, string>
+): IndividualTimeSeries[] {
+  const nullFilledTimeSeries: IndividualTimeSeries[] = [];
+  monthCodeNamePairs.forEach((value, key) => {
+    nullFilledTimeSeries.push({
+      time_code: key,
+      time_name: value,
+      value: null,
+    });
+  });
+  return nullFilledTimeSeries;
 }
 
 /**
