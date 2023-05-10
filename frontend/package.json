@@ -10,7 +10,8 @@
     "export": "next export",
     "serve": "next build && next export && serve out/ -p 3001",
     "prettier": "prettier --write --cache .",
-    "test": "jest"
+    "test": "jest",
+    "playwright": "playwright test"
   },
   "dependencies": {
     "@emotion/react": "^11.10.5",
@@ -28,6 +29,7 @@
     "swr": "^2.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.33.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@types/d3": "^7.4.0",
