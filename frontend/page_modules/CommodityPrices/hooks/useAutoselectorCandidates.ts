@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import { staticAssetsBaseUrl } from "../../../pages/_app";
 import { fetcher } from "../../fetcher";
 import { AutoselectorCandidates } from "../types/AutoselectorCandidates";
@@ -8,7 +8,7 @@ export function useCommodityCandidates() {
     data: responseCommodityCandidates,
     isLoading,
     error,
-  } = useSWR<AutoselectorCandidates>(
+  } = useSWRImmutable<AutoselectorCandidates>(
     `${staticAssetsBaseUrl}/commodity_prices/autoselect_data/commodity_selections.json`,
     fetcher
   );
@@ -24,7 +24,7 @@ export function useRegionCandidates() {
     data: responseRegionCandidates,
     isLoading,
     error,
-  } = useSWR<AutoselectorCandidates>(
+  } = useSWRImmutable<AutoselectorCandidates>(
     `${staticAssetsBaseUrl}/commodity_prices/autoselect_data/region_selections.json`,
     fetcher
   );
