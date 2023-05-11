@@ -8,7 +8,7 @@ export default function About() {
     <>
       <CustomHead pageTitle={pageTitle} />
       <div className="margin_1rem">
-        <h1 className="page_title">{pageTitle}</h1>
+        <h1 className="page_header">{pageTitle}</h1>
         <div style={{ display: "flex", justifyContent: "center" }}>
           <div className="width_640px">
             <h2>コンセプト</h2>

@@ -52,7 +52,7 @@ export default function VegetableProductionRelay() {
     <>
       <CustomHead pageTitle={pageTitle} />
       <div className="margin_1rem">
-        <h1 className="page_title">{pageTitle}</h1>
+        <h1 className="page_header">{pageTitle}</h1>
         {queryIsReady ? (
           <VegetableProductionRelayPrep
             queryParams={constructQueryParams(parsedUrlQuery)}
