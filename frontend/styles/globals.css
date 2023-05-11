@@ -13,6 +13,10 @@ body {
 
 /* Custom stuff */
 
+.margin_1rem {
+  margin: 1rem;
+}
+
 .width_640px {
   width: 640px;
 }
