@@ -13,9 +13,8 @@ body {
 
 /* Custom stuff */
 
-.text_content {
+.width_640px {
   width: 640px;
-  margin: 0rem 1rem;
 }
 
 .page_title {
