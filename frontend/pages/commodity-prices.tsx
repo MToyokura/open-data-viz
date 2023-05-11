@@ -11,7 +11,7 @@ export default function WorkersByAgeEmploymentTypeEducationSex() {
       <h1 className="page_title">{pageTitle}</h1>
       <CommodityPriceChart />
       <div style={{ display: "flex", justifyContent: "center" }}>
-        <div className="text_content">
+        <div className="width_640px">
           <h2>備考</h2>
           <p>
             小売物価統計調査（動向編）

@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
-import { CustomHead } from "../page_modules/components/CustomHead";
-import { pageTitles } from "../page_modules/constants";
 import { VegetableProductionRelayPrep } from "../page_modules/VegetableProductionRelay/components/VegetableProductionRelayPrep";
 import { vegetableSelect } from "../page_modules/VegetableProductionRelay/constants";
 import { QueryParams } from "../page_modules/VegetableProductionRelay/types/QueryParams";
+import { CustomHead } from "../page_modules/components/CustomHead";
+import { pageTitles } from "../page_modules/constants";
 
 // エラーが出たのでメモ。
 // Hydration failed because the initial UI does not match what was rendered on the server
@@ -67,7 +67,7 @@ export default function VegetableProductionRelay() {
       <div
         style={{ marginTop: "5rem", display: "flex", justifyContent: "center" }}
       >
-        <div className="text_content">
+        <div className="width_640px">
           <h2>備考</h2>
           <p>
             都道府県をマウスでホバー（スマホの場合はタップ）すると数量が表示されます。

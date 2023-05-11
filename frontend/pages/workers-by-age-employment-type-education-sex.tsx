@@ -13,7 +13,7 @@ export default function WorkersByAgeEmploymentTypeEducationSex() {
       <div
         style={{ marginTop: "5rem", display: "flex", justifyContent: "center" }}
       >
-        <div className="text_content">
+        <div className="width_640px">
           <h2>備考</h2>
           <p>
             2022年2月15日に公開された、労働力調査 詳細集計 全都道府県 全国 年次
