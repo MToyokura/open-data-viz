@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import { staticAssetsBaseUrl } from "../../../pages/_app";
 import { fetcher } from "../../fetcher";
 import { VegetableJson } from "../types/AmountPerPrefectureOfMonth";
@@ -8,7 +8,7 @@ export function useVegetableJson(vegetable: string) {
     data: responseVegetableJson,
     isLoading,
     error,
-  } = useSWR<VegetableJson>(
+  } = useSWRImmutable<VegetableJson>(
     `${staticAssetsBaseUrl}/monthly_vegetable_market_amount_by_prefecture/${vegetable}.json`,
     fetcher
   );
