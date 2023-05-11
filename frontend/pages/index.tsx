@@ -26,7 +26,6 @@ export default function Home() {
           }}
         >
           <h1 style={{ fontSize: "3rem" }}>オープンデータを可視化していく</h1>
-          <p>そんなサイトです</p>
         </div>
         <div
           style={{
