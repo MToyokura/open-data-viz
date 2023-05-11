@@ -13,15 +13,19 @@ body {
 
 /* Custom stuff */
 
-.text_content {
-  width: 640px;
-  margin: 0rem 1rem;
+.margin_1rem {
+  margin: 1rem;
 }
 
-.page_title {
+.width_640px {
+  width: 640px;
+}
+
+.page_header {
   display: flex;
   justify-content: center;
-  margin: 3rem 0rem;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
 }
 
 @media (min-width: 640px) {
