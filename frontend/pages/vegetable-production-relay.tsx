@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
-import { CustomHead } from "../page_modules/components/CustomHead";
-import { pageTitles } from "../page_modules/constants";
 import { VegetableProductionRelayPrep } from "../page_modules/VegetableProductionRelay/components/VegetableProductionRelayPrep";
 import { vegetableSelect } from "../page_modules/VegetableProductionRelay/constants";
 import { QueryParams } from "../page_modules/VegetableProductionRelay/types/QueryParams";
+import { CustomHead } from "../page_modules/components/CustomHead";
+import { pageTitles } from "../page_modules/constants";
 
 // エラーが出たのでメモ。
 // Hydration failed because the initial UI does not match what was rendered on the server
@@ -51,72 +51,78 @@ export default function VegetableProductionRelay() {
   return (
     <>
       <CustomHead pageTitle={pageTitle} />
-      <h1 className="page_title">{pageTitle}</h1>
-      {queryIsReady ? (
-        <VegetableProductionRelayPrep
-          queryParams={constructQueryParams(parsedUrlQuery)}
-        />
-      ) : (
-        // SSR を使わないので && で問題ないけど dev 環境で React Hydration Error が出る。
-        // suppressHydrationWarning={true} をつけてみたけどエラーが消えないので
-        // ここに書き出している。
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          loading...
-        </div>
-      )}
-      <div
-        style={{ marginTop: "5rem", display: "flex", justifyContent: "center" }}
-      >
-        <div className="text_content">
-          <h2>備考</h2>
-          <p>
-            都道府県をマウスでホバー（スマホの場合はタップ）すると数量が表示されます。
-          </p>
-          <p>
-            円の面積は数量に比例します。例えば 200t と 100t とでは、200t
-            の円の面積は 100t の円の面積の2倍となります。1t
-            あたりの円の大きさは操作盤の半径の設定で変更できます。
-          </p>
-          <p>
-            図は全国の主要な青果物卸売市場における青果物の卸売数量の合計のうち、各都道府県が産地となっている数量を表しています。そのため青果物卸売市場調査の対象でない卸売市場や、
-            <a href="http://lib.ruralnet.or.jp/nrpd/#koumoku=12184">市場外</a>
-            で流通した青果物は含まれていません。
-          </p>
-          <p>
-            卸売数量には青果物卸売市場調査（産地別）のデータを使用しています。例えば2020年のデータは下のリンクから見ることができます。
-          </p>
-          <ul>
-            <li>
-              <a href="https://www.e-stat.go.jp/stat-search/database?page=1&layout=datalist&toukei=00500226&tstat=000001015623&cycle=7&tclass1=000001020455&tclass2=000001158847&cycle_facet=tclass1%3Atclass2&tclass3val=0">
-                青果物卸売市場調査 確報 令和２年青果物卸売市場調査（産地別） |
-                データベース | 統計データを探す | 政府統計の総合窓口
-              </a>
-            </li>
-          </ul>
-          <p>青果物卸売市場調査の概要は下のリンクから見ることができます。</p>
-          <ul>
-            <li>
-              <a href="https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/index.html">
-                青果物卸売市場調査の概要：農林水産省
-              </a>
-            </li>
-          </ul>
-          <p>
-            地図データには Humanitarian Data Exchange (HDX)
-            が公開しているデータを加工したものを使用しています。元データは
-            Creative Commons Attribution for Intergovernmental Organisations
-            のもとに公開されており、 Contributor は OCHA Regional Office for
-            Asia and the Pacific (ROAP)
-            です。元データは下のリンクから入手することができます。
-          </p>
-          <ul>
-            <li>
-              <a href="https://data.humdata.org/dataset/cod-ab-jpn">
-                Japan - Subnational Administrative Boundaries - Humanitarian
-                Data Exchange
-              </a>
-            </li>
-          </ul>
+      <div className="margin_1rem">
+        <h1 className="page_header">{pageTitle}</h1>
+        {queryIsReady ? (
+          <VegetableProductionRelayPrep
+            queryParams={constructQueryParams(parsedUrlQuery)}
+          />
+        ) : (
+          // SSR を使わないので && で問題ないけど dev 環境で React Hydration Error が出る。
+          // suppressHydrationWarning={true} をつけてみたけどエラーが消えないので
+          // ここに書き出している。
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            loading...
+          </div>
+        )}
+        <div
+          style={{
+            marginTop: "5rem",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <div className="width_640px">
+            <h2>備考</h2>
+            <p>
+              都道府県をマウスでホバー（スマホの場合はタップ）すると数量が表示されます。
+            </p>
+            <p>
+              円の面積は数量に比例します。例えば 200t と 100t とでは、200t
+              の円の面積は 100t の円の面積の2倍となります。1t
+              あたりの円の大きさは操作盤の半径の設定で変更できます。
+            </p>
+            <p>
+              図は全国の主要な青果物卸売市場における青果物の卸売数量の合計のうち、各都道府県が産地となっている数量を表しています。そのため青果物卸売市場調査の対象でない卸売市場や、
+              <a href="http://lib.ruralnet.or.jp/nrpd/#koumoku=12184">市場外</a>
+              で流通した青果物は含まれていません。
+            </p>
+            <p>
+              卸売数量には青果物卸売市場調査（産地別）のデータを使用しています。例えば2020年のデータは下のリンクから見ることができます。
+            </p>
+            <ul>
+              <li>
+                <a href="https://www.e-stat.go.jp/stat-search/database?page=1&layout=datalist&toukei=00500226&tstat=000001015623&cycle=7&tclass1=000001020455&tclass2=000001158847&cycle_facet=tclass1%3Atclass2&tclass3val=0">
+                  青果物卸売市場調査 確報 令和２年青果物卸売市場調査（産地別） |
+                  データベース | 統計データを探す | 政府統計の総合窓口
+                </a>
+              </li>
+            </ul>
+            <p>青果物卸売市場調査の概要は下のリンクから見ることができます。</p>
+            <ul>
+              <li>
+                <a href="https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/index.html">
+                  青果物卸売市場調査の概要：農林水産省
+                </a>
+              </li>
+            </ul>
+            <p>
+              地図データには Humanitarian Data Exchange (HDX)
+              が公開しているデータを加工したものを使用しています。元データは
+              Creative Commons Attribution for Intergovernmental Organisations
+              のもとに公開されており、 Contributor は OCHA Regional Office for
+              Asia and the Pacific (ROAP)
+              です。元データは下のリンクから入手することができます。
+            </p>
+            <ul>
+              <li>
+                <a href="https://data.humdata.org/dataset/cod-ab-jpn">
+                  Japan - Subnational Administrative Boundaries - Humanitarian
+                  Data Exchange
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </>

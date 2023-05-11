@@ -1,5 +1,5 @@
 import { FeatureCollection, MultiPolygon } from "geojson";
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import { staticAssetsBaseUrl } from "../../../pages/_app";
 import { fetcher } from "../../fetcher";
 import { JapanGeoJsonProperties } from "../types/JapanGeoJsonProperties";
@@ -9,7 +9,7 @@ export function usePrefectureGeoJson() {
     data: responseGeoJson,
     isLoading,
     error,
-  } = useSWR<FeatureCollection<MultiPolygon, JapanGeoJsonProperties>>(
+  } = useSWRImmutable<FeatureCollection<MultiPolygon, JapanGeoJsonProperties>>(
     `${staticAssetsBaseUrl}/simplified_geojson_island_omitted.geojson`,
     fetcher
   );
