@@ -24,18 +24,18 @@ from pathlib import Path
 
 import luigi
 import requests
+from constants.path_constants import frontend_assets_path, prefecture_map_path
 from processes.luigi_utils import initialize_data_folder
 from processes.prefecture_map.omit_islands import omit_islands
 
-current_file_location = Path(os.path.dirname(os.path.realpath(__file__)))
-raw_data_dir = Path(current_file_location, "raw_data")
-intermediate_data_dir = Path(current_file_location, "intermediate_data")
-final_data_dir = Path(current_file_location, "final_data")
+raw_data_dir = Path(prefecture_map_path, "raw_data")
+intermediate_data_dir = Path(prefecture_map_path, "intermediate_data")
+final_data_dir = Path(prefecture_map_path, "final_data")
 
 
 class InitializeDataFolder(luigi.Task):
     def run(self):
-        initialize_data_folder(current_file_location)
+        initialize_data_folder(prefecture_map_path)
 
     def complete(self):
         if (
@@ -48,6 +48,8 @@ class InitializeDataFolder(luigi.Task):
 
 
 class DownloadShapeFileZip(luigi.Task):
+    """shapefile の zip ファイルをダウンロードする"""
+
     output_file_path = Path(raw_data_dir, "jpn_adm_2019_shp.zip")
 
     def requires(self):
@@ -64,6 +66,8 @@ class DownloadShapeFileZip(luigi.Task):
 
 
 class UnzipShapeFileZip(luigi.Task):
+    """shapefile の zip ファイルを解凍する"""
+
     output_file_path = Path(raw_data_dir, "jpn_admbnda_adm1_2019.shp")
 
     def requires(self):
@@ -78,6 +82,8 @@ class UnzipShapeFileZip(luigi.Task):
 
 
 class ConvertShapefileToGeoJson(luigi.Task):
+    """shapefile を geojson に変換する"""
+
     output_file_path = Path(intermediate_data_dir, "prefectures.geojson")
 
     def requires(self):
@@ -104,6 +110,8 @@ class ConvertShapefileToGeoJson(luigi.Task):
 
 
 class ConvertGeoJsonToTopoJson(luigi.Task):
+    """geojson を topojson に変換する"""
+
     output_file_path = Path(intermediate_data_dir, "prefectures_topo.json")
 
     def requires(self):
@@ -124,6 +132,8 @@ class ConvertGeoJsonToTopoJson(luigi.Task):
 
 
 class SimplifyTopoJson(luigi.Task):
+    """topojson の辺の数を減らす"""
+
     output_file_path = Path(intermediate_data_dir, "prefectures_topo_simplified.json")
 
     def requires(self):
@@ -147,6 +157,8 @@ class SimplifyTopoJson(luigi.Task):
 
 
 class ConvertSimplifiedTopoJsonToGeoJson(luigi.Task):
+    """simplified topojson を geojson に変換する"""
+
     output_file_path = Path(intermediate_data_dir, "prefectures_simplified.geojson")
 
     def requires(self):
@@ -171,6 +183,8 @@ class ConvertSimplifiedTopoJsonToGeoJson(luigi.Task):
 
 
 class OmitIslands(luigi.Task):
+    """離島などを除外した geojson を作成する"""
+
     output_file_path = Path(final_data_dir, "simplified_geojson_island_omitted.geojson")
 
     def requires(self):
@@ -187,8 +201,10 @@ class OmitIslands(luigi.Task):
 
 
 class ExportFinalDataToFrontend(luigi.Task):
+    """frontend に必要なデータをコピーする"""
+
     output_file_path = Path(
-        "../../frontend/public/assets/simplified_geojson_island_omitted.geojson"
+        frontend_assets_path, "simplified_geojson_island_omitted.geojson"
     )
 
     def requires(self):
@@ -203,9 +219,11 @@ class ExportFinalDataToFrontend(luigi.Task):
 
 
 class ListFiles(luigi.Task):
-    files_list_path = Path(current_file_location, "files_list.txt")
+    """ファイルの一覧を作成する"""
+
+    files_list_path = Path(prefecture_map_path, "files_list.txt")
     files_list_for_comparison_path = Path(
-        current_file_location, "files_list_for_comparison.txt"
+        prefecture_map_path, "files_list_for_comparison.txt"
     )
 
     def requires(self):
@@ -215,22 +233,22 @@ class ListFiles(luigi.Task):
         with open(file=self.files_list_path, mode="w") as output_file, open(
             file=self.files_list_for_comparison_path, mode="w"
         ) as output_file_for_comparison:
+            # システムの絶対パスを使うとユーザー名とかが表示されてしまうので、
+            # luigi が実行されるディレクトリからのパスを手書きする。
             raw_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/raw_data"],
+                ["ls", "-R", "processes/prefecture_map/raw_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             intermediate_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/intermediate_data"],
+                ["ls", "-R", "processes/prefecture_map/intermediate_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             final_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/final_data"],
+                ["ls", "-R", "processes/prefecture_map/final_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             output = f"{raw_data}\n{intermediate_data}\n{final_data}"
             output_file.write(output)
-            # レポジトリをクローンしたときにデータが揃っているか確認するために & luigi を実行するために
-            # gitignore される、中身が同一のファイルを作成する
             output_file_for_comparison.write(output)
 
     def output(self):
