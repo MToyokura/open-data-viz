@@ -3,17 +3,19 @@ import subprocess
 from pathlib import Path
 
 import luigi
+from constants.path_constants import workers_by_age_employment_type_education_sex_path
 from processes.luigi_utils import initialize_data_folder
 
-current_file_location = Path(os.path.dirname(os.path.realpath(__file__)))
-raw_data_dir = Path(current_file_location, "raw_data")
-intermediate_data_dir = Path(current_file_location, "intermediate_data")
-final_data_dir = Path(current_file_location, "final_data")
+raw_data_dir = Path(workers_by_age_employment_type_education_sex_path, "raw_data")
+intermediate_data_dir = Path(
+    workers_by_age_employment_type_education_sex_path, "intermediate_data"
+)
+final_data_dir = Path(workers_by_age_employment_type_education_sex_path, "final_data")
 
 
 class InitializeDataFolder(luigi.Task):
     def run(self):
-        initialize_data_folder(current_file_location)
+        initialize_data_folder(workers_by_age_employment_type_education_sex_path)
 
     def complete(self):
         if (
@@ -35,7 +37,7 @@ class DownloadEmploymentDataFromEstat(luigi.Task):
                 "poetry",
                 "run",
                 "python",
-                f"{Path(current_file_location, 'download_from_estat_and_save_individual_json.py')}",
+                f"{Path(workers_by_age_employment_type_education_sex_path, 'download_from_estat_and_save_individual_json.py')}",
             ]
         )
 
@@ -45,6 +47,8 @@ class DownloadEmploymentDataFromEstat(luigi.Task):
 
 
 class ExportFinalDataToFrontend(luigi.Task):
+    # TODO: constants のパスを使う
+
     frontend_data_dir = Path(
         "../../frontend/public/assets/workers_by_age_employment_type_education_sex_files/"
     )
@@ -63,9 +67,12 @@ class ExportFinalDataToFrontend(luigi.Task):
 
 
 class ListFiles(luigi.Task):
-    files_list_path = Path(current_file_location, "files_list.txt")
+    files_list_path = Path(
+        workers_by_age_employment_type_education_sex_path, "files_list.txt"
+    )
     files_list_for_comparison_path = Path(
-        current_file_location, "files_list_for_comparison.txt"
+        workers_by_age_employment_type_education_sex_path,
+        "files_list_for_comparison.txt",
     )
 
     def requires(self):
@@ -75,16 +82,30 @@ class ListFiles(luigi.Task):
         with open(file=self.files_list_path, mode="w") as output_file, open(
             file=self.files_list_for_comparison_path, mode="w"
         ) as output_file_for_comparison:
+            # システムの絶対パスを使うとユーザー名とかが表示されてしまうので、
+            # luigi が実行されるディレクトリからのパスを手書きする。
             raw_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/raw_data"],
+                [
+                    "ls",
+                    "-R",
+                    "processes/workers_by_age_employment_type_education_sex/raw_data",
+                ],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             intermediate_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/intermediate_data"],
+                [
+                    "ls",
+                    "-R",
+                    "processes/workers_by_age_employment_type_education_sex/intermediate_data",
+                ],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             final_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/final_data"],
+                [
+                    "ls",
+                    "-R",
+                    "processes/workers_by_age_employment_type_education_sex/final_data",
+                ],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             output = f"{raw_data}\n{intermediate_data}\n{final_data}"

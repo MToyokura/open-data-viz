@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List
 
 import luigi
+from constants.path_constants import commodity_prices_path
 from processes.commodity_prices.utils.create_autoselect_data import (
     create_autoselect_data,
 )
@@ -18,19 +19,16 @@ from processes.estat.utils import download_meta_info_as_JSON
 from processes.estat.variables import ESTAT_APP_ID
 from processes.luigi_utils import initialize_data_folder
 
-current_file_location = Path(os.path.dirname(os.path.realpath(__file__)))
-raw_data_dir = Path(current_file_location, "raw_data")
-intermediate_data_dir = Path(current_file_location, "intermediate_data")
-final_data_dir = Path(current_file_location, "final_data")
-final_autoselect_data_dir = Path(current_file_location, "final_data", "autoselect_data")
-final_prices_data_dir = Path(
-    current_file_location, "final_data", "commodity_price_json_files"
-)
+raw_data_dir = Path(commodity_prices_path, "raw_data")
+intermediate_data_dir = Path(commodity_prices_path, "intermediate_data")
+final_data_dir = Path(commodity_prices_path, "final_data")
+final_autoselect_data_dir = Path(final_data_dir, "autoselect_data")
+final_prices_data_dir = Path(final_data_dir, "commodity_price_json_files")
 
 
 class InitializeDataFolder(luigi.Task):
     def run(self):
-        initialize_data_folder(current_file_location)
+        initialize_data_folder(commodity_prices_path)
 
     def output(self):
         return luigi.LocalTarget(raw_data_dir)
@@ -125,6 +123,8 @@ class CreateAutoselectRegionData(luigi.Task):
 
 
 class ExportFinalDataToFrontend(luigi.Task):
+    # TODO: constants のパスを使う
+
     frontend_data_dir = Path("../../frontend/public/assets/commodity_prices/")
 
     def requires(self):
@@ -148,9 +148,9 @@ class ExportFinalDataToFrontend(luigi.Task):
 
 
 class ListFiles(luigi.Task):
-    files_list_path = Path(current_file_location, "files_list.txt")
+    files_list_path = Path(commodity_prices_path, "files_list.txt")
     files_list_for_comparison_path = Path(
-        current_file_location, "files_list_for_comparison.txt"
+        commodity_prices_path, "files_list_for_comparison.txt"
     )
 
     def requires(self):
@@ -160,16 +160,18 @@ class ListFiles(luigi.Task):
         with open(file=self.files_list_path, mode="w") as output_file, open(
             file=self.files_list_for_comparison_path, mode="w"
         ) as output_file_for_comparison:
+            # システムの絶対パスを使うとユーザー名とかが表示されてしまうので、
+            # luigi が実行されるディレクトリからのパスを手書きする。
             raw_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/raw_data"],
+                ["ls", "-R", "processes/commodity_prices/raw_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             intermediate_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/intermediate_data"],
+                ["ls", "-R", "processes/commodity_prices/intermediate_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             final_data = subprocess.run(
-                ["ls", "-R", f"{current_file_location}/final_data"],
+                ["ls", "-R", "processes/commodity_prices/final_data"],
                 stdout=subprocess.PIPE,
             ).stdout.decode()
             output = f"{raw_data}\n{intermediate_data}\n{final_data}"
