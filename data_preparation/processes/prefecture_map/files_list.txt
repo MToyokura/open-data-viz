@@ -1,4 +1,4 @@
-prefecture_map/raw_data:
+processes/prefecture_map/raw_data:
 jpn_adm_2019_shp.zip
 jpn_admbnda_adm0_2019.cpg
 jpn_admbnda_adm0_2019.dbf
@@ -34,11 +34,11 @@ jpn_admbndl_ALL_2019.shp.xml
 jpn_admbndl_ALL_2019.shx
 JPN COD-AB datasheet 2019_12_19.pdf
 
-prefecture_map/intermediate_data:
+processes/prefecture_map/intermediate_data:
 prefectures.geojson
 prefectures_simplified.geojson
 prefectures_topo.json
 prefectures_topo_simplified.json
 
-prefecture_map/final_data:
+processes/prefecture_map/final_data:
 simplified_geojson_island_omitted.geojson

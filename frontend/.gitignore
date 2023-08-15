@@ -35,8 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# デプロイ時にはファイルサーバーを使っているので
-/public/assets/
+# ローカルで動かすときに使うファイル（デプロイ時にはファイルサーバーを使っている）
+/public/assets/*
+!/public/assets/dummy.md
 
 # Playwright
 /test-results/
