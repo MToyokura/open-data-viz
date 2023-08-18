@@ -9,9 +9,11 @@
     "lint": "next lint --fix",
     "export": "next export",
     "serve": "next build && next export && serve out/ -p 3001",
+    "serve:skip-build": "serve out/ -p 3001",
     "prettier": "prettier --write --cache .",
     "test": "jest",
-    "playwright": "playwright test"
+    "playwright": "next build && next export && playwright test",
+    "playwright:skip-build": "playwright test"
   },
   "dependencies": {
     "@emotion/react": "^11.10.5",
