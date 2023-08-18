@@ -10,6 +10,7 @@ const createJestConfig = nextJest({
 /** @type {import('jest').Config} */
 const customJestConfig = {
   testEnvironment: "jest-environment-jsdom",
+  modulePathIgnorePatterns: ["playwright_tests"],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
