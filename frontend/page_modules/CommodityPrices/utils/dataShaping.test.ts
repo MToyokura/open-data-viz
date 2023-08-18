@@ -98,7 +98,9 @@ describe("createNullFilledTimeSeries", () => {
   });
 });
 
-// TODO: structuredClone は Node.js 17 から使える
+// TODO: jsdom で structuredClone がまだ使えない
+// https://github.com/jsdom/jsdom/issues/3363
+
 // describe("fillNullFilledTimeSeriesWithResponseData", () => {
 //   const sampleNullFilledTimeSeries = [
 //     { time_code: "2000000101", time_name: "2000年1月", value: null },
