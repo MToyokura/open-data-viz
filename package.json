@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "serve": "http-server ./data_preparation/output -p 8000 --cors"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
