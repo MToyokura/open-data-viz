@@ -1,0 +1,16 @@
+html {
+  display: flex;
+  min-height: 100%; /* Force <html> to fill the whole page */
+}
+
+body {
+  flex-grow: 1; /* Force <body> to fill the whole page */
+  display: flex; /* Make <body> of type flex */
+  flex-direction: column; /* Make <body> vertical */
+}
+
+#svelte-main {
+  flex-grow: 1; /* Force the main content div to fill the space */
+  display: flex; /* Make the main content div a flex container */
+  flex-direction: column; /* Make the main content vertical */
+}
