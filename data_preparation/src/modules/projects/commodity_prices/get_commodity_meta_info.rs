@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::modules::{
-    estat_api::get_meta_info::{GetMetaInfoParams, get_meta_info},
+    estat_api::get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams, get_meta_info},
     io::file_writer::{self, WriteArgs},
     projects::commodity_prices::{COMMODITY_STATS_DATA_ID, OUTPUT_DIR_META},
 };
@@ -126,11 +126,12 @@ pub fn fetch_write_commodity_meta_info(app_id: &str) -> Result<String, Box<dyn E
 
     println!("Fetching meta info for commodity prices...");
 
-    let get_meta_info_result = get_meta_info(GetMetaInfoParams {
-        app_id: &app_id,
+    let get_meta_info_params = GetMetaInfoParamsBuilder::new(MandatoryParams {
+        app_id: app_id,
         stats_data_id: COMMODITY_STATS_DATA_ID,
-        ..Default::default()
-    })?;
+    })
+    .build();
+    let get_meta_info_result = get_meta_info(get_meta_info_params)?;
 
     file_writer::write_to_directory(WriteArgs {
         file_name: meta_info_file_name,
