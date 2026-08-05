@@ -52,7 +52,10 @@ pub enum CollectArea {
     Municipality = 3,
 }
 
-#[derive(Default)]
+pub struct MandatoryParams<'a> {
+    pub app_id: &'a str,
+}
+
 pub struct GetStatsListParams<'a> {
     pub app_id: &'a str,
     pub lang: Option<&'a str>,                        // "J" or "E"
@@ -69,6 +72,81 @@ pub struct GetStatsListParams<'a> {
     pub limit: Option<u32>,                           // Number of records to fetch
     pub updated_date: Option<&'a str>, // "yyyy", "yyyymmdd", or range "yyyymmdd-yyyyymmdd"
     pub callback: Option<&'a str>,     // JSONP callback function
+}
+
+pub struct GetStatsListParamsBuilder<'a> {
+    app_id: &'a str,
+    lang: Option<&'a str>,
+    survey_years: Option<&'a str>,
+    open_years: Option<&'a str>,
+    stats_field: Option<&'a str>,
+    stats_code: Option<&'a str>,
+    search_word: Option<&'a str>,
+    search_kind: Option<SearchKind>,
+    collect_area: Option<CollectArea>,
+    explanation_get_flg: Option<ExplanationFlag>,
+    stats_name_list: Option<StatsNameListFlag>,
+    start_position: Option<u32>,
+    limit: Option<u32>,
+    updated_date: Option<&'a str>,
+    callback: Option<&'a str>,
+}
+
+impl<'a> GetStatsListParamsBuilder<'a> {
+    pub fn new(params: MandatoryParams<'a>) -> Self {
+        Self {
+            app_id: params.app_id,
+            lang: None,
+            survey_years: None,
+            open_years: None,
+            stats_field: None,
+            stats_code: None,
+            search_word: None,
+            search_kind: None,
+            collect_area: None,
+            explanation_get_flg: None,
+            stats_name_list: None,
+            start_position: None,
+            limit: None,
+            updated_date: None,
+            callback: None,
+        }
+    }
+
+    pub fn lang(mut self, v: &'a str) -> Self { self.lang = Some(v); self }
+    pub fn survey_years(mut self, v: &'a str) -> Self { self.survey_years = Some(v); self }
+    pub fn open_years(mut self, v: &'a str) -> Self { self.open_years = Some(v); self }
+    pub fn stats_field(mut self, v: &'a str) -> Self { self.stats_field = Some(v); self }
+    pub fn stats_code(mut self, v: &'a str) -> Self { self.stats_code = Some(v); self }
+    pub fn search_word(mut self, v: &'a str) -> Self { self.search_word = Some(v); self }
+    pub fn search_kind(mut self, v: SearchKind) -> Self { self.search_kind = Some(v); self }
+    pub fn collect_area(mut self, v: CollectArea) -> Self { self.collect_area = Some(v); self }
+    pub fn explanation_get_flg(mut self, v: ExplanationFlag) -> Self { self.explanation_get_flg = Some(v); self }
+    pub fn stats_name_list(mut self, v: StatsNameListFlag) -> Self { self.stats_name_list = Some(v); self }
+    pub fn start_position(mut self, v: u32) -> Self { self.start_position = Some(v); self }
+    pub fn limit(mut self, v: u32) -> Self { self.limit = Some(v); self }
+    pub fn updated_date(mut self, v: &'a str) -> Self { self.updated_date = Some(v); self }
+    pub fn callback(mut self, v: &'a str) -> Self { self.callback = Some(v); self }
+
+    pub fn build(self) -> GetStatsListParams<'a> {
+        GetStatsListParams {
+            app_id: self.app_id,
+            lang: self.lang,
+            survey_years: self.survey_years,
+            open_years: self.open_years,
+            stats_field: self.stats_field,
+            stats_code: self.stats_code,
+            search_word: self.search_word,
+            search_kind: self.search_kind,
+            collect_area: self.collect_area,
+            explanation_get_flg: self.explanation_get_flg,
+            stats_name_list: self.stats_name_list,
+            start_position: self.start_position,
+            limit: self.limit,
+            updated_date: self.updated_date,
+            callback: self.callback,
+        }
+    }
 }
 
 fn construct_query_params<'a>(params: &GetStatsListParams<'a>) -> HashMap<String, String> {
@@ -131,6 +209,50 @@ fn construct_query_params<'a>(params: &GetStatsListParams<'a>) -> HashMap<String
     }
 
     query_params
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mandatory_params_only() {
+        let params = GetStatsListParamsBuilder::new(MandatoryParams { app_id: "test_app" }).build();
+        let query_params = construct_query_params(&params);
+
+        assert_eq!(query_params.len(), 1);
+        assert_eq!(query_params.get("appId"), Some(&"test_app".to_string()));
+    }
+
+    #[test]
+    fn test_enum_params_as_values() {
+        let params = GetStatsListParamsBuilder::new(MandatoryParams { app_id: "test_app" })
+            .search_kind(SearchKind::Statistics)
+            .collect_area(CollectArea::Prefecture)
+            .explanation_get_flg(ExplanationFlag::Exclude)
+            .stats_name_list(StatsNameListFlag::Include)
+            .build();
+        let query_params = construct_query_params(&params);
+
+        assert_eq!(query_params.len(), 5);
+        assert_eq!(query_params.get("searchKind"), Some(&"1".to_string()));
+        assert_eq!(query_params.get("collectArea"), Some(&"2".to_string()));
+        assert_eq!(query_params.get("explanationGetFlg"), Some(&"N".to_string()));
+        assert_eq!(query_params.get("statsNameList"), Some(&"Y".to_string()));
+    }
+
+    #[test]
+    fn test_optional_str_params() {
+        let params = GetStatsListParamsBuilder::new(MandatoryParams { app_id: "test_app" })
+            .lang("E")
+            .search_word("population")
+            .build();
+        let query_params = construct_query_params(&params);
+
+        assert_eq!(query_params.len(), 3);
+        assert_eq!(query_params.get("lang"), Some(&"E".to_string()));
+        assert_eq!(query_params.get("searchWord"), Some(&"population".to_string()));
+    }
 }
 
 #[allow(dead_code)]
