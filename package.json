@@ -1,4 +1,6 @@
 {
+  "name": "open-data-viz",
+  "private": true,
   "scripts": {
     "serve": "http-server ./data_preparation/output -p 8000 --cors"
   },

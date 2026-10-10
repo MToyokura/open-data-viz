@@ -4,18 +4,18 @@
 
 ```bash
 nodenv install
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 ## Building
 
 ```bash
-pnpm build
+npm run build
 ```
 
 ## Previewing
 
 ```bash
-pnpm preview
+npm run preview
 ```
