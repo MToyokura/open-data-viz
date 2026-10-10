@@ -1,4 +1,5 @@
 <script lang="ts">
+  import deleteIcon from "$lib/assets/icons/delete.svg";
   import Spinner from "$lib/Spinner.svelte";
   import type { EChartsOption } from "echarts";
   import { untrack } from "svelte";
@@ -58,6 +59,10 @@
     commodityPrices = [];
     dataNotFound = false;
   }
+
+  function handleRemove(dataToRemove: CommodityPrices) {
+    commodityPrices = commodityPrices.filter((item) => item !== dataToRemove);
+  }
 </script>
 
 <main>
@@ -79,6 +84,25 @@
       {#if dataNotFound}
         <p style="color: #cc0000;">データが見つかりませんでした</p>
       {/if}
+      {#if commodityPrices.length > 0}
+        <section class="added-items" aria-label="追加済みのデータ">
+          <h2>追加済み</h2>
+          <ul>
+            {#each commodityPrices as item (item)}
+              <li>
+                <span>{item.cat02_name}【{item.area_name}】</span>
+                <button
+                  type="button"
+                  class="delete-button"
+                  aria-label="{item.cat02_name}【{item.area_name}】を削除"
+                  onclick={() => handleRemove(item)}
+                ><img src={deleteIcon} alt="" aria-hidden="true" /></button
+                >
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
       <button onclick={handleClear} class="reset-button">リセット</button>
     {/if}
 
@@ -91,6 +115,63 @@
 </main>
 
 <style>
+  .added-items {
+    max-width: 32rem;
+    margin-top: 1rem;
+  }
+
+  .added-items h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+
+  .added-items ul {
+    display: flex;
+    flex-direction: column;
+    max-height: 12rem;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    list-style: none;
+  }
+
+  .added-items li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .added-items li:last-child {
+    border-bottom: 0;
+  }
+
+  .delete-button {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .delete-button:hover {
+    background: #eee;
+  }
+
+  .delete-button img {
+    display: block;
+    width: 24px;
+    height: 24px;
+  }
+
   .reset-button {
     display: block;
     margin-top: 1rem;
