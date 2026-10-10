@@ -1,93 +1,54 @@
 <script lang="ts">
-  import { browser } from "$app/environment";
-  import Chart, { type ChartData } from "chart.js/auto";
+  import { onMount } from "svelte";
+  import type { EChartsType, EChartsOption } from "echarts";
 
-  let props: {
-    chartData: ChartData;
-  } = $props();
+  let { chartData }: { chartData: EChartsOption } = $props();
 
-  let canvas: HTMLCanvasElement;
-  let myChart: Chart | null = null;
+  let container: HTMLDivElement;
+  let chart = $state.raw<EChartsType | null>(null);
 
-  $effect(() => {
-    // Always destroy the existing chart instance before potentially creating a new one
-    if (myChart) {
-      myChart.destroy();
-      myChart = null;
-    }
+  onMount(() => {
+    let disposed = false;
+    let resizeObserver: ResizeObserver | undefined;
 
-    if (!browser || !props.chartData) {
-      return;
-    }
+    import("echarts")
+      .then(({ init }) => {
+        if (disposed) return;
 
-    // Dynamically import because `ReferenceError: window is not defined`
-    import("chartjs-plugin-zoom")
-      .then((module) => {
-        const zoomPlugin = module.default;
-        Chart.register(zoomPlugin);
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          console.error("Failed to get canvas context");
-          return;
-        }
-
-        // Create the new chart instance with the updated data
-        myChart = new Chart(ctx, {
-          type: "line",
-          data: props.chartData,
-          options: {
-            animation: false,
-            elements: {
-              line: {
-                tension: 0,
-              },
-            },
-            interaction: {
-              mode: "nearest",
-              axis: "x",
-              intersect: false,
-            },
-            plugins: {
-              zoom: {
-                zoom: {
-                  wheel: {
-                    enabled: true,
-                  },
-                  pinch: {
-                    enabled: true,
-                  },
-                  mode: "x",
-                },
-                pan: {
-                  enabled: true,
-                  mode: "x",
-                },
-              },
-            },
-          },
-        });
+        chart = init(container);
+        resizeObserver = new ResizeObserver(() => chart?.resize());
+        resizeObserver.observe(container);
       })
       .catch((error) => {
-        console.error("Failed to load chartjs-plugin-zoom:", error);
+        console.error("Failed to load Apache ECharts:", error);
       });
 
-    // Return a cleanup function that destroys the chart when the component is unmounted
     return () => {
-      if (myChart) {
-        myChart.destroy();
-        myChart = null;
-      }
+      disposed = true;
+      resizeObserver?.disconnect();
+      chart?.dispose();
+      chart = null;
     };
+  });
+
+  $effect(() => {
+    const option = chartData;
+    if (chart) chart.setOption(option, { notMerge: true });
   });
 </script>
 
-<div id="chart-container">
-  <canvas bind:this={canvas}></canvas>
-</div>
+<div
+  id="chart-container"
+  bind:this={container}
+  role="img"
+  aria-label="価格の推移"
+></div>
 
 <style>
   #chart-container {
+    width: auto;
+    height: 60vh;
+    min-height: 320px;
     margin: 2rem;
     padding: 2rem;
     border: 2px solid #ccc;
@@ -96,12 +57,9 @@
 
   @media (max-width: 48rem) {
     #chart-container {
+      height: 55vh;
       margin: 2rem 0;
+      padding: 1rem;
     }
-  }
-
-  canvas {
-    width: 100%;
-    max-height: 60vh;
   }
 </style>

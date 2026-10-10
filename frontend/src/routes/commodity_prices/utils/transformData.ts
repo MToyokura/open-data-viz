@@ -1,8 +1,8 @@
-import type { ChartData } from "chart.js";
+import type { EChartsOption } from "echarts";
 import type { CommodityPrices } from "../constants/types";
 
-// Transform the fetched data into a format suitable for Chart.js
-export function transformData(data: CommodityPrices[]): ChartData {
+// Transform the fetched data into a format suitable for Apache ECharts.
+export function transformData(data: CommodityPrices[]): EChartsOption {
   const allDates = new Set<string>();
   data.forEach((commodityPrices) => {
     commodityPrices.time_value_pairs.forEach((pair) => {
@@ -10,44 +10,60 @@ export function transformData(data: CommodityPrices[]): ChartData {
     });
   });
 
-  // Convert the Set to an array and sort it
   const sortedDates = Array.from(allDates).sort((a, b) => {
     return a > b ? 1 : a < b ? -1 : 0;
   });
+  const labels = sortedDates.map((date) => {
+    const year = date.slice(0, 4);
+    const month = date.slice(8, 10);
+    return `${year}-${month}`;
+  });
 
-  const transformedData = data.map((commodityPrices) => {
+  const series = data.map((commodityPrices) => {
     const timeValueMap = new Map(
       commodityPrices.time_value_pairs.map((pair) => [pair.time, pair.value]),
     );
 
-    // Create an array of values for each date in sorted order
-    const values = sortedDates.reduce(
-      (acc, date) => {
-        const value = timeValueMap.get(date);
-        if (value !== undefined) {
-          const parsedValue = parseFloat(value);
-          acc.push(isNaN(parsedValue) ? null : parsedValue);
-        } else {
-          acc.push(null);
-        }
-        return acc;
-      },
-      [] as (number | null)[],
-    );
-
     return {
-      label: `${commodityPrices.cat02_name}【${commodityPrices.area_name}】`,
-      data: values,
+      name: `${commodityPrices.cat02_name}【${commodityPrices.area_name}】`,
+      type: "line" as const,
+      showSymbol: false,
+      connectNulls: false,
+      data: sortedDates.map((date) => {
+        const value = timeValueMap.get(date);
+        if (value === undefined) return null;
+
+        const parsedValue = parseFloat(value);
+        return isNaN(parsedValue) ? null : parsedValue;
+      }),
     };
   });
 
   return {
-    labels: sortedDates.map((date) => {
-      // example: "2021001010"
-      const year = date.slice(0, 4);
-      const month = date.slice(8, 10);
-      return `${year}-${month}`;
-    }),
-    datasets: transformedData,
+    animation: false,
+    aria: { enabled: true },
+    tooltip: { trigger: "axis" },
+    legend: { type: "scroll", bottom: 8 },
+    grid: {
+      left: 56,
+      right: 24,
+      top: 48,
+      bottom: 64,
+      outerBoundsMode: "same",
+      outerBoundsContain: "axisLabel",
+    },
+    xAxis: { type: "category", data: labels },
+    yAxis: { type: "value" },
+    dataZoom: [
+      {
+        type: "inside",
+        xAxisIndex: 0,
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: true,
+        moveOnMouseWheel: false,
+        preventDefaultMouseMove: true,
+      },
+    ],
+    series,
   };
 }

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { CommodityPrices } from "../../constants/types";
+import type { EChartsOption } from "echarts";
 import { transformData } from "../transformData";
 
 function returnMockedData(): CommodityPrices[] {
@@ -35,13 +36,24 @@ function returnMockedData(): CommodityPrices[] {
   ];
 }
 
+function getLabels(option: EChartsOption): string[] {
+  return (option.xAxis as unknown as { data: string[] }).data;
+}
+
+function getSeries(option: EChartsOption) {
+  return option.series as unknown as {
+    name: string;
+    data: (number | null)[];
+  }[];
+}
+
 describe("transformData", () => {
   const dummyData = returnMockedData();
 
   test("transformData should handle empty array", () => {
     const result = transformData([]);
-    expect(result.labels).toEqual([]);
-    expect(result.datasets).toEqual([]);
+    expect(getLabels(result)).toEqual([]);
+    expect(getSeries(result)).toEqual([]);
   });
 
   test("transformData should transform data correctly with single commodity", () => {
@@ -49,23 +61,28 @@ describe("transformData", () => {
     const result = transformData(singleItemData);
 
     // Check dates are collected and sorted correctly
-    expect(result.labels).toEqual(["2024-12", "2025-01", "2025-02", "2025-03"]);
+    expect(getLabels(result)).toEqual([
+      "2024-12",
+      "2025-01",
+      "2025-02",
+      "2025-03",
+    ]);
 
     // Check dataset structure
-    expect(result.datasets).toHaveLength(1);
-    expect(result.datasets[0].label).toBe(
+    expect(getSeries(result)).toHaveLength(1);
+    expect(getSeries(result)[0].name).toBe(
       "1001 うるち米(単一原料米,「コシヒカリ」)【札幌市】",
     );
 
     // Check values are parsed correctly
-    expect(result.datasets[0].data).toEqual([3948, 3948, 3948, 4221]);
+    expect(getSeries(result)[0].data).toEqual([3948, 3948, 3948, 4221]);
   });
 
   test("transformData should handle multiple commodities with different dates", () => {
     const result = transformData(dummyData);
 
     // All unique dates from both commodities should be included and sorted
-    expect(result.labels).toEqual([
+    expect(getLabels(result)).toEqual([
       "2000-01",
       "2000-02",
       "2000-03",
@@ -78,10 +95,10 @@ describe("transformData", () => {
     ]);
 
     // Should have two datasets
-    expect(result.datasets).toHaveLength(2);
+    expect(getSeries(result)).toHaveLength(2);
 
     // First commodity should have nulls for dates it doesn't have data for
-    expect(result.datasets[0].data).toEqual([
+    expect(getSeries(result)[0].data).toEqual([
       null,
       null,
       null,
@@ -94,7 +111,7 @@ describe("transformData", () => {
     ]);
 
     // Second commodity should have values for all dates
-    expect(result.datasets[1].data).toEqual([
+    expect(getSeries(result)[1].data).toEqual([
       4319,
       4230,
       4078,
@@ -121,10 +138,10 @@ describe("transformData", () => {
     const result = transformData(dataWithInvalidValue);
 
     // The N/A value should be converted to null
-    expect(result.datasets[0].data).toContain(null);
+    expect(getSeries(result)[0].data).toContain(null);
 
     // Check if the rest of the values are still correctly processed
-    expect(result.labels).toContain("2025-04");
+    expect(getLabels(result)).toContain("2025-04");
   });
 
   test("transformData should format labels correctly", () => {
@@ -132,23 +149,23 @@ describe("transformData", () => {
 
     // Check that the date format is YYYY-MM
     expect(
-      ((result.labels ?? []) as string[]).every((label) =>
+      ((getLabels(result) ?? []) as string[]).every((label) =>
         /^\d{4}-\d{2}$/.test(label),
       ),
     ).toBe(true);
 
     // Check specific examples
-    expect(result.labels).toContain("2025-03");
-    expect(result.labels).toContain("2000-01");
+    expect(getLabels(result)).toContain("2025-03");
+    expect(getLabels(result)).toContain("2000-01");
   });
 
   test("transformData should create correct dataset labels", () => {
     const result = transformData(dummyData);
 
-    expect(result.datasets[0].label).toBe(
+    expect(getSeries(result)[0].name).toBe(
       "1001 うるち米(単一原料米,「コシヒカリ」)【札幌市】",
     );
-    expect(result.datasets[1].label).toBe(
+    expect(getSeries(result)[1].name).toBe(
       "1002 うるち米(単一原料米,「コシヒカリ」以外)【函館市】",
     );
   });

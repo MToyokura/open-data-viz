@@ -1,6 +1,6 @@
 <script lang="ts">
   import Spinner from "$lib/Spinner.svelte";
-  import { type ChartData } from "chart.js";
+  import type { EChartsOption } from "echarts";
   import { untrack } from "svelte";
   import type { CommodityPrices } from "./constants/types";
   import LineChart from "./LineChart.svelte";
@@ -20,7 +20,7 @@
   let autoAddEnabled = $state<boolean>(true);
   let dataNotFound = $state<boolean>(false);
 
-  let chartData = $derived<ChartData | null>(
+  let chartData = $derived<EChartsOption | null>(
     commodityPrices.length > 0 ? transformData(commodityPrices) : null,
   );
 
