@@ -1,13 +1,13 @@
 import { svelteTesting } from "@testing-library/svelte/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [sveltekit()],
   test: {
-    workspace: [
+    projects: [
       {
-        extends: "./vite.config.js",
+        extends: true,
         plugins: [svelteTesting()],
         test: {
           name: "client",
@@ -19,7 +19,7 @@ export default defineConfig({
         },
       },
       {
-        extends: "./vite.config.js",
+        extends: true,
         test: {
           name: "server",
           environment: "node",
