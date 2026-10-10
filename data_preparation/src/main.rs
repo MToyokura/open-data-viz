@@ -31,6 +31,20 @@ fn main() {
             }
             return;
         }
+        Some("vegetable-relay-assess") => {
+            let path = std::env::args().nth(2).unwrap_or_default();
+            if path.is_empty() {
+                eprintln!("Usage: cargo run -- vegetable-relay-assess <catalogue-run-dir>");
+                std::process::exit(2);
+            }
+            if let Err(error) = modules::projects::vegetable_production_relay::assessment::run(
+                std::path::Path::new(&path),
+            ) {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+            return;
+        }
         Some("vegetable-relay-discovery-replay") => {
             let path = std::env::args().nth(2).unwrap_or_default();
             if path.is_empty() {

@@ -23,3 +23,14 @@ cargo run -- vegetable-relay-discovery-replay inspections/vegetable_production_r
 ```
 
 This captures every `getStatsList` page for statistics code `00500226` (100 records per request), including raw bytes and per-page checksums. Successful inspection writes a validated `catalogue.json` containing table IDs, titles, and basic metadata. Replay verifies all captured pages offline and rejects gaps, duplicates, checksum mismatches, changed totals, and API errors. Selection of statistical tables is explicitly out of scope. On failed inspection, captured pages remain in the ignored run directory for diagnosis; no validated catalogue is published.
+
+
+## M2-B: offline daikon candidate assessment
+
+After successfully running discovery and its offline replay:
+
+```sh
+cargo run -- vegetable-relay-assess inspections/vegetable_production_relay/runs/catalogue-<run-id>
+```
+
+The command replays the raw page captures and compares the saved catalogue against replayed evidence, then creates `daikon_assessment.json` and `daikon_assessment.md` in the ignored run directory. Existing reports are not overwritten. It only classifies explicit daikon title patterns and groups records by survey-year hints. It **does not** infer temporal, geographic, origin, or measurement dimensions from titles, and **selects no tables**. All candidates remain pending `getMetaInfo` verification. Review findings before committing any sanitized report.
