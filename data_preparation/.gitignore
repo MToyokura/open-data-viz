@@ -11,3 +11,6 @@ target/
 
 
 output/
+
+# ダウンロードした ZIP と展開した元データは Git 管理しない。
+input/prefectures/N03-2026/*
