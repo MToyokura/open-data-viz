@@ -34,3 +34,16 @@ cargo run -- vegetable-relay-assess inspections/vegetable_production_relay/runs/
 ```
 
 The command replays the raw page captures and compares the saved catalogue against replayed evidence, then creates `daikon_assessment.json` and `daikon_assessment.md` in the ignored run directory. Existing reports are not overwritten. It only classifies explicit daikon title patterns and groups records by survey-year hints. It **does not** infer temporal, geographic, origin, or measurement dimensions from titles, and **selects no tables**. All candidates remain pending `getMetaInfo` verification. Review findings before committing any sanitized report.
+
+## M3: metadata inventory (not semantic approval)
+
+After examining the M2 assessment, supply an **explicit** candidate table ID.
+
+```sh
+export ESTAT_APP_ID='your e-Stat application ID'
+cargo run -- vegetable-relay-metadata-inspect <statsDataId>
+cargo run -- vegetable-relay-metadata-replay inspections/vegetable_production_relay/runs/metadata-<run-id>
+cargo run -- vegetable-relay-metadata-report inspections/vegetable_production_relay/runs/metadata-<run-id>
+```
+
+The inspection preserves exact `getMetaInfo` response bytes in `response.bin`, sanitized `capture.json`, and an `inventory.json` / `inventory.md` retaining source classification codes, names, levels, parent references, and source units where present. Replay validates the response checksum offline. Reports never overwrite existing files. Treat the inventory as **unverified evidence**, not an origin/prefecture/market/time mapping. The M3 gate remains blocked until documented interpretations are reviewed and checked against real captured metadata. Do not publish statistical observations from this inspection.

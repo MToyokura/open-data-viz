@@ -45,6 +45,48 @@ fn main() {
             }
             return;
         }
+        Some("vegetable-relay-metadata-inspect") => {
+            let id = std::env::var("ESTAT_APP_ID").unwrap_or_default();
+            let table = std::env::args().nth(2).unwrap_or_default();
+            if let Err(error) =
+                modules::projects::vegetable_production_relay::metadata::inspect(&id, &table)
+            {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+            return;
+        }
+        Some("vegetable-relay-metadata-replay") => {
+            let path = std::env::args().nth(2).unwrap_or_default();
+            if path.is_empty() {
+                eprintln!("Usage: cargo run -- vegetable-relay-metadata-replay <metadata-run-dir>");
+                std::process::exit(2);
+            }
+            if let Err(error) = modules::projects::vegetable_production_relay::metadata::replay(
+                std::path::Path::new(&path),
+            ) {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+            println!("Metadata capture verified; semantic gate remains blocked");
+            return;
+        }
+        Some("vegetable-relay-metadata-report") => {
+            let path = std::env::args().nth(2).unwrap_or_default();
+            if path.is_empty() {
+                eprintln!("Usage: cargo run -- vegetable-relay-metadata-report <metadata-run-dir>");
+                std::process::exit(2);
+            }
+            if let Err(error) =
+                modules::projects::vegetable_production_relay::metadata::write_report(
+                    std::path::Path::new(&path),
+                )
+            {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+            return;
+        }
         Some("vegetable-relay-discovery-replay") => {
             let path = std::env::args().nth(2).unwrap_or_default();
             if path.is_empty() {
