@@ -113,20 +113,62 @@ impl<'a> GetStatsListParamsBuilder<'a> {
         }
     }
 
-    pub fn lang(mut self, v: &'a str) -> Self { self.lang = Some(v); self }
-    pub fn survey_years(mut self, v: &'a str) -> Self { self.survey_years = Some(v); self }
-    pub fn open_years(mut self, v: &'a str) -> Self { self.open_years = Some(v); self }
-    pub fn stats_field(mut self, v: &'a str) -> Self { self.stats_field = Some(v); self }
-    pub fn stats_code(mut self, v: &'a str) -> Self { self.stats_code = Some(v); self }
-    pub fn search_word(mut self, v: &'a str) -> Self { self.search_word = Some(v); self }
-    pub fn search_kind(mut self, v: SearchKind) -> Self { self.search_kind = Some(v); self }
-    pub fn collect_area(mut self, v: CollectArea) -> Self { self.collect_area = Some(v); self }
-    pub fn explanation_get_flg(mut self, v: ExplanationFlag) -> Self { self.explanation_get_flg = Some(v); self }
-    pub fn stats_name_list(mut self, v: StatsNameListFlag) -> Self { self.stats_name_list = Some(v); self }
-    pub fn start_position(mut self, v: u32) -> Self { self.start_position = Some(v); self }
-    pub fn limit(mut self, v: u32) -> Self { self.limit = Some(v); self }
-    pub fn updated_date(mut self, v: &'a str) -> Self { self.updated_date = Some(v); self }
-    pub fn callback(mut self, v: &'a str) -> Self { self.callback = Some(v); self }
+    pub fn lang(mut self, v: &'a str) -> Self {
+        self.lang = Some(v);
+        self
+    }
+    pub fn survey_years(mut self, v: &'a str) -> Self {
+        self.survey_years = Some(v);
+        self
+    }
+    pub fn open_years(mut self, v: &'a str) -> Self {
+        self.open_years = Some(v);
+        self
+    }
+    pub fn stats_field(mut self, v: &'a str) -> Self {
+        self.stats_field = Some(v);
+        self
+    }
+    pub fn stats_code(mut self, v: &'a str) -> Self {
+        self.stats_code = Some(v);
+        self
+    }
+    pub fn search_word(mut self, v: &'a str) -> Self {
+        self.search_word = Some(v);
+        self
+    }
+    pub fn search_kind(mut self, v: SearchKind) -> Self {
+        self.search_kind = Some(v);
+        self
+    }
+    pub fn collect_area(mut self, v: CollectArea) -> Self {
+        self.collect_area = Some(v);
+        self
+    }
+    pub fn explanation_get_flg(mut self, v: ExplanationFlag) -> Self {
+        self.explanation_get_flg = Some(v);
+        self
+    }
+    pub fn stats_name_list(mut self, v: StatsNameListFlag) -> Self {
+        self.stats_name_list = Some(v);
+        self
+    }
+    pub fn start_position(mut self, v: u32) -> Self {
+        self.start_position = Some(v);
+        self
+    }
+    pub fn limit(mut self, v: u32) -> Self {
+        self.limit = Some(v);
+        self
+    }
+    pub fn updated_date(mut self, v: &'a str) -> Self {
+        self.updated_date = Some(v);
+        self
+    }
+    pub fn callback(mut self, v: &'a str) -> Self {
+        self.callback = Some(v);
+        self
+    }
 
     pub fn build(self) -> GetStatsListParams<'a> {
         GetStatsListParams {
@@ -237,7 +279,10 @@ mod tests {
         assert_eq!(query_params.len(), 5);
         assert_eq!(query_params.get("searchKind"), Some(&"1".to_string()));
         assert_eq!(query_params.get("collectArea"), Some(&"2".to_string()));
-        assert_eq!(query_params.get("explanationGetFlg"), Some(&"N".to_string()));
+        assert_eq!(
+            query_params.get("explanationGetFlg"),
+            Some(&"N".to_string())
+        );
         assert_eq!(query_params.get("statsNameList"), Some(&"Y".to_string()));
     }
 
@@ -251,7 +296,10 @@ mod tests {
 
         assert_eq!(query_params.len(), 3);
         assert_eq!(query_params.get("lang"), Some(&"E".to_string()));
-        assert_eq!(query_params.get("searchWord"), Some(&"population".to_string()));
+        assert_eq!(
+            query_params.get("searchWord"),
+            Some(&"population".to_string())
+        );
     }
 }
 

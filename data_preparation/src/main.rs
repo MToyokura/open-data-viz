@@ -21,6 +21,30 @@ fn main() {
             }
             return;
         }
+        Some("vegetable-relay-discover") => {
+            let id = std::env::var("ESTAT_APP_ID").unwrap_or_default();
+            if let Err(error) =
+                modules::projects::vegetable_production_relay::discovery::inspect(&id)
+            {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+            return;
+        }
+        Some("vegetable-relay-discovery-replay") => {
+            let path = std::env::args().nth(2).unwrap_or_default();
+            if path.is_empty() {
+                eprintln!("Usage: cargo run -- vegetable-relay-discovery-replay <run-dir>");
+                std::process::exit(2);
+            }
+            if let Err(error) = modules::projects::vegetable_production_relay::discovery::replay(
+                std::path::Path::new(&path),
+            ) {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+            return;
+        }
         Some("vegetable-relay-replay") => {
             let path = std::env::args().nth(2).unwrap_or_default();
             if path.is_empty() {

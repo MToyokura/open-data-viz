@@ -291,89 +291,338 @@ impl<'a> GetStatsDataParamsBuilder<'a> {
         }
     }
 
-    pub fn data_set_id(mut self, v: &'a str) -> Self { self.data_set_id = Some(v); self }
-    pub fn stats_data_id(mut self, v: &'a str) -> Self { self.stats_data_id = Some(v); self }
-    pub fn lv_tab(mut self, v: &'a str) -> Self { self.lv_tab = Some(v); self }
-    pub fn cd_tab(mut self, v: &'a str) -> Self { self.cd_tab = Some(v); self }
-    pub fn cd_tab_from(mut self, v: &'a str) -> Self { self.cd_tab_from = Some(v); self }
-    pub fn cd_tab_to(mut self, v: &'a str) -> Self { self.cd_tab_to = Some(v); self }
-    pub fn lv_time(mut self, v: &'a str) -> Self { self.lv_time = Some(v); self }
-    pub fn cd_time(mut self, v: &'a str) -> Self { self.cd_time = Some(v); self }
-    pub fn cd_time_from(mut self, v: &'a str) -> Self { self.cd_time_from = Some(v); self }
-    pub fn cd_time_to(mut self, v: &'a str) -> Self { self.cd_time_to = Some(v); self }
-    pub fn lv_area(mut self, v: &'a str) -> Self { self.lv_area = Some(v); self }
-    pub fn cd_area(mut self, v: &'a str) -> Self { self.cd_area = Some(v); self }
-    pub fn cd_area_from(mut self, v: &'a str) -> Self { self.cd_area_from = Some(v); self }
-    pub fn cd_area_to(mut self, v: &'a str) -> Self { self.cd_area_to = Some(v); self }
-    pub fn lv_cat01(mut self, v: &'a str) -> Self { self.lv_cat01 = Some(v); self }
-    pub fn cd_cat01(mut self, v: &'a str) -> Self { self.cd_cat01 = Some(v); self }
-    pub fn cd_cat01_from(mut self, v: &'a str) -> Self { self.cd_cat01_from = Some(v); self }
-    pub fn cd_cat01_to(mut self, v: &'a str) -> Self { self.cd_cat01_to = Some(v); self }
-    pub fn lv_cat02(mut self, v: &'a str) -> Self { self.lv_cat02 = Some(v); self }
-    pub fn cd_cat02(mut self, v: &'a str) -> Self { self.cd_cat02 = Some(v); self }
-    pub fn cd_cat02_from(mut self, v: &'a str) -> Self { self.cd_cat02_from = Some(v); self }
-    pub fn cd_cat02_to(mut self, v: &'a str) -> Self { self.cd_cat02_to = Some(v); self }
-    pub fn lv_cat03(mut self, v: &'a str) -> Self { self.lv_cat03 = Some(v); self }
-    pub fn cd_cat03(mut self, v: &'a str) -> Self { self.cd_cat03 = Some(v); self }
-    pub fn cd_cat03_from(mut self, v: &'a str) -> Self { self.cd_cat03_from = Some(v); self }
-    pub fn cd_cat03_to(mut self, v: &'a str) -> Self { self.cd_cat03_to = Some(v); self }
-    pub fn lv_cat04(mut self, v: &'a str) -> Self { self.lv_cat04 = Some(v); self }
-    pub fn cd_cat04(mut self, v: &'a str) -> Self { self.cd_cat04 = Some(v); self }
-    pub fn cd_cat04_from(mut self, v: &'a str) -> Self { self.cd_cat04_from = Some(v); self }
-    pub fn cd_cat04_to(mut self, v: &'a str) -> Self { self.cd_cat04_to = Some(v); self }
-    pub fn lv_cat05(mut self, v: &'a str) -> Self { self.lv_cat05 = Some(v); self }
-    pub fn cd_cat05(mut self, v: &'a str) -> Self { self.cd_cat05 = Some(v); self }
-    pub fn cd_cat05_from(mut self, v: &'a str) -> Self { self.cd_cat05_from = Some(v); self }
-    pub fn cd_cat05_to(mut self, v: &'a str) -> Self { self.cd_cat05_to = Some(v); self }
-    pub fn lv_cat06(mut self, v: &'a str) -> Self { self.lv_cat06 = Some(v); self }
-    pub fn cd_cat06(mut self, v: &'a str) -> Self { self.cd_cat06 = Some(v); self }
-    pub fn cd_cat06_from(mut self, v: &'a str) -> Self { self.cd_cat06_from = Some(v); self }
-    pub fn cd_cat06_to(mut self, v: &'a str) -> Self { self.cd_cat06_to = Some(v); self }
-    pub fn lv_cat07(mut self, v: &'a str) -> Self { self.lv_cat07 = Some(v); self }
-    pub fn cd_cat07(mut self, v: &'a str) -> Self { self.cd_cat07 = Some(v); self }
-    pub fn cd_cat07_from(mut self, v: &'a str) -> Self { self.cd_cat07_from = Some(v); self }
-    pub fn cd_cat07_to(mut self, v: &'a str) -> Self { self.cd_cat07_to = Some(v); self }
-    pub fn lv_cat08(mut self, v: &'a str) -> Self { self.lv_cat08 = Some(v); self }
-    pub fn cd_cat08(mut self, v: &'a str) -> Self { self.cd_cat08 = Some(v); self }
-    pub fn cd_cat08_from(mut self, v: &'a str) -> Self { self.cd_cat08_from = Some(v); self }
-    pub fn cd_cat08_to(mut self, v: &'a str) -> Self { self.cd_cat08_to = Some(v); self }
-    pub fn lv_cat09(mut self, v: &'a str) -> Self { self.lv_cat09 = Some(v); self }
-    pub fn cd_cat09(mut self, v: &'a str) -> Self { self.cd_cat09 = Some(v); self }
-    pub fn cd_cat09_from(mut self, v: &'a str) -> Self { self.cd_cat09_from = Some(v); self }
-    pub fn cd_cat09_to(mut self, v: &'a str) -> Self { self.cd_cat09_to = Some(v); self }
-    pub fn lv_cat10(mut self, v: &'a str) -> Self { self.lv_cat10 = Some(v); self }
-    pub fn cd_cat10(mut self, v: &'a str) -> Self { self.cd_cat10 = Some(v); self }
-    pub fn cd_cat10_from(mut self, v: &'a str) -> Self { self.cd_cat10_from = Some(v); self }
-    pub fn cd_cat10_to(mut self, v: &'a str) -> Self { self.cd_cat10_to = Some(v); self }
-    pub fn lv_cat11(mut self, v: &'a str) -> Self { self.lv_cat11 = Some(v); self }
-    pub fn cd_cat11(mut self, v: &'a str) -> Self { self.cd_cat11 = Some(v); self }
-    pub fn cd_cat11_from(mut self, v: &'a str) -> Self { self.cd_cat11_from = Some(v); self }
-    pub fn cd_cat11_to(mut self, v: &'a str) -> Self { self.cd_cat11_to = Some(v); self }
-    pub fn lv_cat12(mut self, v: &'a str) -> Self { self.lv_cat12 = Some(v); self }
-    pub fn cd_cat12(mut self, v: &'a str) -> Self { self.cd_cat12 = Some(v); self }
-    pub fn cd_cat12_from(mut self, v: &'a str) -> Self { self.cd_cat12_from = Some(v); self }
-    pub fn cd_cat12_to(mut self, v: &'a str) -> Self { self.cd_cat12_to = Some(v); self }
-    pub fn lv_cat13(mut self, v: &'a str) -> Self { self.lv_cat13 = Some(v); self }
-    pub fn cd_cat13(mut self, v: &'a str) -> Self { self.cd_cat13 = Some(v); self }
-    pub fn cd_cat13_from(mut self, v: &'a str) -> Self { self.cd_cat13_from = Some(v); self }
-    pub fn cd_cat13_to(mut self, v: &'a str) -> Self { self.cd_cat13_to = Some(v); self }
-    pub fn lv_cat14(mut self, v: &'a str) -> Self { self.lv_cat14 = Some(v); self }
-    pub fn cd_cat14(mut self, v: &'a str) -> Self { self.cd_cat14 = Some(v); self }
-    pub fn cd_cat14_from(mut self, v: &'a str) -> Self { self.cd_cat14_from = Some(v); self }
-    pub fn cd_cat14_to(mut self, v: &'a str) -> Self { self.cd_cat14_to = Some(v); self }
-    pub fn lv_cat15(mut self, v: &'a str) -> Self { self.lv_cat15 = Some(v); self }
-    pub fn cd_cat15(mut self, v: &'a str) -> Self { self.cd_cat15 = Some(v); self }
-    pub fn cd_cat15_from(mut self, v: &'a str) -> Self { self.cd_cat15_from = Some(v); self }
-    pub fn cd_cat15_to(mut self, v: &'a str) -> Self { self.cd_cat15_to = Some(v); self }
-    pub fn start_position(mut self, v: u32) -> Self { self.start_position = Some(v); self }
-    pub fn limit(mut self, v: u32) -> Self { self.limit = Some(v); self }
-    pub fn meta_get_flg(mut self, v: &'a str) -> Self { self.meta_get_flg = Some(v); self }
-    pub fn cnt_get_flg(mut self, v: &'a str) -> Self { self.cnt_get_flg = Some(v); self }
-    pub fn explanation_get_flg(mut self, v: ExplanationFlag) -> Self { self.explanation_get_flg = Some(v); self }
-    pub fn annotation_get_flg(mut self, v: &'a str) -> Self { self.annotation_get_flg = Some(v); self }
-    pub fn replace_sp_char(mut self, v: u32) -> Self { self.replace_sp_char = Some(v); self }
-    pub fn callback(mut self, v: &'a str) -> Self { self.callback = Some(v); self }
-    pub fn section_header_flg(mut self, v: u32) -> Self { self.section_header_flg = Some(v); self }
+    pub fn data_set_id(mut self, v: &'a str) -> Self {
+        self.data_set_id = Some(v);
+        self
+    }
+    pub fn stats_data_id(mut self, v: &'a str) -> Self {
+        self.stats_data_id = Some(v);
+        self
+    }
+    pub fn lv_tab(mut self, v: &'a str) -> Self {
+        self.lv_tab = Some(v);
+        self
+    }
+    pub fn cd_tab(mut self, v: &'a str) -> Self {
+        self.cd_tab = Some(v);
+        self
+    }
+    pub fn cd_tab_from(mut self, v: &'a str) -> Self {
+        self.cd_tab_from = Some(v);
+        self
+    }
+    pub fn cd_tab_to(mut self, v: &'a str) -> Self {
+        self.cd_tab_to = Some(v);
+        self
+    }
+    pub fn lv_time(mut self, v: &'a str) -> Self {
+        self.lv_time = Some(v);
+        self
+    }
+    pub fn cd_time(mut self, v: &'a str) -> Self {
+        self.cd_time = Some(v);
+        self
+    }
+    pub fn cd_time_from(mut self, v: &'a str) -> Self {
+        self.cd_time_from = Some(v);
+        self
+    }
+    pub fn cd_time_to(mut self, v: &'a str) -> Self {
+        self.cd_time_to = Some(v);
+        self
+    }
+    pub fn lv_area(mut self, v: &'a str) -> Self {
+        self.lv_area = Some(v);
+        self
+    }
+    pub fn cd_area(mut self, v: &'a str) -> Self {
+        self.cd_area = Some(v);
+        self
+    }
+    pub fn cd_area_from(mut self, v: &'a str) -> Self {
+        self.cd_area_from = Some(v);
+        self
+    }
+    pub fn cd_area_to(mut self, v: &'a str) -> Self {
+        self.cd_area_to = Some(v);
+        self
+    }
+    pub fn lv_cat01(mut self, v: &'a str) -> Self {
+        self.lv_cat01 = Some(v);
+        self
+    }
+    pub fn cd_cat01(mut self, v: &'a str) -> Self {
+        self.cd_cat01 = Some(v);
+        self
+    }
+    pub fn cd_cat01_from(mut self, v: &'a str) -> Self {
+        self.cd_cat01_from = Some(v);
+        self
+    }
+    pub fn cd_cat01_to(mut self, v: &'a str) -> Self {
+        self.cd_cat01_to = Some(v);
+        self
+    }
+    pub fn lv_cat02(mut self, v: &'a str) -> Self {
+        self.lv_cat02 = Some(v);
+        self
+    }
+    pub fn cd_cat02(mut self, v: &'a str) -> Self {
+        self.cd_cat02 = Some(v);
+        self
+    }
+    pub fn cd_cat02_from(mut self, v: &'a str) -> Self {
+        self.cd_cat02_from = Some(v);
+        self
+    }
+    pub fn cd_cat02_to(mut self, v: &'a str) -> Self {
+        self.cd_cat02_to = Some(v);
+        self
+    }
+    pub fn lv_cat03(mut self, v: &'a str) -> Self {
+        self.lv_cat03 = Some(v);
+        self
+    }
+    pub fn cd_cat03(mut self, v: &'a str) -> Self {
+        self.cd_cat03 = Some(v);
+        self
+    }
+    pub fn cd_cat03_from(mut self, v: &'a str) -> Self {
+        self.cd_cat03_from = Some(v);
+        self
+    }
+    pub fn cd_cat03_to(mut self, v: &'a str) -> Self {
+        self.cd_cat03_to = Some(v);
+        self
+    }
+    pub fn lv_cat04(mut self, v: &'a str) -> Self {
+        self.lv_cat04 = Some(v);
+        self
+    }
+    pub fn cd_cat04(mut self, v: &'a str) -> Self {
+        self.cd_cat04 = Some(v);
+        self
+    }
+    pub fn cd_cat04_from(mut self, v: &'a str) -> Self {
+        self.cd_cat04_from = Some(v);
+        self
+    }
+    pub fn cd_cat04_to(mut self, v: &'a str) -> Self {
+        self.cd_cat04_to = Some(v);
+        self
+    }
+    pub fn lv_cat05(mut self, v: &'a str) -> Self {
+        self.lv_cat05 = Some(v);
+        self
+    }
+    pub fn cd_cat05(mut self, v: &'a str) -> Self {
+        self.cd_cat05 = Some(v);
+        self
+    }
+    pub fn cd_cat05_from(mut self, v: &'a str) -> Self {
+        self.cd_cat05_from = Some(v);
+        self
+    }
+    pub fn cd_cat05_to(mut self, v: &'a str) -> Self {
+        self.cd_cat05_to = Some(v);
+        self
+    }
+    pub fn lv_cat06(mut self, v: &'a str) -> Self {
+        self.lv_cat06 = Some(v);
+        self
+    }
+    pub fn cd_cat06(mut self, v: &'a str) -> Self {
+        self.cd_cat06 = Some(v);
+        self
+    }
+    pub fn cd_cat06_from(mut self, v: &'a str) -> Self {
+        self.cd_cat06_from = Some(v);
+        self
+    }
+    pub fn cd_cat06_to(mut self, v: &'a str) -> Self {
+        self.cd_cat06_to = Some(v);
+        self
+    }
+    pub fn lv_cat07(mut self, v: &'a str) -> Self {
+        self.lv_cat07 = Some(v);
+        self
+    }
+    pub fn cd_cat07(mut self, v: &'a str) -> Self {
+        self.cd_cat07 = Some(v);
+        self
+    }
+    pub fn cd_cat07_from(mut self, v: &'a str) -> Self {
+        self.cd_cat07_from = Some(v);
+        self
+    }
+    pub fn cd_cat07_to(mut self, v: &'a str) -> Self {
+        self.cd_cat07_to = Some(v);
+        self
+    }
+    pub fn lv_cat08(mut self, v: &'a str) -> Self {
+        self.lv_cat08 = Some(v);
+        self
+    }
+    pub fn cd_cat08(mut self, v: &'a str) -> Self {
+        self.cd_cat08 = Some(v);
+        self
+    }
+    pub fn cd_cat08_from(mut self, v: &'a str) -> Self {
+        self.cd_cat08_from = Some(v);
+        self
+    }
+    pub fn cd_cat08_to(mut self, v: &'a str) -> Self {
+        self.cd_cat08_to = Some(v);
+        self
+    }
+    pub fn lv_cat09(mut self, v: &'a str) -> Self {
+        self.lv_cat09 = Some(v);
+        self
+    }
+    pub fn cd_cat09(mut self, v: &'a str) -> Self {
+        self.cd_cat09 = Some(v);
+        self
+    }
+    pub fn cd_cat09_from(mut self, v: &'a str) -> Self {
+        self.cd_cat09_from = Some(v);
+        self
+    }
+    pub fn cd_cat09_to(mut self, v: &'a str) -> Self {
+        self.cd_cat09_to = Some(v);
+        self
+    }
+    pub fn lv_cat10(mut self, v: &'a str) -> Self {
+        self.lv_cat10 = Some(v);
+        self
+    }
+    pub fn cd_cat10(mut self, v: &'a str) -> Self {
+        self.cd_cat10 = Some(v);
+        self
+    }
+    pub fn cd_cat10_from(mut self, v: &'a str) -> Self {
+        self.cd_cat10_from = Some(v);
+        self
+    }
+    pub fn cd_cat10_to(mut self, v: &'a str) -> Self {
+        self.cd_cat10_to = Some(v);
+        self
+    }
+    pub fn lv_cat11(mut self, v: &'a str) -> Self {
+        self.lv_cat11 = Some(v);
+        self
+    }
+    pub fn cd_cat11(mut self, v: &'a str) -> Self {
+        self.cd_cat11 = Some(v);
+        self
+    }
+    pub fn cd_cat11_from(mut self, v: &'a str) -> Self {
+        self.cd_cat11_from = Some(v);
+        self
+    }
+    pub fn cd_cat11_to(mut self, v: &'a str) -> Self {
+        self.cd_cat11_to = Some(v);
+        self
+    }
+    pub fn lv_cat12(mut self, v: &'a str) -> Self {
+        self.lv_cat12 = Some(v);
+        self
+    }
+    pub fn cd_cat12(mut self, v: &'a str) -> Self {
+        self.cd_cat12 = Some(v);
+        self
+    }
+    pub fn cd_cat12_from(mut self, v: &'a str) -> Self {
+        self.cd_cat12_from = Some(v);
+        self
+    }
+    pub fn cd_cat12_to(mut self, v: &'a str) -> Self {
+        self.cd_cat12_to = Some(v);
+        self
+    }
+    pub fn lv_cat13(mut self, v: &'a str) -> Self {
+        self.lv_cat13 = Some(v);
+        self
+    }
+    pub fn cd_cat13(mut self, v: &'a str) -> Self {
+        self.cd_cat13 = Some(v);
+        self
+    }
+    pub fn cd_cat13_from(mut self, v: &'a str) -> Self {
+        self.cd_cat13_from = Some(v);
+        self
+    }
+    pub fn cd_cat13_to(mut self, v: &'a str) -> Self {
+        self.cd_cat13_to = Some(v);
+        self
+    }
+    pub fn lv_cat14(mut self, v: &'a str) -> Self {
+        self.lv_cat14 = Some(v);
+        self
+    }
+    pub fn cd_cat14(mut self, v: &'a str) -> Self {
+        self.cd_cat14 = Some(v);
+        self
+    }
+    pub fn cd_cat14_from(mut self, v: &'a str) -> Self {
+        self.cd_cat14_from = Some(v);
+        self
+    }
+    pub fn cd_cat14_to(mut self, v: &'a str) -> Self {
+        self.cd_cat14_to = Some(v);
+        self
+    }
+    pub fn lv_cat15(mut self, v: &'a str) -> Self {
+        self.lv_cat15 = Some(v);
+        self
+    }
+    pub fn cd_cat15(mut self, v: &'a str) -> Self {
+        self.cd_cat15 = Some(v);
+        self
+    }
+    pub fn cd_cat15_from(mut self, v: &'a str) -> Self {
+        self.cd_cat15_from = Some(v);
+        self
+    }
+    pub fn cd_cat15_to(mut self, v: &'a str) -> Self {
+        self.cd_cat15_to = Some(v);
+        self
+    }
+    pub fn start_position(mut self, v: u32) -> Self {
+        self.start_position = Some(v);
+        self
+    }
+    pub fn limit(mut self, v: u32) -> Self {
+        self.limit = Some(v);
+        self
+    }
+    pub fn meta_get_flg(mut self, v: &'a str) -> Self {
+        self.meta_get_flg = Some(v);
+        self
+    }
+    pub fn cnt_get_flg(mut self, v: &'a str) -> Self {
+        self.cnt_get_flg = Some(v);
+        self
+    }
+    pub fn explanation_get_flg(mut self, v: ExplanationFlag) -> Self {
+        self.explanation_get_flg = Some(v);
+        self
+    }
+    pub fn annotation_get_flg(mut self, v: &'a str) -> Self {
+        self.annotation_get_flg = Some(v);
+        self
+    }
+    pub fn replace_sp_char(mut self, v: u32) -> Self {
+        self.replace_sp_char = Some(v);
+        self
+    }
+    pub fn callback(mut self, v: &'a str) -> Self {
+        self.callback = Some(v);
+        self
+    }
+    pub fn section_header_flg(mut self, v: u32) -> Self {
+        self.section_header_flg = Some(v);
+        self
+    }
 
     pub fn build(self) -> GetStatsDataParams<'a> {
         GetStatsDataParams {
