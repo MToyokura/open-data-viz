@@ -784,12 +784,12 @@ pub fn get_stats_data(params: GetStatsDataParams) -> Result<String, Box<dyn Erro
     let query_params = construct_query_params_stats_data(&params);
 
     let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData";
-    let request = GetRequestBuilder {
+    let mut request = GetRequestBuilder {
         url,
         params: Some(&query_params),
     };
 
-    let decoded_json_string = decode_escaped_json_string(&get(&request)?)?;
+    let decoded_json_string = decode_escaped_json_string(&get(&mut request)?)?;
 
     Ok(decoded_json_string)
 }

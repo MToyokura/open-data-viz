@@ -4,6 +4,39 @@ use modules::prefectures::update_prefectures;
 use modules::projects::commodity_prices::process_commodity_prices::process_commodity_prices;
 
 fn main() {
+    match std::env::args().nth(1).as_deref() {
+        Some("vegetable-relay-inspect") => {
+            let id = match std::env::var("ESTAT_APP_ID") {
+                Ok(id) => id,
+                Err(_) => {
+                    eprintln!("ESTAT_APP_ID not found");
+                    std::process::exit(1);
+                }
+            };
+            if let Err(error) =
+                modules::projects::vegetable_production_relay::inspection::inspect_stats_list(&id)
+            {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+            return;
+        }
+        Some("vegetable-relay-replay") => {
+            let path = std::env::args().nth(2).unwrap_or_default();
+            if path.is_empty() {
+                eprintln!("Usage: cargo run -- vegetable-relay-replay <run-dir>");
+                std::process::exit(2);
+            }
+            if let Err(error) = modules::projects::vegetable_production_relay::inspection::replay(
+                std::path::Path::new(&path),
+            ) {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+            return;
+        }
+        _ => {}
+    }
     let command = std::env::args().nth(1);
     match command.as_deref() {
         Some("--help") | Some("-h") => {
@@ -44,7 +77,5 @@ fn main() {
 }
 
 fn print_usage() {
-    println!(
-        "Usage: cargo run -- [commodity-prices|prefectures-update]"
-    );
+    println!("Usage: cargo run -- [commodity-prices|prefectures-update]");
 }
