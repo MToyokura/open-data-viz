@@ -47,3 +47,17 @@ cargo run -- vegetable-relay-metadata-report inspections/vegetable_production_re
 ```
 
 The inspection preserves exact `getMetaInfo` response bytes in `response.bin`, sanitized `capture.json`, and an `inventory.json` / `inventory.md` retaining source classification codes, names, levels, parent references, and source units where present. Replay validates the response checksum offline. Reports never overwrite existing files. Treat the inventory as **unverified evidence**, not an origin/prefecture/market/time mapping. The M3 gate remains blocked until documented interpretations are reviewed and checked against real captured metadata. Do not publish statistical observations from this inspection.
+
+
+## M3 extension: repeated-region semantic evidence (still blocked)
+
+For 2021 (`0002008540`), 2022 (`0002120386`) and 2023 (`0002114330`), use the corresponding **replay-verified** metadata run directory:
+
+```sh
+cargo run -- vegetable-relay-semantic-blocks inspections/vegetable_production_relay/runs/metadata-<run-id>
+export ESTAT_APP_ID='your e-Stat application ID'
+cargo run -- vegetable-relay-semantic-probe inspections/vegetable_production_relay/runs/metadata-<run-id> 1001
+cargo run -- vegetable-relay-semantic-replay inspections/vegetable_production_relay/runs/semantic-probe-<run-id> inspections/vegetable_production_relay/runs/metadata-<run-id>
+```
+
+`semantic_blocks.md` records exact source-code boundaries for the 13 repeated 12-label blocks **without assigning month names**. The probe explicitly filters one valid `cat03` code and requests at most 10 `getStatsData` rows. It stores exact final bytes, checksum, and sanitized request metadata, and can be verified offline against the same metadata capture. `sample.json` retains raw observation references and lexical values only; it is inspection evidence, **not a normalized dataset**. Failures leave evidence in ignored run directories; source values may be sensitive and must be sanitized before committing. Month-to-block correspondence, total-block identity, geographic coverage and unit comparability remain unverified. Limited samples cannot prove any of them. No candidate selection or M4 data publication occurs.

@@ -45,6 +45,65 @@ fn main() {
             }
             return;
         }
+        Some("vegetable-relay-semantic-blocks") => {
+            let path = std::env::args().nth(2).unwrap_or_default();
+            if path.is_empty() {
+                eprintln!("Usage: cargo run -- vegetable-relay-semantic-blocks <metadata-run-dir>");
+                std::process::exit(2);
+            }
+            match modules::projects::vegetable_production_relay::semantic_probe::block_report(
+                std::path::Path::new(&path),
+            ) {
+                Ok(output) => println!("Block evidence: {} (M3 remains blocked)", output.display()),
+                Err(e) => {
+                    eprintln!("{e}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        Some("vegetable-relay-semantic-probe") => {
+            let path = std::env::args().nth(2).unwrap_or_default();
+            let code = std::env::args().nth(3).unwrap_or_default();
+            if path.is_empty() || code.is_empty() {
+                eprintln!(
+                    "Usage: cargo run -- vegetable-relay-semantic-probe <metadata-run-dir> <cat03-code>"
+                );
+                std::process::exit(2);
+            }
+            let id = std::env::var("ESTAT_APP_ID").unwrap_or_default();
+            match modules::projects::vegetable_production_relay::semantic_probe::probe(
+                &id,
+                std::path::Path::new(&path),
+                &code,
+            ) {
+                Ok(output) => println!("Probe captured: {} (M3 remains blocked)", output.display()),
+                Err(e) => {
+                    eprintln!("{e}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        Some("vegetable-relay-semantic-replay") => {
+            let probe = std::env::args().nth(2).unwrap_or_default();
+            let meta = std::env::args().nth(3).unwrap_or_default();
+            if probe.is_empty() || meta.is_empty() {
+                eprintln!(
+                    "Usage: cargo run -- vegetable-relay-semantic-replay <probe-run-dir> <metadata-run-dir>"
+                );
+                std::process::exit(2);
+            }
+            if let Err(e) = modules::projects::vegetable_production_relay::semantic_probe::replay(
+                std::path::Path::new(&probe),
+                std::path::Path::new(&meta),
+            ) {
+                eprintln!("{e}");
+                std::process::exit(1);
+            }
+            println!("Probe replay verified; M3 remains blocked");
+            return;
+        }
         Some("vegetable-relay-metadata-inspect") => {
             let id = std::env::var("ESTAT_APP_ID").unwrap_or_default();
             let table = std::env::args().nth(2).unwrap_or_default();
