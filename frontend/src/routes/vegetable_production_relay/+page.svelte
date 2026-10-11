@@ -21,7 +21,7 @@
       ),
     ].sort(),
   );
-  let selectedMonth = $state("2022-01");
+  let selectedMonth = $state("2021-01");
   let selectedPrefecture = $state("北海道");
   let scale = $state(5);
 

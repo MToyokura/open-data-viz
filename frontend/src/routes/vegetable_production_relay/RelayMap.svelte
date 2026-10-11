@@ -163,7 +163,9 @@
       map = L.map(host, {
         zoomControl: true,
         attributionControl: true,
+        zoomSnap: 0.5,
         scrollWheelZoom: true,
+        wheelPxPerZoomLevel: 240,
       });
       map.attributionControl.setPrefix("Leaflet");
       map.attributionControl.addAttribution(
