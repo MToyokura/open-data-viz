@@ -2,7 +2,11 @@
 
 ## Current status (2026-10-11)
 
-Raw captures for the selected 2020–2024 daikon tables are present. Offline replay passed for the 2021–2024 tables checked in the current investigation. The 2024 table has explicit month codes; its classification and grid-coverage findings are recorded in [`2024_daikon_validation.md`](2024_daikon_validation.md) and [`2024_daikon_codebook.json`](2024_daikon_codebook.json).
+The next milestone is **M6-A historical expansion and unified normalization**, before aggregation is stabilized. The working coverage target is 2012–2025, with 2026 supported only as explicitly partial data when available. Current source findings and compatibility limits are in [`YEAR_EXPANSION_RESEARCH.md`](YEAR_EXPANSION_RESEARCH.md); the year list is a research scope, not a claim that all years are normalized.
+
+The repository contains raw captures and inspection artifacts for selected 2020–2024 daikon sources. The source shapes differ: 2020 and older use separate period tables, 2021–2023 use repeated `cat03` blocks, and 2024 uses an explicit time axis. 2025 final statistics were published by MAFF on 2026-09-30, but the exact daikon flow table still needs discovery and metadata verification. The long-term series reaching back to 1985 is an annual city-class series, not the origin-to-consumer-region flow. A generated availability manifest must report these series separately and only expose a year after its actual coverage has been checked.
+
+The 2024 table has explicit month codes; its classification and grid-coverage findings are recorded in [`2024_daikon_validation.md`](2024_daikon_validation.md) and [`2024_daikon_codebook.json`](2024_daikon_codebook.json).
 
 The **2021–2023 temporal mapping is now evidenced** for tables `0002008540`, `0002120386` and `0002114330`: official e-Stat spreadsheets labelled `計` and January–December each uniquely match one `cat03` block across all 1,152 cells. Block 1 (`1001`–`1012`) is the annual `計`; blocks 2–13 (`1013`–`1156`) are January–December in order. See [`2021_2023_temporal_evidence.md`](2021_2023_temporal_evidence.md), [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json) and [`verify_temporal_mapping.py`](verify_temporal_mapping.py).
 

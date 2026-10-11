@@ -1,6 +1,6 @@
 # Vegetable Production Relay — Evidence-Driven Reimplementation Plan
 
-**Status:** Proposed  
+**Status:** Active; milestones M1–M5 have produced inspection and normalization artifacts
 **Scope:** Rust data preparation, inspection, validation, publication, and eventual SvelteKit visualization  
 **Proposed location:** `plans/reimplement_vegetable_production_relay.md`
 
@@ -8,7 +8,7 @@
 
 The previous `vegetable_production_relay` implementation combined e-Stat discovery, data acquisition, CSV parsing, metadata interpretation, validation, aggregation, and publication in a large pipeline. Its complexity made it difficult to determine whether the published quantities were statistically correct. The implementation has been removed, and **this project starts from scratch**.
 
-Build a small, observable pipeline whose values can be traced back to the original e-Stat responses and independently verified. **Do not use the old output as a correctness oracle.** It is useful for identifying requirements and possible edge cases, but any statistical assumption must be re-established from source evidence.
+Build an observable, year-independent pipeline whose values can be traced back to the original e-Stat responses and independently verified. The initial integration target is daikon, with source coverage researched from 2012 through 2025 and optional partial 2026 data. **Do not use the old output as a correctness oracle.** It is useful for identifying requirements and possible edge cases, but any statistical assumption must be re-established from source evidence.
 
 This plan incorporates the inspection-first principles of the former `plans/refactor_vegetable_relay_data_fetching.md`, adjusted from refactoring to greenfield reimplementation.
 
@@ -42,7 +42,7 @@ The pipeline must fail closed: ambiguous semantics or incomplete required data c
 
 ```text
 e-Stat getStatsList
-    -> discovered table candidates -> table selection report
+    -> discovered table candidates by statistics code/release -> table selection report
 
 e-Stat getMetaInfo
     -> captured metadata -> verified dimension/classification mapping
@@ -52,7 +52,8 @@ e-Stat getSimpleStatsData
 
 raw CSV + verified metadata
     -> typed source observations
-    -> normalized observations
+    -> source-shape adapter (separate-period / repeated-block / explicit-time)
+    -> common normalized observations with source lineage
     -> semantic/coverage validation
     -> monthly prefecture aggregation
     -> independent reference comparisons
@@ -60,6 +61,8 @@ raw CSV + verified metadata
     -> immutable published generation + manifest
     -> SvelteKit consumer
 ```
+
+The application availability manifest is generated from normalized artifacts and validation reports. It must describe each series' actual grain and coverage (`origin-to-region monthly flow`, annual city-class series, or another documented type), completeness, release status, and source provenance. It must never infer support from a configured list of years. The UI may expose partial or annual-only datasets with an explicit type, but must not present them as complete monthly flows.
 
 **Design constraint:** Do not combine these steps in a single large `pipeline.rs`. That file should orchestrate components rather than implement their business logic. Use typed records for boundaries, retaining source table IDs and source classification codes for traceability. Prefer explicit error types and structured validation findings over silent filtering or `unwrap()`.
 
@@ -181,7 +184,19 @@ The CLI shape is not fixed yet; implement these concepts before stabilizing flag
 
 **Deliverable:** Validation report and stable rules covered by tests.
 
-### M6 — Aggregate and independently verify reference values
+### M6-A — Historical expansion and unified normalization (**next milestone**)
+
+**Target:** First integrate the inspected 2020–2025 releases while preserving the existing 2021–2024 evidence and adapters; investigate 2012–2019 for the same flow grain. Support 2026 only as a separately identified partial release when source observations exist. The 1985-onward daikon long-term city-class series is a distinct series type, not flow data.
+
+**Implement:** Keep discovery keyed to the e-Stat statistics code and select table IDs from current replayable catalogues rather than year-specific constants. Introduce adapters for (1) separate annual/monthly tables, (2) repeated temporal blocks, and (3) an explicit time axis. Define a provisional common normalized record after inspecting representative early, transition, and recent releases. Preserve source values, source codes, table/revision IDs, unit, period mapping, and mapping evidence. Generate an availability manifest from validated build artifacts, with per-series grain and completeness.
+
+**Inspect:** Refresh the 2025 catalogue and verify the exact daikon flow candidate. Replay and verify 2020. Inventory 2012–2019 by metadata/schema fingerprints, beginning with 2012 and apparent transition years. Keep the long-term city-class series and partial 2026 results in separate coverage profiles.
+
+**Gate:** No year is advertised as a monthly flow until its specific table, period coverage, geography, measures, unit, and source revision have been checked. A year may have annual-only or partial availability without being dropped, but the manifest and UI must say so. No cross-release code join is inferred from matching labels or numeric codes.
+
+**Deliverable:** Evidence-backed year/series inventory, tested source adapters, common provisional observations, and a generated coverage manifest. See [`data_preparation/inspections/vegetable_production_relay/YEAR_EXPANSION_RESEARCH.md`](../data_preparation/inspections/vegetable_production_relay/YEAR_EXPANSION_RESEARCH.md).
+
+### M6-B — Aggregate and independently verify reference values
 
 **Proposed quantity:** For vegetable `v`, month `m`, and origin prefecture `p`, sum reported quantities across **verified non-overlapping contributing destination markets** `K`:
 
@@ -209,7 +224,17 @@ This formula is **provisional** until M3–M5 establish units and market meaning
 
 **Deliverable:** Tested publisher and refresh mechanism.
 
-### M8 — Expand vegetables and restore frontend
+### M8 — Coverage-aware frontend
+
+**Implement:** Restore the SvelteKit route/map against the generated availability manifest and the common aggregate format. Build year/series selectors from the manifest; distinguish complete monthly flows, partial periods, and annual-only historical series in the UI.
+
+**Inspect:** UI examples that trace to source table/revision and show coverage state for each selected series.
+
+**Gate:** Unsupported years and mismatched grains cannot be rendered as flows; missing, suppressed, and incomplete values remain distinct from zero.
+
+**Deliverable:** Frontend integration for the validated common format and explicit coverage profiles.
+
+### M9 — Expand vegetables
 
 **Implement:** Add vegetables incrementally, choosing cases that stress different observed classifications and exceptional statuses. Only then restore the SvelteKit route/map and dataset consumption. Display missing, suppressed, and incomplete values distinctly from zero.
 
@@ -270,7 +295,7 @@ Work in small PRs aligned with milestones, optionally splitting any milestone if
 ## 10. Non-goals until correctness is established
 
 - Reproducing the old pipeline's outputs byte-for-byte.
-- Supporting all vegetables or historical years from the first iteration.
+- Supporting every vegetable at once. Historical daikon expansion is now part of the next milestone, but other commodities remain incremental.
 - Optimizing requests/parallelism before acquisition and data semantics are verified.
 - Building a generic ETL/inspection framework unrelated to the relay.
 - Treating a rendered map as proof that underlying data is correct.
