@@ -3,12 +3,20 @@ import { svelteTesting } from "@testing-library/svelte/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vitest/config";
 
+const runtime = /** @type {unknown} */ (globalThis);
+const { process: nodeProcess } =
+  /** @type {{ process: { argv: string[]; env: Record<string, string | undefined> } }} */ (
+    runtime
+  );
+
 export default defineConfig({
   plugins: [
     sveltekit({
       adapter: adapter({ fallback: "404.html" }),
       paths: {
-        base: process.argv.includes("dev") ? "" : process.env.BASE_PATH,
+        base: nodeProcess.argv.includes("dev")
+          ? ""
+          : /** @type {`/${string}` | undefined} */ (nodeProcess.env.BASE_PATH),
       },
     }),
   ],

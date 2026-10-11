@@ -446,12 +446,6 @@
       width: 3.25rem;
     }
   }
-  .data-notice {
-    margin-bottom: 1rem;
-    padding: 0.75rem 1rem;
-    border-left: 4px solid #999;
-    background: #f5f5f5;
-  }
   .selection-panel {
     margin-top: 1rem;
     padding: 1rem;
