@@ -2,8 +2,8 @@
   import { VITE_ROOT_PATH } from "$lib/paths";
 </script>
 
-<div class="home-page">
-  <main>
+<div class="page-shell">
+  <main class="page-content">
     <h1>Open Data Viz</h1>
     <p>
       データの加工から可視化までのすべての工程を公開して、自由に利用できるようにすることをコンセプトに趣味で始めたプロジェクトです。
@@ -47,21 +47,3 @@
     </p>
   </main>
 </div>
-
-<style>
-  .home-page {
-    width: 100%;
-  }
-
-  main {
-    max-width: 1280px;
-    margin: auto;
-    padding: 1.5rem;
-  }
-
-  @media (max-width: 700px) {
-    main {
-      padding: 1rem;
-    }
-  }
-</style>

@@ -69,8 +69,8 @@
   <title>主要品目の都市別小売価格 | Open Data Viz</title>
 </svelte:head>
 
-<div class="commodity-page">
-  <main>
+<div class="page-shell">
+  <main class="page-content">
     <h1>主要品目の都市別小売価格</h1>
     <div>
       {#if cat02LookupResult.isLoading || areaLookupResult.isLoading}
@@ -121,16 +121,6 @@
 </div>
 
 <style>
-  .commodity-page {
-    width: 100%;
-  }
-
-  main {
-    max-width: 1280px;
-    margin: auto;
-    padding: 1.5rem;
-  }
-
   .added-items {
     max-width: 32rem;
     margin-top: 1rem;
@@ -191,11 +181,5 @@
   .reset-button {
     display: block;
     margin-top: 1rem;
-  }
-
-  @media (max-width: 700px) {
-    main {
-      padding: 1rem;
-    }
   }
 </style>

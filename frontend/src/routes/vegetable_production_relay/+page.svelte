@@ -75,8 +75,8 @@
   <title>野菜の産地リレー | Open Data Viz</title>
 </svelte:head>
 
-<div class="relay-page">
-  <main>
+<div class="relay-page page-shell">
+  <main class="page-content">
     <header class="page-heading">
       <div>
         <h1>野菜の産地リレー</h1>
@@ -289,11 +289,6 @@
     background: #fff;
     color: #28312c;
   }
-  main {
-    max-width: 1280px;
-    margin: auto;
-    padding: 1.5rem;
-  }
   .page-heading,
   .controls,
   .month-control,
@@ -403,9 +398,6 @@
     word-break: break-all;
   }
   @media (max-width: 700px) {
-    main {
-      padding: 1rem;
-    }
     .controls,
     .month-control {
       align-items: stretch;
