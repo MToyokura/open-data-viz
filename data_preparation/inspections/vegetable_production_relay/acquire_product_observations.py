@@ -17,7 +17,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
 INVENTORY = ROOT / "product_inventory_2021_2023.json"
-EXECUTABLE = Path(__file__).resolve().parents[2] / "target" / "debug" / "open_data_viz_2"
+EXECUTABLE = Path(
+    os.environ.get(
+        "OPEN_DATA_VIZ_EXECUTABLE",
+        Path(__file__).resolve().parents[2] / "target" / "debug" / "open_data_viz_2",
+    )
+)
 
 
 def capture_for_table(table_id, metadata_run):

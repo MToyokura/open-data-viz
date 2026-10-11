@@ -67,6 +67,9 @@ def main():
                 ]
             )
             normalized.append(str(output_dir / "m5b_inspection_only.json"))
+        normalized_hashes = [
+            hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in normalized
+        ]
 
         product_json = DATA_DIR / f"{product['key']}.json"
         if product_json.exists():
@@ -81,7 +84,15 @@ def main():
                 year.get("temporal_mapping_sha256") == mapping_sha
                 for year in existing["years"]
             )
-            if existing.get("commodity_label") == product["label"] and same_mapping:
+            same_inputs = all(
+                year.get("normalized_input_sha256") == input_hash
+                for year, input_hash in zip(existing["years"], normalized_hashes)
+            )
+            if (
+                existing.get("commodity_label") == product["label"]
+                and same_mapping
+                and same_inputs
+            ):
                 print(f"kept existing {product_json.name}", flush=True)
                 continue
             product_json.unlink()

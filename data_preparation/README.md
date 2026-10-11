@@ -37,9 +37,10 @@ cargo run -- commodity-prices
 
 月対応と単位は各品目の公式ワークブックで確認済みです。解釈の根拠と残る年次比較の確認事項は [野菜データの解釈メモ](inspections/vegetable_production_relay/SOURCE_INTERPRETATION.md) にあります。Rust の `vegetable_production_relay::aggregation` は、品目別に検証済みの正規化データを集計し、主要消費地域9区分の数量を産地都道府県・月ごとに出力します。表示単位未満、該当なし、不詳・調査なしの値を数値合計に含めず、状態別の件数を保持します。品目のテーブル ID は品目ごとの temporal mapping から読み込みます。
 
-検証済みの入力が揃ったら、次のコマンドで全品目の正規化・年次集計・`products.json` の更新をまとめて実行します。
+ワークブックに基づく月対応の検証が済んでいる状態で、次のコマンドを実行します。e-Stat の観測値は有効なキャッシュがあれば再利用し、なければ API から取得して再検証した後、全品目の正規化・年次集計・`products.json` の更新を行います。
 
 ```sh
+export ESTAT_APP_ID="取得したアプリケーションID"
 cargo run -- vegetable-relay
 ```
 
@@ -47,15 +48,14 @@ cargo run -- vegetable-relay
 
 ### 50 品目の一括処理
 
-全品目の source inventory と metadata capture が揃ったら、先に入力データを取得して月対応を検証します。ワークブックの取得にはネット接続が必要です。e-Stat API 観測値の取得には `ESTAT_APP_ID` が必要です。
+全品目の source inventory と metadata capture が揃ったら、ワークブックを取得して月対応を検証します。ワークブックの取得にはネット接続が必要です。
 
 ```sh
 python3 inspections/vegetable_production_relay/acquire_product_workbooks.py
-python3 inspections/vegetable_production_relay/acquire_product_observations.py
 python3 inspections/vegetable_production_relay/verify_product_temporal_mappings.py
 ```
 
-その後 `cargo run -- vegetable-relay` を実行します。検証に失敗した品目は生成されず、処理全体がエラーになります。mapping と表示名が既存 JSON と一致する品目は再利用します。
+その後、`ESTAT_APP_ID` を設定して `cargo run -- vegetable-relay` を実行します。検証に失敗した品目は生成されず、処理全体がエラーになります。mapping・表示名・正規化済み入力が既存 JSON と一致する品目は再利用します。
 
 各品目の 39 ワークブックを API の 13 `cat03` ブロックすべてと 1,152 セルで照合し、全期間の対応が成立することを確認します。同じ値を持つ候補ブロックが複数ある場合は等価候補として記録し、その値の同一性を確認します。照合マッピング、ワークブックの URL と SHA-256 は `inspections/vegetable_production_relay/` に記録します。元ワークブック、metadata、観測値のキャッシュは `runs/` 以下の Git-ignore 対象に保存します。
 
