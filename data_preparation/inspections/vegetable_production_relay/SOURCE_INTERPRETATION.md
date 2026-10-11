@@ -1,30 +1,30 @@
-# Daikon source interpretation, 2021–2023
+# だいこんの出典解釈（2021～2023年）
 
-Scope: e-Stat tables `0002008540` (2021), `0002120386` (2022), and `0002114330` (2023). This note records the practical interpretations used by the application. It is based on the captured metadata, all 39 official period workbooks, and the official survey descriptions linked below.
+対象：e-Statテーブル `0002008540`（2021年）、`0002120386`（2022年）、`0002114330`（2023年）。この文書には、アプリケーションで採用する実務上の解釈を記録する。取得済みメタデータ、公式期間別ワークブック39件、および以下にリンクした公式調査説明に基づく。
 
-## Supported interpretations
+## 根拠のある解釈
 
-| Source field | Interpretation and application rule | Evidence |
+| 出典項目 | 解釈とアプリケーションでの扱い | 根拠 |
 |---|---|---|
-| Period (`cat03` blocks) | Block 1 is annual `計`; blocks 2–13 are January–December. Do not add the annual block to monthly values. | Each official annual/month workbook uniquely matches all 1,152 source cells for its block. See [`2021_2023_temporal_evidence.md`](2021_2023_temporal_evidence.md) and [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json). |
-| Measure (`cat02`) | `1001` is quantity; `1002` is price. The relay visualizes quantity and excludes price. | e-Stat metadata and period workbook headings. |
-| Quantity unit | All 39 official workbooks label quantity as `t` and price as `円/kg`. The 2021 API metadata omits units; use the workbook evidence to label its quantity values `t`. | Official workbook headers, locally checked for every period in 2021, 2022, and 2023; metadata inventories. |
-| Origin (`cat01`) | `計` is a summary; codes `1002`–`1048` are origin prefectures. Label them as reported origin (`産地`) prefectures. The values describe wholesale quantities attributed to origins, not agricultural production totals. | e-Stat table title: “主要消費地域別・産地別の卸売数量及び卸売価格”; [MAFF survey overview](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/). |
-| Destination (`cat03`) | Each period block contains nine level-1 major consumer regions and three level-2 subregions: `東北_仙台・盛岡`, `関東_京浜`, and `九州_北九州`. Aggregate the nine parent regions only; do not add their nested subregions. | e-Stat metadata levels/parent codes and workbook headings. See the [2021 e-Stat table listing](https://www.e-stat.go.jp/stat-search/files?cycle=7&kikan=00500&layout=datalist&page=1&result_page=1&tclass1=000001020455&tclass2=000001169106&tclass3val=0&toukei=00500226&tstat=000001015623). |
-| Value `0` | Below the displayed unit, rather than an exact zero. Keep it as `below_display_unit`, count it, and exclude it from numeric sums. | [MAFF symbol definitions](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/) define `0` as less than the display unit and give `0.4t → 0t` as an example. |
-| Value `－` | No fact / no transaction. Preserve as `no_fact`; do not convert to zero. | [MAFF symbol definitions](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/). |
-| Value `…` | Fact unknown or survey missing. Preserve separately as `unknown_or_uncollected`; do not convert to zero. | [MAFF symbol definitions](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/). |
+| 期間（`cat03` ブロック） | ブロック1は年間 `計`、ブロック2～13は1月～12月。年間ブロックを月別値に加算しない。 | 各年次／月次の公式ワークブックは、それぞれ該当ブロックの出典セル1,152個すべてと一意に一致する。[`2021_2023_temporal_evidence.md`](2021_2023_temporal_evidence.md) と [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json) を参照。 |
+| 測定項目（`cat02`） | `1001` は数量、`1002` は価格。リレー表示では数量を可視化し、価格は除外する。 | e-Statメタデータと期間別ワークブックの見出し。 |
+| 数量の単位 | 公式ワークブック39件すべてで、数量の単位は `t`、価格は `円/kg` と表示されている。2021年のAPIメタデータに単位はないため、同年の数量値の単位にはワークブックの根拠を用いる。 | 2021・2022・2023年それぞれ全期間の公式ワークブック見出しをローカルで確認。メタデータ目録。 |
+| 産地（`cat01`） | `計` は集計行、コード `1002`～`1048` は産地の都道府県。これらは報告上の産地都道府県として表示する。値は産地に帰属する卸売数量であり、農業生産量の合計ではない。 | e-Statテーブル名「主要消費地域別・産地別の卸売数量及び卸売価格」；[農林水産省の調査概要](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/)。 |
+| 仕向先（`cat03`） | 各期間ブロックには、階層レベル1の主要消費地域が9地域、階層レベル2の下位地域が3地域含まれる。下位地域は `東北_仙台・盛岡`、`関東_京浜`、`九州_北九州`。親地域9地域のみを集計し、その内訳にあたる下位地域は加算しない。 | e-Statメタデータの階層／親コードとワークブック見出し。[2021年のe-Statテーブル一覧](https://www.e-stat.go.jp/stat-search/files?cycle=7&kikan=00500&layout=datalist&page=1&result_page=1&tclass1=000001020455&tclass2=000001169106&tclass3val=0&toukei=00500226&tstat=000001015623) を参照。 |
+| 値 `0` | 表示単位未満を意味し、厳密なゼロではない。`below_display_unit` として保持して件数を数え、数値合計から除外する。 | [農林水産省の記号定義](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/) では、`0` は表示単位未満と定義され、`0.4t → 0t` が例示されている。 |
+| 値 `－` | 事実なし／取引なし。`no_fact` として保持し、ゼロに変換しない。 | [農林水産省の記号定義](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/)。 |
+| 値 `…` | 事実不明または調査未実施。`unknown_or_uncollected` として区別して保持し、ゼロに変換しない。 | [農林水産省の記号定義](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/)。 |
 
-The displayed sum includes only numeric quantity values across the nine parent regions. It excludes below-unit, no-fact, and unknown/uncollected cells, and reports their counts so the result is visibly incomplete. It represents wholesale flows into the selected major consumer regions, not total production or a national quantity.
+表示する合計には、親地域9地域における数値の数量値のみを含める。単位未満、事実なし、不明／未収集のセルは除外し、それぞれの件数を併記して結果が不完全であることを示す。この合計が表すのは、選択した主要消費地域への卸売流通量であり、生産量の合計や全国の総数量ではない。
 
-## Year-to-year scope check
+## 年次比較の範囲確認
 
-MAFF's survey history states: “令和4年：年間取扱量等調査の調査対象を中央卸売市場における卸売会社のみに見直した” (in 2022, the annual handling survey target was revised to wholesalers in central wholesale markets only). The impact on the selected 2021–2023 origin-by-consumer-region tables has not yet been established. Show each year as its own observed series and use caution when comparing years until the scope of these specific tables is confirmed.
+農林水産省の調査沿革には「令和4年：年間取扱量等調査の調査対象を中央卸売市場における卸売会社のみに見直した」とある（2022年に年間取扱量調査の対象を中央卸売市場の卸売会社のみに改定）。この改定が、今回選択した2021～2023年の産地別・主要消費地域別テーブルに与えた影響は、まだ確認できていない。これらのテーブルの対象範囲が確認できるまでは、各年を個別の観測系列として表示し、年次比較に注意する。
 
-Source: [MAFF survey overview](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/), “調査の沿革”. The year-specific tables and workbooks are linked from [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json).
+出典：[農林水産省の調査概要](https://www.maff.go.jp/j/tokei/kouhyou/seika_orosi/gaiyou/) の「調査の沿革」。各年のテーブルとワークブックへのリンクは [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json) にある。
 
-## Implementation notes
+## 実装上のメモ
 
-- Historical API rows keep their original metadata unit (`null` for 2021). The aggregation output uses the verified workbook display unit `t` for all three years.
-- `0`, `－`, and `…` remain distinct in normalized rows and aggregation contributions.
-- The current aggregation sums only the nine level-1 consumer regions and excludes the three nested subregions.
+- 過去のAPI行では、出典メタデータの単位を保持する（2021年は `null`）。集計出力では、ワークブックで確認した表示単位 `t` を3年すべてに使用する。
+- `0`、`－`、`…` は、正規化済み行と集計への寄与データで別々の値として保持する。
+- 現在の集計では階層レベル1の消費地域9地域のみを合計し、階層レベル2の下位地域3地域を除外する。

@@ -1,20 +1,20 @@
-# Daikon normalization, 2021–2023
+# だいこんの正規化（2021～2023年）
 
-Use the captured e-Stat rows, matching metadata, and official workbook mapping to produce normalized records. Current source meanings and units are in [`SOURCE_INTERPRETATION.md`](SOURCE_INTERPRETATION.md).
+取得済みのe-Stat行データ、対応するメタデータ、公式ワークブックによる対応付けから、正規化レコードを生成する。現在の出典の意味と単位は [`SOURCE_INTERPRETATION.md`](SOURCE_INTERPRETATION.md) を参照。
 
-## Offline checks
+## オフライン検査
 
-From `data_preparation/`, run:
+`data_preparation/` から次を実行する。
 
 ```sh
 cargo run -- vegetable-relay-validate-m3-m5
 ```
 
-This replays the captures, verifies the dated workbook mapping, normalizes all three tables, and checks source positions, codes, values, and periods. It exits unsuccessfully if an input or mapping check fails. It does not require an independent reviewer record.
+取得データを再生検証し、日付付きワークブックとの対応付けを確認して、3テーブルすべてを正規化する。出典上の位置、コード、値、期間を検査する。入力または対応付けの検査に失敗した場合は、失敗終了する。独立したレビュアー記録は必要としない。
 
-## Generate normalized rows
+## 正規化済み行の生成
 
-For each year, run the normalizer with its captured observations and matching metadata, the shared temporal mapping, and a new output directory:
+各年について、取得した観測値と対応するメタデータ、共通の時間対応付けを指定し、新しい出力ディレクトリを使って正規化する。
 
 ```sh
 cargo run -- vegetable-relay-normalize-2021-2023 \
@@ -23,6 +23,6 @@ cargo run -- vegetable-relay-normalize-2021-2023 \
   <new-output-dir>
 ```
 
-The output preserves the source table, `cat03` code, period, raw lexical value, and source metadata unit. The 2021 API unit remains absent in the raw row; aggregation uses the workbook-confirmed display unit `t`.
+出力には、出典テーブル、`cat03` コード、期間、生の文字列値、出典メタデータの単位を保持する。2021年のAPI行では単位情報はないままとし、集計ではワークブックで確認した表示単位 `t` を使う。
 
-`0`, `-`, and `…` normalize to `below_display_unit`, `no_fact`, and `unknown_or_uncollected`. The annual `計` block is retained as evidence and excluded from monthly aggregation. The aggregation sums only numeric quantity values across the nine top-level major consumer regions; incomplete cells remain separately counted.
+`0`、`-`、`…` はそれぞれ `below_display_unit`、`no_fact`、`unknown_or_uncollected` に正規化する。年間の `計` ブロックは根拠として保持し、月別集計から除外する。集計では、階層レベル1の主要消費地域9地域について、数量の数値だけを合計する。不完全なセルは別々に件数を数える。

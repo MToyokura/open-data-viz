@@ -122,16 +122,6 @@
     {:else if relayData.isLoading}
       <p class="map-loading" role="status">データを読み込んでいます…</p>
     {/if}
-    {#if aggregation?.mapping_warnings?.length}
-      <aside class="data-notice" aria-label="月対応の注意" role="note">
-        <strong>一部の月は同じ値の地域区分に対応します</strong>
-        <ul>
-          {#each aggregation.mapping_warnings as warning (warning)}
-            <li>{warning}</li>
-          {/each}
-        </ul>
-      </aside>
-    {/if}
     {#if aggregation}
       <section class="controls" aria-label="表示設定">
         <label class="vegetable-control">
