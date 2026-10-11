@@ -30,7 +30,7 @@ For each dated spreadsheet, compare every displayed cell in its 48 origin rows, 
 | November | 12 | `1133`–`1144` | 1,152/1,152 exact |
 | December | 13 | `1145`–`1156` | 1,152/1,152 exact |
 
-To reproduce the comparison locally after obtaining the 39 files at the paths in the verifier's docstring, run `python3 inspections/vegetable_production_relay/verify_temporal_mapping.py`. It checks each spreadsheet checksum and period heading, all 48 origin rows, all 1,152 values against all 13 candidate blocks, uniqueness and the recorded runner-up scores. It exits unsuccessfully on a mismatch.
+To reproduce the comparison locally after obtaining the 39 workbooks, run `cargo run -- vegetable-relay-verify-daikon-mapping` from `data_preparation/`. It checks each spreadsheet checksum and period heading, all 48 origin rows, all 1,152 values against all 13 candidate blocks, uniqueness and the recorded runner-up scores. It exits unsuccessfully on a mismatch.
 
 ## Decision boundary
 

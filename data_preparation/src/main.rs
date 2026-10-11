@@ -49,4 +49,7 @@ fn main() {
 fn print_usage() {
     println!("Usage: cargo run -- <command> [arguments]");
     println!("Commands include commodity-prices, prefectures-update, and vegetable-relay.");
+    println!(
+        "Vegetable inspections: vegetable-relay-inspect-workbooks, vegetable-relay-acquire-product-observations, vegetable-relay-verify-product-mappings, vegetable-relay-verify-daikon-mapping, vegetable-relay-validate-m3-m5."
+    );
 }

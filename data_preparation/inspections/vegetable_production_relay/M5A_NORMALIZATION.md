@@ -7,7 +7,7 @@ Use the captured e-Stat rows, matching metadata, and official workbook mapping t
 From `data_preparation/`, run:
 
 ```sh
-python3 inspections/vegetable_production_relay/validate_m3_m5.py
+cargo run -- vegetable-relay-validate-m3-m5
 ```
 
 This replays the captures, verifies the dated workbook mapping, normalizes all three tables, and checks source positions, codes, values, and periods. It exits unsuccessfully if an input or mapping check fails. It does not require an independent reviewer record.

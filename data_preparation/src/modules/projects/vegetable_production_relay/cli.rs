@@ -13,6 +13,11 @@ pub fn run(args: &[String]) -> bool {
 
     match command {
         "vegetable-relay" => generate_all(),
+        "vegetable-relay-inspect-workbooks" => run_inspection_workbooks(),
+        "vegetable-relay-acquire-product-observations" => run_product_observation_acquisition(),
+        "vegetable-relay-verify-product-mappings" => run_product_mapping_verification(),
+        "vegetable-relay-verify-daikon-mapping" => run_daikon_mapping_verification(),
+        "vegetable-relay-validate-m3-m5" => run_m3_m5_validation(args),
         "vegetable-relay-normalize-2021-2023" => normalize(args),
         "vegetable-relay-aggregate-2021-2023" => aggregate(args),
         "vegetable-relay-product-index" => generate_product_index(args),
@@ -37,6 +42,50 @@ fn generate_all() -> bool {
         fail(error);
     }
     true
+}
+
+fn run_inspection_workbooks() -> bool {
+    if let Err(error) = super::inspection_pipeline::acquire_product_workbooks() {
+        fail(error);
+    }
+    true
+}
+
+fn run_product_mapping_verification() -> bool {
+    if let Err(error) = super::inspection_pipeline::verify_product_temporal_mappings() {
+        fail(error);
+    }
+    true
+}
+
+fn run_product_observation_acquisition() -> bool {
+    if let Err(error) = super::generation::acquire_product_observations() {
+        fail(error);
+    }
+    true
+}
+
+fn run_daikon_mapping_verification() -> bool {
+    if let Err(error) = super::inspection_pipeline::verify_daikon_temporal_mapping() {
+        fail(error);
+    }
+    true
+}
+
+fn run_m3_m5_validation(args: &[String]) -> bool {
+    let output = match args.get(1).map(String::as_str) {
+        None => None,
+        Some("--output") => match args.get(2) {
+            Some(path) if args.len() == 3 => Some(Path::new(path)),
+            _ => usage("vegetable-relay-validate-m3-m5 [--output <report.json>]"),
+        },
+        Some(_) => usage("vegetable-relay-validate-m3-m5 [--output <report.json>]"),
+    };
+    match super::inspection_pipeline::validate_m3_m5(output) {
+        Ok(true) => true,
+        Ok(false) => fail("historical M3/M5 validation is blocked; see its report"),
+        Err(error) => fail(error),
+    }
 }
 
 fn normalize(args: &[String]) -> bool {

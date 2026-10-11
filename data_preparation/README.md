@@ -5,7 +5,7 @@
 ## 必要な環境
 
 - Rust と Cargo
-- 野菜データの取得・生成を行う場合: Python 3
+- 野菜データのワークブック検査を行う場合: `unzip`
 - 都道府県データを更新する場合: Node.js 20.11 以降、npm、`unzip`
 
 都道府県データの簡略化には npm パッケージの Mapshaper を使います。初回実行前に、このディレクトリで依存パッケージをインストールしてください。
@@ -44,20 +44,20 @@ export ESTAT_APP_ID="取得したアプリケーションID"
 cargo run -- vegetable-relay
 ```
 
-同じ品目の出力がすでにあり、mapping または表示名が変わっていれば再生成します。アプリは `products.json` から品目を選び、対応する品目 JSON を読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、不完全なセルの状態を示します。令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。この表への影響は未確認のため、年をまたぐ比較にはご注意ください。
+同じ品目の出力がすでにあり、mapping・表示名・正規化済み入力が一致すれば再利用し、いずれかが異なれば再生成します。アプリは `products.json` から品目を選び、対応する品目 JSON を読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、不完全なセルの状態を示します。令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。この表への影響は未確認のため、年をまたぐ比較にはご注意ください。
 
-### 50 品目の一括処理
+#### 50 品目の一括処理
 
 全品目の source inventory と metadata capture が揃ったら、ワークブックと e-Stat 観測値を取得して月対応を検証します。ワークブックの取得にはネット接続が必要です。観測値の取得には `ESTAT_APP_ID` が必要です。
 
 ```sh
 export ESTAT_APP_ID="取得したアプリケーションID"
-python3 inspections/vegetable_production_relay/acquire_product_workbooks.py
-python3 inspections/vegetable_production_relay/acquire_product_observations.py
-python3 inspections/vegetable_production_relay/verify_product_temporal_mappings.py
+cargo run -- vegetable-relay-inspect-workbooks
+cargo run -- vegetable-relay-acquire-product-observations
+cargo run -- vegetable-relay-verify-product-mappings
 ```
 
-その後 `cargo run -- vegetable-relay` を実行します。観測値取得は有効な capture を再利用し、mapping・表示名・正規化済み入力が既存 JSON と一致する品目も再利用します。検証に失敗した品目は生成されず、処理全体がエラーになります。
+その後 `cargo run -- vegetable-relay` を実行します。観測値取得は有効な capture を再利用し、mapping・表示名・正規化済み入力が既存 JSON と一致する品目も再利用します。必要な検証や生成に失敗すると処理全体がエラー終了し、`products.json` は更新されません。これらの操作は Rust の CLI から実行できます。
 
 各品目の 39 ワークブックを API の 13 `cat03` ブロックすべてと 1,152 セルで照合し、全期間の対応が成立することを確認します。同じ値を持つ候補ブロックが複数ある場合は等価候補として記録し、その値の同一性を確認します。照合マッピング、ワークブックの URL と SHA-256 は `inspections/vegetable_production_relay/` に記録します。元ワークブック、metadata、観測値のキャッシュは `runs/` 以下の Git-ignore 対象に保存します。
 
