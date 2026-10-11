@@ -58,7 +58,7 @@
     const startRadius = marker.getRadius();
     const startOpacity = Number(marker.options.fillOpacity ?? 0.85);
     const startTime = performance.now();
-    const duration = 250;
+    const duration = 300;
 
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
