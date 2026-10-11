@@ -2,10 +2,12 @@ import { onMount } from "svelte";
 import type {
   AggregationData,
   GeoCollection,
+  PrefectureDetail,
   RelayProduct,
 } from "../constants/types";
 import {
   fetchRelayAggregation,
+  fetchRelayPrefectureDetail,
   fetchRelayProductIndex,
   fetchPrefectureGeojson,
 } from "./fetchRelayData";
@@ -15,7 +17,14 @@ function toError(reason: unknown, fallback: string): Error {
 }
 
 export function useRelayData() {
+  // here
   let aggregation = $state.raw<AggregationData | undefined>(undefined);
+  let detail = $state.raw<PrefectureDetail | undefined>(undefined);
+  let detailError = $state<Error | undefined>(undefined);
+  let isDetailLoading = $state(false);
+  const detailCache = new Map<string, PrefectureDetail>();
+  let detailRequestId = 0;
+  let detailController: AbortController | undefined;
   let products = $state.raw<RelayProduct[]>([]);
   let selectedProduct = $state("");
   let geojson = $state.raw<GeoCollection | undefined>(undefined);
@@ -27,9 +36,15 @@ export function useRelayData() {
   let disposed = false;
 
   async function selectProduct(key: string) {
+    // here
     if (disposed || !products.some((product) => product.key === key)) return;
 
     productController?.abort();
+    detailController?.abort();
+    detailRequestId += 1;
+    detail = undefined;
+    detailError = undefined;
+    isDetailLoading = false;
     const controller = new AbortController();
     productController = controller;
     const currentRequest = ++requestId;
@@ -52,6 +67,55 @@ export function useRelayData() {
       }
     } finally {
       if (!disposed && currentRequest === requestId) isLoading = false;
+    }
+  }
+
+  // Details are fetched only after the user selects a prefecture on the map.
+  // Changing the month reuses the same prefecture's 36-month response.
+  // here
+  async function selectPrefectureDetail(code: string) {
+    detailController?.abort();
+    const currentRequest = ++detailRequestId;
+    detail = undefined;
+    detailError = undefined;
+    isDetailLoading = false;
+    const key = selectedProduct;
+    if (disposed || !aggregation || aggregation.commodity !== key) return;
+    const cacheKey = `${key}:${code}`;
+    const cached = detailCache.get(cacheKey);
+    if (cached) {
+      detail = cached;
+      return;
+    }
+    const controller = new AbortController();
+    detailController = controller;
+    isDetailLoading = true;
+    try {
+      const result = await fetchRelayPrefectureDetail(
+        key,
+        code,
+        controller.signal,
+      );
+      if (
+        !disposed &&
+        currentRequest === detailRequestId &&
+        selectedProduct === key
+      ) {
+        detailCache.set(cacheKey, result);
+        detail = result;
+      }
+    } catch (reason) {
+      if (
+        !disposed &&
+        !controller.signal.aborted &&
+        currentRequest === detailRequestId
+      ) {
+        detailError = toError(reason, "産地内訳を読み込めませんでした");
+      }
+    } finally {
+      if (!disposed && currentRequest === detailRequestId) {
+        isDetailLoading = false;
+      }
     }
   }
 
@@ -108,6 +172,8 @@ export function useRelayData() {
       disposed = true;
       initialController.abort();
       productController?.abort();
+      detailController?.abort();
+      detailRequestId += 1;
       requestId += 1;
     };
   });
@@ -123,6 +189,16 @@ export function useRelayData() {
       return selectedProduct;
     },
     selectProduct,
+    selectPrefectureDetail,
+    get detail() {
+      return detail;
+    },
+    get detailError() {
+      return detailError;
+    },
+    get isDetailLoading() {
+      return isDetailLoading;
+    },
     get geojson() {
       return geojson;
     },

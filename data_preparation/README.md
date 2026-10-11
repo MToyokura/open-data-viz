@@ -44,7 +44,9 @@ export ESTAT_APP_ID="取得したアプリケーションID"
 cargo run -- vegetable-relay
 ```
 
-metadata と観測値の capture は `inspections/vegetable_production_relay/runs/` に保存されます。通常の `vegetable-relay` 実行では、これらの capture 参照を inspection 用 inventory に書き戻しません。同じ品目の出力がすでにあり、mapping・表示名・正規化済み入力が一致すれば再利用し、いずれかが異なれば再生成します。アプリは `products.json` から品目を選び、対応する品目 JSON を読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、不完全なセルの状態を示します。令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。この表への影響は未確認のため、年をまたぐ比較にはご注意ください。
+<!-- // here -->
+各品目の `{品目キー}.summary.json` は地図用の集計 summary（schema v2）です。既存の `{品目キー}.json`（schema v1）も移行期間中は生成し、旧フロントエンドを維持します。`{品目キー}/details/{産地コード}.json` には産地別36か月分の内訳を保存し、選択時のみ取得します。従来の集計 JSON に含まれた検証ハッシュと元セルの位置は `{品目キー}/audit.json` に保持します。品目一覧の生成時に summary と47個の detail の整合性を検証し、不完全な品目は公開しません。従来の再利用判定で schema v1 が再利用された場合でも、`products.json` の生成処理が v1 から v2 の summary・detail・audit を構築して照合します。移行前の旧 JSON を別の場所に退避しておき、summary と detail が揃っていることを確認してください。公開する際は detail・audit・summary を先に配信し、その後 `products.json` を更新してください。
+metadata と観測値の capture は `inspections/vegetable_production_relay/runs/` に保存されます。通常の `vegetable-relay` 実行では、これらの capture 参照を inspection 用 inventory に書き戻しません。同じ品目の出力がすでにあり、mapping・表示名・正規化済み入力が一致すれば再利用し、いずれかが異なれば再生成します。アプリは `products.json` から品目を選び、対応する品目 JSON（schema_version 2 の軽量 summary）を読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、不完全なセルの状態を示します。令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。この表への影響は未確認のため、年をまたぐ比較にはご注意ください。
 
 #### 50 品目の一括処理
 

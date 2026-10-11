@@ -4,7 +4,7 @@ use super::{
     metadata::{ClassValue, Inventory},
     normalization::HistoricalEvidence,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::{
@@ -31,7 +31,7 @@ fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Contribution {
     consumer_region_code: String,
     consumer_region_name: String,
@@ -41,7 +41,7 @@ struct Contribution {
     raw_value: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct PrefectureMonth {
     month: String,
     consignor_prefecture_code: String,
@@ -56,7 +56,7 @@ struct PrefectureMonth {
     contributions: Vec<Contribution>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct YearData {
     year: u16,
     table_id: String,
@@ -67,7 +67,7 @@ struct YearData {
     months: Vec<PrefectureMonth>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct AggregationCandidate {
     schema_version: u8,
     status: String,
@@ -75,8 +75,216 @@ struct AggregationCandidate {
     coverage_warning: String,
     commodity: String,
     commodity_label: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     mapping_warnings: Vec<String>,
     years: Vec<YearData>,
+}
+
+// here
+// Schema 2 keeps map-ready rows small and loads one prefecture's 36 detail
+// records on demand. The original fully evidenced payload is retained as an
+// audit artifact at <product>/audit.json.
+#[derive(Serialize)]
+struct SummaryRow<'a> {
+    month: &'a str,
+    consignor_prefecture_code: &'a str,
+    consignor_prefecture_name: &'a str,
+    reported_value_sum: &'a str,
+    source_unit: &'a str,
+    status: &'a str,
+    reported_cells: usize,
+    below_display_unit_cells: usize,
+    no_fact_cells: usize,
+    unknown_or_uncollected_cells: usize,
+}
+
+#[derive(Serialize)]
+struct SummaryYear<'a> {
+    year: u16,
+    table_id: &'a str,
+    source_unit: &'a str,
+    months: Vec<SummaryRow<'a>>,
+}
+
+#[derive(Serialize)]
+struct ProductSummary<'a> {
+    schema_version: u8,
+    status: &'a str,
+    commodity: &'a str,
+    commodity_label: &'a str,
+    mapping_warnings: &'a [String],
+    years: Vec<SummaryYear<'a>>,
+}
+
+#[derive(Serialize)]
+struct PublicContribution<'a> {
+    consumer_region_code: &'a str,
+    consumer_region_name: &'a str,
+    value_kind: &'a str,
+    raw_value: &'a str,
+}
+
+#[derive(Serialize)]
+struct DetailMonth<'a> {
+    month: &'a str,
+    contributions: Vec<PublicContribution<'a>>,
+}
+
+#[derive(Serialize)]
+struct PrefectureDetail<'a> {
+    schema_version: u8,
+    commodity: &'a str,
+    consignor_prefecture_code: &'a str,
+    months: Vec<DetailMonth<'a>>,
+}
+
+// Write via a temporary sibling, never leaving an incomplete JSON response.
+fn write_json_atomic<T: Serialize>(path: &Path, value: &T) -> Result<()> {
+    let temp = path.with_extension(format!("tmp-{}", std::process::id()));
+    let result = (|| -> Result<()> {
+        let mut file = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&temp)?;
+        serde_json::to_writer(&mut file, value)?;
+        file.write_all(b"\n")?;
+        file.sync_all()?;
+        fs::rename(&temp, path)?;
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(temp);
+    }
+    result
+}
+
+fn write_split_product(candidate: &AggregationCandidate, output_path: &Path) -> Result<()> {
+    let output_dir = output_path.parent().ok_or("product output has no parent")?;
+    let detail_root = output_dir.join(&candidate.commodity);
+    let detail_dir = detail_root.join("details");
+    fs::create_dir_all(&detail_dir)?;
+
+    let years = candidate
+        .years
+        .iter()
+        .map(|year| SummaryYear {
+            year: year.year,
+            table_id: &year.table_id,
+            source_unit: &year.source_unit,
+            months: year
+                .months
+                .iter()
+                .map(|row| SummaryRow {
+                    month: &row.month,
+                    consignor_prefecture_code: &row.consignor_prefecture_code,
+                    consignor_prefecture_name: &row.consignor_prefecture_name,
+                    reported_value_sum: &row.reported_value_sum,
+                    source_unit: &row.source_unit,
+                    status: &row.status,
+                    reported_cells: row.reported_cells,
+                    below_display_unit_cells: row.below_display_unit_cells,
+                    no_fact_cells: row.no_fact_cells,
+                    unknown_or_uncollected_cells: row.unknown_or_uncollected_cells,
+                })
+                .collect(),
+        })
+        .collect();
+    let summary = ProductSummary {
+        schema_version: 2,
+        status: &candidate.status,
+        commodity: &candidate.commodity,
+        commodity_label: &candidate.commodity_label,
+        mapping_warnings: &candidate.mapping_warnings,
+        years,
+    };
+
+    for code in 1002..=1048 {
+        let code = code.to_string();
+        let mut months = Vec::with_capacity(36);
+        for year in &candidate.years {
+            for row in &year.months {
+                if row.consignor_prefecture_code != code {
+                    continue;
+                }
+                if row.contributions.len() != 9
+                    || row
+                        .contributions
+                        .iter()
+                        .map(|cell| cell.consumer_region_code.as_str())
+                        .collect::<BTreeSet<_>>()
+                        != MAJOR_REGIONS.into_iter().collect::<BTreeSet<_>>()
+                {
+                    return Err(fail(format!(
+                        "{} {}: incomplete detail cells",
+                        code, row.month
+                    )));
+                }
+                months.push(DetailMonth {
+                    month: &row.month,
+                    contributions: row
+                        .contributions
+                        .iter()
+                        .map(|cell| PublicContribution {
+                            consumer_region_code: &cell.consumer_region_code,
+                            consumer_region_name: &cell.consumer_region_name,
+                            value_kind: &cell.value_kind,
+                            raw_value: &cell.raw_value,
+                        })
+                        .collect(),
+                });
+            }
+        }
+        if months.len() != 36
+            || months
+                .iter()
+                .map(|row| row.month)
+                .collect::<BTreeSet<_>>()
+                .len()
+                != 36
+        {
+            return Err(fail(format!("{code}: expected 36 unique detail months")));
+        }
+        let detail = PrefectureDetail {
+            schema_version: 2,
+            commodity: &candidate.commodity,
+            consignor_prefecture_code: &code,
+            months,
+        };
+        write_json_atomic(&detail_dir.join(format!("{code}.json")), &detail)?;
+    }
+
+    // Preserve all original ingestion hashes, source positions, and cat03
+    // codes. This is generation-side provenance, not fetched by the page.
+    write_json_atomic(&detail_root.join("audit.json"), candidate)?;
+    // Publish the versioned summary only after all details and audit exist.
+    // The original product JSON remains available for the existing frontend
+    // throughout rollout. A later deployment can retire it independently.
+    write_json_atomic(
+        &output_dir.join(format!("{}.summary.json", candidate.commodity)),
+        &summary,
+    )?;
+    write_json_atomic(output_path, candidate)?;
+    Ok(())
+}
+
+/// Materialize the v2 sidecars from a verified, previously generated v1 file.
+/// This lets the index builder upgrade cached products without repeating the
+/// e-Stat acquisition and monthly aggregation. The v1 file stays available.
+pub fn ensure_split_from_legacy(path: &Path) -> Result<()> {
+    let bytes = fs::read(path)?;
+    let candidate: AggregationCandidate = serde_json::from_slice(&bytes)?;
+    if candidate.schema_version != 1
+        || candidate.years.len() != 3
+        || !matches!(candidate.status.as_str(), "valid" | "incomplete")
+        || candidate.commodity.is_empty()
+        || !candidate.commodity.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
+        })
+        || path.file_stem().and_then(|name| name.to_str()) != Some(candidate.commodity.as_str())
+    {
+        return Err(fail("legacy product artifact is invalid"));
+    }
+    write_split_product(&candidate, path)
 }
 
 #[derive(Debug)]
@@ -677,6 +885,7 @@ pub fn run_2021_2023_product(
             &mapping_sha,
         )?);
     }
+    // here
     let candidate = AggregationCandidate {
         schema_version: 1,
         status: if years.iter().flat_map(|year| &year.months).all(|month| month.status == "valid") {
@@ -692,12 +901,6 @@ pub fn run_2021_2023_product(
         mapping_warnings,
         years,
     };
-    let mut file = OpenOptions::new()
-        .create_new(true)
-        .write(true)
-        .open(output_path)?;
-    file.write_all(&serde_json::to_vec(&candidate)?)?;
-    file.write_all(b"\n")?;
-    file.sync_all()?;
+    write_split_product(&candidate, output_path)?;
     Ok(output_path.to_path_buf())
 }

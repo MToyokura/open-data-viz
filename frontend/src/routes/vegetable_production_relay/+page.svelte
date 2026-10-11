@@ -32,18 +32,39 @@
   let prefectures = $derived(
     yearData?.months.filter((item) => item.month === selectedMonth) ?? [],
   );
+  // here
   let observations = $derived(
     Object.fromEntries(
       prefectures.map((item) => [item.consignor_prefecture_name, item]),
     ),
   );
   let selectedObservation = $derived(observations[selectedPrefecture]);
+  // here
+  let detailRows = $derived.by(() => {
+    const currentDetail = relayData.detail;
+    if (
+      !currentDetail ||
+      currentDetail.commodity !== relayData.selectedProduct ||
+      currentDetail.consignor_prefecture_code !==
+        selectedObservation?.consignor_prefecture_code
+    )
+      return undefined;
+    return currentDetail.months.find((row) => row.month === selectedMonth)
+      ?.contributions;
+  });
 
   function changeMonth(index: number) {
     if (index >= 0 && index < months.length) selectedMonth = months[index];
   }
   function selectPrefecture(name: string) {
     selectedPrefecture = name;
+    const code = observations[name]?.consignor_prefecture_code;
+    if (code) void relayData.selectPrefectureDetail(code);
+  }
+
+  function retryDetail() {
+    const code = selectedObservation?.consignor_prefecture_code;
+    if (code) void relayData.selectPrefectureDetail(code);
   }
   function adjustScale(amount: number) {
     scale = Math.min(20, Math.max(1, Number((scale + amount).toFixed(1))));
@@ -194,28 +215,42 @@
             <strong class="total">{valueLabel(selectedObservation)}</strong>
           </div>
         </div>
+        <!-- here -->
         {#if selectedObservation}
           <p class="detail-note">
             主要消費地域9区分の数値を合計しています。表示単位未満 {selectedObservation.below_display_unit_cells}
             区分、該当なし {selectedObservation.no_fact_cells} 区分、不詳・調査なし
             {selectedObservation.unknown_or_uncollected_cells} 区分は含みません。
           </p>
-          <ul class="contributions">
-            {#each selectedObservation.contributions as cell (cell.consumer_region_code)}
-              <li>
-                <span class="region-name">{cell.consumer_region_name}</span>
-                <strong
-                  >{#if cell.value_kind === "reported"}{formatValue(
-                      cell.raw_value,
-                    )}{:else if cell.value_kind === "below_display_unit"}0 <small
-                      >表示単位未満</small
-                    >{:else if cell.value_kind === "unknown_or_uncollected"}… <small
-                      >不詳・調査なし</small
-                    >{:else}— <small>該当なし</small>{/if}</strong
-                >
-              </li>
-            {/each}
-          </ul>
+          <!-- here -->
+          {#if relayData.isDetailLoading}
+            <p role="status" class="detail-note">内訳を読み込んでいます…</p>
+          {:else if relayData.detailError}
+            <p class="error" role="alert">{relayData.detailError.message}</p>
+            <button type="button" onclick={retryDetail}>内訳を再読み込み</button
+            >
+          {:else if !detailRows}
+            <p class="detail-note">
+              地図で都道府県を選ぶと、消費地域別の内訳を表示します。
+            </p>
+          {:else}
+            <ul class="contributions">
+              {#each detailRows as cell (cell.consumer_region_code)}
+                <li>
+                  <span class="region-name">{cell.consumer_region_name}</span>
+                  <strong
+                    >{#if cell.value_kind === "reported"}{formatValue(
+                        cell.raw_value,
+                      )}{:else if cell.value_kind === "below_display_unit"}0 <small
+                        >表示単位未満</small
+                      >{:else if cell.value_kind === "unknown_or_uncollected"}… <small
+                        >不詳・調査なし</small
+                      >{:else}— <small>該当なし</small>{/if}</strong
+                  >
+                </li>
+              {/each}
+            </ul>
+          {/if}
         {:else}
           <p class="detail-note">この出荷元のデータはありません。</p>
         {/if}
@@ -332,9 +367,6 @@
     padding: 0.75rem 1rem;
     border-left: 4px solid #999;
     background: #f5f5f5;
-  }
-  .data-notice p {
-    margin-bottom: 0;
   }
   .selection-panel {
     margin-top: 1rem;
