@@ -65,54 +65,60 @@
   }
 </script>
 
-<main>
-  <h1>主要品目の都市別小売価格</h1>
-  <div>
-    {#if cat02LookupResult.isLoading || areaLookupResult.isLoading}
-      <Spinner />
-    {:else if cat02LookupResult.error || areaLookupResult.error}
-      <p>Error loading lookup data</p>
-    {:else if cat02LookupResult.cat02Lookup && areaLookupResult.areaLookup}
-      <Selectors
-        bind:autoAddEnabled
-        bind:selectedCat02Code
-        bind:selectedAreaCode
-        cat02Lookup={cat02LookupResult.cat02Lookup}
-        areaLookup={areaLookupResult.areaLookup}
-        {fetchAndAddData}
-      />
-      {#if dataNotFound}
-        <p style="color: #cc0000;">データが見つかりませんでした</p>
-      {/if}
-      {#if commodityPrices.length > 0}
-        <section class="added-items" aria-label="追加済みのデータ">
-          <h2>追加済み</h2>
-          <ul>
-            {#each commodityPrices as item (item)}
-              <li>
-                <span>{item.cat02_name}【{item.area_name}】</span>
-                <button
-                  type="button"
-                  class="delete-button"
-                  aria-label="{item.cat02_name}【{item.area_name}】を削除"
-                  onclick={() => handleRemove(item)}
-                ><img src={deleteIcon} alt="" aria-hidden="true" /></button
-                >
-              </li>
-            {/each}
-          </ul>
-        </section>
-      {/if}
-      <button onclick={handleClear} class="reset-button">リセット</button>
-    {/if}
+<svelte:head>
+  <title>主要品目の都市別小売価格 | Open Data Viz</title>
+</svelte:head>
 
-    {#if chartData}
-      <LineChart {chartData} />
-    {/if}
-  </div>
+<div class="page-shell">
+  <main class="page-content">
+    <h1>主要品目の都市別小売価格</h1>
+    <div>
+      {#if cat02LookupResult.isLoading || areaLookupResult.isLoading}
+        <Spinner />
+      {:else if cat02LookupResult.error || areaLookupResult.error}
+        <p>Error loading lookup data</p>
+      {:else if cat02LookupResult.cat02Lookup && areaLookupResult.areaLookup}
+        <Selectors
+          bind:autoAddEnabled
+          bind:selectedCat02Code
+          bind:selectedAreaCode
+          cat02Lookup={cat02LookupResult.cat02Lookup}
+          areaLookup={areaLookupResult.areaLookup}
+          {fetchAndAddData}
+        />
+        {#if dataNotFound}
+          <p style="color: #cc0000;">データが見つかりませんでした</p>
+        {/if}
+        {#if commodityPrices.length > 0}
+          <section class="added-items" aria-label="追加済みのデータ">
+            <h2>追加済み</h2>
+            <ul>
+              {#each commodityPrices as item (item)}
+                <li>
+                  <span>{item.cat02_name}【{item.area_name}】</span>
+                  <button
+                    type="button"
+                    class="delete-button"
+                    aria-label="{item.cat02_name}【{item.area_name}】を削除"
+                    onclick={() => handleRemove(item)}
+                    ><img src={deleteIcon} alt="" aria-hidden="true" /></button
+                  >
+                </li>
+              {/each}
+            </ul>
+          </section>
+        {/if}
+        <button onclick={handleClear} class="reset-button">リセット</button>
+      {/if}
 
-  <Reference />
-</main>
+      {#if chartData}
+        <LineChart {chartData} />
+      {/if}
+    </div>
+
+    <Reference />
+  </main>
+</div>
 
 <style>
   .added-items {

@@ -1,0 +1,357 @@
+{
+  "status": "VALUE_MATCH_VERIFIED",
+  "product_count": 50,
+  "workbook_matches": 1950,
+  "products": [
+    {
+      "key": "veg-01",
+      "label": "だいこん",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 486
+    },
+    {
+      "key": "veg-02",
+      "label": "かぶ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 753
+    },
+    {
+      "key": "veg-03",
+      "label": "にんじん",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 570
+    },
+    {
+      "key": "veg-04",
+      "label": "ごぼう",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 752
+    },
+    {
+      "key": "veg-05",
+      "label": "たけのこ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 833
+    },
+    {
+      "key": "veg-06",
+      "label": "れんこん",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 878
+    },
+    {
+      "key": "veg-07",
+      "label": "はくさい",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 653
+    },
+    {
+      "key": "veg-08",
+      "label": "みずな",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 772
+    },
+    {
+      "key": "veg-09",
+      "label": "こまつな",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 721
+    },
+    {
+      "key": "veg-10",
+      "label": "その他の菜類",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 930
+    },
+    {
+      "key": "veg-11",
+      "label": "ちんげんさい",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 808
+    },
+    {
+      "key": "veg-12",
+      "label": "キャベツ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 469
+    },
+    {
+      "key": "veg-13",
+      "label": "ほうれんそう",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 600
+    },
+    {
+      "key": "veg-14",
+      "label": "ねぎ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 406
+    },
+    {
+      "key": "veg-15",
+      "label": "ふき",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 949
+    },
+    {
+      "key": "veg-16",
+      "label": "うど",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 950
+    },
+    {
+      "key": "veg-17",
+      "label": "みつば",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 865
+    },
+    {
+      "key": "veg-18",
+      "label": "しゅんぎく",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 803
+    },
+    {
+      "key": "veg-19",
+      "label": "にら",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 801
+    },
+    {
+      "key": "veg-20",
+      "label": "セルリー",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 799
+    },
+    {
+      "key": "veg-21",
+      "label": "アスパラガス",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 716
+    },
+    {
+      "key": "veg-22",
+      "label": "カリフラワー",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 708
+    },
+    {
+      "key": "veg-23",
+      "label": "ブロッコリー",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 517
+    },
+    {
+      "key": "veg-24",
+      "label": "レタス",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 516
+    },
+    {
+      "key": "veg-25",
+      "label": "パセリ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 857
+    },
+    {
+      "key": "veg-26",
+      "label": "きゅうり",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 486
+    },
+    {
+      "key": "veg-27",
+      "label": "かぼちゃ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 530
+    },
+    {
+      "key": "veg-28",
+      "label": "なす",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 587
+    },
+    {
+      "key": "veg-29",
+      "label": "トマト",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 388
+    },
+    {
+      "key": "veg-30",
+      "label": "ミニトマト",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 466
+    },
+    {
+      "key": "veg-31",
+      "label": "ピーマン",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 568
+    },
+    {
+      "key": "veg-32",
+      "label": "ししとうがらし",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 853
+    },
+    {
+      "key": "veg-33",
+      "label": "スイートコーン",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 709
+    },
+    {
+      "key": "veg-34",
+      "label": "さやいんげん",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 700
+    },
+    {
+      "key": "veg-35",
+      "label": "さやえんどう",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 686
+    },
+    {
+      "key": "veg-36",
+      "label": "実えんどう",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 956
+    },
+    {
+      "key": "veg-37",
+      "label": "そらまめ",
+      "period_matches": 39,
+      "equivalent_periods": 5,
+      "minimum_runner_up_matches": 854
+    },
+    {
+      "key": "veg-38",
+      "label": "えだまめ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 716
+    },
+    {
+      "key": "veg-39",
+      "label": "かんしょ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 729
+    },
+    {
+      "key": "veg-40",
+      "label": "ばれいしょ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 715
+    },
+    {
+      "key": "veg-41",
+      "label": "さといも",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 723
+    },
+    {
+      "key": "veg-42",
+      "label": "やまのいも",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 810
+    },
+    {
+      "key": "veg-43",
+      "label": "たまねぎ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 599
+    },
+    {
+      "key": "veg-44",
+      "label": "にんにく",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 820
+    },
+    {
+      "key": "veg-45",
+      "label": "しょうが",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 807
+    },
+    {
+      "key": "veg-46",
+      "label": "生しいたけ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 678
+    },
+    {
+      "key": "veg-47",
+      "label": "なめこ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 898
+    },
+    {
+      "key": "veg-48",
+      "label": "えのきだけ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 892
+    },
+    {
+      "key": "veg-49",
+      "label": "しめじ",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 799
+    },
+    {
+      "key": "veg-50",
+      "label": "その他の野菜",
+      "period_matches": 39,
+      "equivalent_periods": 0,
+      "minimum_runner_up_matches": 252
+    }
+  ]
+}

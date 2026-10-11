@@ -1,0 +1,21 @@
+{
+  "reviewer": "",
+  "reviewer_affiliation": "",
+  "reviewed_at": "",
+  "source_references": [],
+  "evidence_hashes": {
+    "temporal_mapping_sha256": "",
+    "2021_metadata_sha256": "",
+    "2022_metadata_sha256": "",
+    "2023_metadata_sha256": ""
+  },
+  "decisions": {
+    "month_and_total": "pending",
+    "consignor_vs_production": "pending",
+    "consumer_regions_and_subsets": "pending",
+    "units_and_symbols": "pending",
+    "cross_year_coverage": "pending",
+    "temporal_mapping": "pending"
+  },
+  "notes": "Record approved or rejected for every decision. Explain rejected items and cite the source evidence reviewed."
+}

@@ -1,0 +1,659 @@
+{
+  "status": "VALUE_MATCH_VERIFIED",
+  "method": "For each official title-labelled workbook, compare all 48 origin × 12 region × 2 measure lexical cells against every one of the 13 source cat03 blocks. Require a complete one-to-one assignment from periods to blocks using 1,152/1,152 exact matches. If more than one assignment is possible, record every equivalent exact-match candidate; the displayed values are invariant across those candidates and the UI labels the equivalence.",
+  "commodity": "veg-32",
+  "commodity_label": "ししとうがらし",
+  "years": {
+    "2021": {
+      "table_id": "0002008571",
+      "raw_capture": "runs/observations-1791692806-381274018-417117",
+      "metadata_sha256": "83379df923ea4d4908feb3c9013b83e52c6a991f42fe90594385aa81d3cf2f88",
+      "official_listing": "https://www.e-stat.go.jp/stat-search/files?cycle=7&layout=datalist&page=1&tclass1=000001020455&tclass2=000001169106&tclass3val=0&toukei=00500226&tstat=000001015623",
+      "periods": [
+        {
+          "period": "total",
+          "block": 1,
+          "cat03_first_code": "1001",
+          "cat03_last_code": "1012",
+          "stat_inf_id": "000032229882",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229882&fileKind=0",
+          "spreadsheet_sha256": "02b4f3eaf28a6742f446fd563df056ceb2a19b38573cc620991a95668c2e3589",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 869,
+          "exact_match_candidates": [
+            1
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-01",
+          "block": 2,
+          "cat03_first_code": "1013",
+          "cat03_last_code": "1024",
+          "stat_inf_id": "000032229883",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229883&fileKind=0",
+          "spreadsheet_sha256": "5b996c0aa3f9d1a6b7546d467f5cc297d52ce8ef7e8cd558cbafac35a5a6c2eb",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1056,
+          "exact_match_candidates": [
+            2
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-02",
+          "block": 3,
+          "cat03_first_code": "1025",
+          "cat03_last_code": "1036",
+          "stat_inf_id": "000032229884",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229884&fileKind=0",
+          "spreadsheet_sha256": "43ccca4848bf2d59e99fd6c978743521a68afa1d5f7fdb3cd2ac4ec4a2420f9f",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1056,
+          "exact_match_candidates": [
+            3
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-03",
+          "block": 4,
+          "cat03_first_code": "1037",
+          "cat03_last_code": "1048",
+          "stat_inf_id": "000032229885",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229885&fileKind=0",
+          "spreadsheet_sha256": "cc2b031080a4f424f2e53b4bd5f157d6d0e6ed903db23ae7903989e49acd4bbc",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1059,
+          "exact_match_candidates": [
+            4
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-04",
+          "block": 5,
+          "cat03_first_code": "1049",
+          "cat03_last_code": "1060",
+          "stat_inf_id": "000032229886",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229886&fileKind=0",
+          "spreadsheet_sha256": "960e6f7f867c50347eca570495f7148fc822ae3f814b51c7b4b2b2101b8d5ffb",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1059,
+          "exact_match_candidates": [
+            5
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-05",
+          "block": 6,
+          "cat03_first_code": "1061",
+          "cat03_last_code": "1072",
+          "stat_inf_id": "000032229887",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229887&fileKind=0",
+          "spreadsheet_sha256": "d3a7e4cb87b38995b09c069653a4f9728bdc6d0062df979e09ed165462d0ce07",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1013,
+          "exact_match_candidates": [
+            6
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-06",
+          "block": 7,
+          "cat03_first_code": "1073",
+          "cat03_last_code": "1084",
+          "stat_inf_id": "000032229888",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229888&fileKind=0",
+          "spreadsheet_sha256": "f1a7e90d0a3e121b13f3195e9efcc11dbb6e5999d437808dafd406dfd36667e5",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 985,
+          "exact_match_candidates": [
+            7
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-07",
+          "block": 8,
+          "cat03_first_code": "1085",
+          "cat03_last_code": "1096",
+          "stat_inf_id": "000032229889",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229889&fileKind=0",
+          "spreadsheet_sha256": "00e31804b41e54d0f247079a254dd8cb4fc5a3437ab4cfe81b8a25efdc648beb",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 988,
+          "exact_match_candidates": [
+            8
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-08",
+          "block": 9,
+          "cat03_first_code": "1097",
+          "cat03_last_code": "1108",
+          "stat_inf_id": "000032229890",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229890&fileKind=0",
+          "spreadsheet_sha256": "9412f0fc17e36cc3a558f174bb257e24a349f5db711e69f5d3aa9b00739c7635",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 988,
+          "exact_match_candidates": [
+            9
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-09",
+          "block": 10,
+          "cat03_first_code": "1109",
+          "cat03_last_code": "1120",
+          "stat_inf_id": "000032229891",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229891&fileKind=0",
+          "spreadsheet_sha256": "1a530ef6d65a72138a63bd4076ceb822181a540541edabb9752cb89ab7ae19e8",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1014,
+          "exact_match_candidates": [
+            10
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-10",
+          "block": 11,
+          "cat03_first_code": "1121",
+          "cat03_last_code": "1132",
+          "stat_inf_id": "000032229892",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229892&fileKind=0",
+          "spreadsheet_sha256": "ba5e271045648a4f1e107fb68155afe576f28a299eaeafd857ba6782c7f4260e",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1014,
+          "exact_match_candidates": [
+            11
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-11",
+          "block": 12,
+          "cat03_first_code": "1133",
+          "cat03_last_code": "1144",
+          "stat_inf_id": "000032229893",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229893&fileKind=0",
+          "spreadsheet_sha256": "da9d669861a1719966b41c5ee031938a4e8bf088f7208044c33efdfe199c20f9",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 998,
+          "exact_match_candidates": [
+            12
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2021-12",
+          "block": 13,
+          "cat03_first_code": "1145",
+          "cat03_last_code": "1156",
+          "stat_inf_id": "000032229894",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000032229894&fileKind=0",
+          "spreadsheet_sha256": "7bbb1cd0134e9e96d89b2b3a954527a99952f45fe2175f6de6120565a72c88cc",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1018,
+          "exact_match_candidates": [
+            13
+          ],
+          "block_identity": "unique"
+        }
+      ],
+      "mapping_ambiguities": {}
+    },
+    "2022": {
+      "table_id": "0002120418",
+      "raw_capture": "runs/observations-1791692812-262272026-417204",
+      "metadata_sha256": "e6f5a650bb1b41e53a286be7fb531bf3a60a5cfbe518965cba44c17cd6c4bb49",
+      "official_listing": "https://www.e-stat.go.jp/stat-search/files?cycle=7&layout=datalist&page=1&tclass1=000001020455&tclass2=000001209867&tclass3val=0&toukei=00500226&tstat=000001015623",
+      "periods": [
+        {
+          "period": "total",
+          "block": 1,
+          "cat03_first_code": "1001",
+          "cat03_last_code": "1012",
+          "stat_inf_id": "000040103744",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103744&fileKind=0",
+          "spreadsheet_sha256": "82bf4e8d5854ba52eb9e2ebe130bd9944a8c5d53c0508ae3e4f918898ef23b19",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 853,
+          "exact_match_candidates": [
+            1
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-01",
+          "block": 2,
+          "cat03_first_code": "1013",
+          "cat03_last_code": "1024",
+          "stat_inf_id": "000040103745",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103745&fileKind=0",
+          "spreadsheet_sha256": "2ce0ea8a0e190f64104a1692ef9dc6913ba50195e0ea4197ece869923e67326f",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1082,
+          "exact_match_candidates": [
+            2
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-02",
+          "block": 3,
+          "cat03_first_code": "1025",
+          "cat03_last_code": "1036",
+          "stat_inf_id": "000040103746",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103746&fileKind=0",
+          "spreadsheet_sha256": "e646dc5571c8906134f0987fc35ac1cac99d2dd45edaf2ebdf1b60a5cdd7464b",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1082,
+          "exact_match_candidates": [
+            3
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-03",
+          "block": 4,
+          "cat03_first_code": "1037",
+          "cat03_last_code": "1048",
+          "stat_inf_id": "000040103747",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103747&fileKind=0",
+          "spreadsheet_sha256": "435285b7838012f6e73a58c6285e97c5aa9637afc0c8c4161b7d3171898a7ad0",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1064,
+          "exact_match_candidates": [
+            4
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-04",
+          "block": 5,
+          "cat03_first_code": "1049",
+          "cat03_last_code": "1060",
+          "stat_inf_id": "000040103748",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103748&fileKind=0",
+          "spreadsheet_sha256": "9dc57bb28944fb943a8d140a9386b730ba2130ddd820e0d85386460432c92e45",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1063,
+          "exact_match_candidates": [
+            5
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-05",
+          "block": 6,
+          "cat03_first_code": "1061",
+          "cat03_last_code": "1072",
+          "stat_inf_id": "000040103749",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103749&fileKind=0",
+          "spreadsheet_sha256": "df0a75b1b67b000bfec604ab335c30cadf5487f053eab55e235ef21af980888f",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1006,
+          "exact_match_candidates": [
+            6
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-06",
+          "block": 7,
+          "cat03_first_code": "1073",
+          "cat03_last_code": "1084",
+          "stat_inf_id": "000040103750",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103750&fileKind=0",
+          "spreadsheet_sha256": "a426a713453a9d565ac73f09c6cf4bc3e8ab2c362247ffbb8f6e1fdb823f7d50",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 983,
+          "exact_match_candidates": [
+            7
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-07",
+          "block": 8,
+          "cat03_first_code": "1085",
+          "cat03_last_code": "1096",
+          "stat_inf_id": "000040103751",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103751&fileKind=0",
+          "spreadsheet_sha256": "0c4ac51d2c0dac1e2a6dd16b79ec3b7f8fde8051ad70f6b88a36f0d79a3876c8",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 969,
+          "exact_match_candidates": [
+            8
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-08",
+          "block": 9,
+          "cat03_first_code": "1097",
+          "cat03_last_code": "1108",
+          "stat_inf_id": "000040103752",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103752&fileKind=0",
+          "spreadsheet_sha256": "cb0dd0e624a07b688e878fab4e8b3a38ecd4e8c4c07b04f3a66cc95a2b1961a6",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 991,
+          "exact_match_candidates": [
+            9
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-09",
+          "block": 10,
+          "cat03_first_code": "1109",
+          "cat03_last_code": "1120",
+          "stat_inf_id": "000040103753",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103753&fileKind=0",
+          "spreadsheet_sha256": "b0b5fde02d519e2baa9399718a0121cd6ac4fe706203fe7227dff2eb73b05db6",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 991,
+          "exact_match_candidates": [
+            10
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-10",
+          "block": 11,
+          "cat03_first_code": "1121",
+          "cat03_last_code": "1132",
+          "stat_inf_id": "000040103754",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103754&fileKind=0",
+          "spreadsheet_sha256": "8aebd08430d6327d7f7e10e7ead5dd1cfc15ba996eda34fb1a0d01ee293ae21b",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 987,
+          "exact_match_candidates": [
+            11
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-11",
+          "block": 12,
+          "cat03_first_code": "1133",
+          "cat03_last_code": "1144",
+          "stat_inf_id": "000040103755",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103755&fileKind=0",
+          "spreadsheet_sha256": "c0f0d94de3e208ac0a86b0c257abd60513e5c5ef94d5b51e6050b8099c94a499",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1003,
+          "exact_match_candidates": [
+            12
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2022-12",
+          "block": 13,
+          "cat03_first_code": "1145",
+          "cat03_last_code": "1156",
+          "stat_inf_id": "000040103756",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040103756&fileKind=0",
+          "spreadsheet_sha256": "7db8e2902294e4b21330ea256d418f050a99d74287d46285a44979b8fa8b607f",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1012,
+          "exact_match_candidates": [
+            13
+          ],
+          "block_identity": "unique"
+        }
+      ],
+      "mapping_ambiguities": {}
+    },
+    "2023": {
+      "table_id": "0002114401",
+      "raw_capture": "runs/observations-1791692814-154405999-417241",
+      "metadata_sha256": "181bfe14507f7d24f3bbaa4b2e9fbd1dadf258415ebe649e19c886c32f7d9c80",
+      "official_listing": "https://www.e-stat.go.jp/stat-search/files?cycle=7&layout=datalist&page=1&tclass1=000001020455&tclass2=000001220580&tclass3val=0&toukei=00500226&tstat=000001015623",
+      "periods": [
+        {
+          "period": "total",
+          "block": 1,
+          "cat03_first_code": "1001",
+          "cat03_last_code": "1012",
+          "stat_inf_id": "000040200710",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200710&fileKind=0",
+          "spreadsheet_sha256": "5f0126819c0b07546ffeaef8ad827118ca0514a1aff4eb0b7472a071cfe1b848",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 882,
+          "exact_match_candidates": [
+            1
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-01",
+          "block": 2,
+          "cat03_first_code": "1013",
+          "cat03_last_code": "1024",
+          "stat_inf_id": "000040200711",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200711&fileKind=0",
+          "spreadsheet_sha256": "54d292f55a4f74d6a80039c4f2bb3e2b70bf827f4c4af7fa12c2b17f1762e316",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1074,
+          "exact_match_candidates": [
+            2
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-02",
+          "block": 3,
+          "cat03_first_code": "1025",
+          "cat03_last_code": "1036",
+          "stat_inf_id": "000040200712",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200712&fileKind=0",
+          "spreadsheet_sha256": "dc4d1fa5f29e8b7b214c47e70633def743968d74f61e4a919c74add6409eaf21",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1074,
+          "exact_match_candidates": [
+            3
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-03",
+          "block": 4,
+          "cat03_first_code": "1037",
+          "cat03_last_code": "1048",
+          "stat_inf_id": "000040200713",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200713&fileKind=0",
+          "spreadsheet_sha256": "4a10deadddf345bec343230f9b7071d762fb2851df89b8d9cbda56c0317f3e10",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1073,
+          "exact_match_candidates": [
+            4
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-04",
+          "block": 5,
+          "cat03_first_code": "1049",
+          "cat03_last_code": "1060",
+          "stat_inf_id": "000040200714",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200714&fileKind=0",
+          "spreadsheet_sha256": "06dffb79feeab41bcd9aa4e9a3ec450cbbfdd110c3d598dca288f750a5b35bcd",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1054,
+          "exact_match_candidates": [
+            5
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-05",
+          "block": 6,
+          "cat03_first_code": "1061",
+          "cat03_last_code": "1072",
+          "stat_inf_id": "000040200715",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200715&fileKind=0",
+          "spreadsheet_sha256": "2344d741e60f9aa0572a2bc841f6a728775d707e4f4b2e60b66b6f429ee855c7",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1031,
+          "exact_match_candidates": [
+            6
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-06",
+          "block": 7,
+          "cat03_first_code": "1073",
+          "cat03_last_code": "1084",
+          "stat_inf_id": "000040200716",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200716&fileKind=0",
+          "spreadsheet_sha256": "063f5b48533e4f0d050152a4af178a871c4b7bb7a15e28244b07f8c596d6677b",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 973,
+          "exact_match_candidates": [
+            7
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-07",
+          "block": 8,
+          "cat03_first_code": "1085",
+          "cat03_last_code": "1096",
+          "stat_inf_id": "000040200717",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200717&fileKind=0",
+          "spreadsheet_sha256": "83edb772533ed307381ad3a9d2c62eb7243ba7f064adea5d098ff80eab4482da",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 976,
+          "exact_match_candidates": [
+            8
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-08",
+          "block": 9,
+          "cat03_first_code": "1097",
+          "cat03_last_code": "1108",
+          "stat_inf_id": "000040200718",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200718&fileKind=0",
+          "spreadsheet_sha256": "fd4e6af90b812dedba5fbbf537d874656c3c9fd1d6ecd14ed9a0fd142e22a10a",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1021,
+          "exact_match_candidates": [
+            9
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-09",
+          "block": 10,
+          "cat03_first_code": "1109",
+          "cat03_last_code": "1120",
+          "stat_inf_id": "000040200719",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200719&fileKind=0",
+          "spreadsheet_sha256": "48eeef4fc87a6a05d09c641c4978edc913c9801c19f9b080d9e2a8f2fc096be6",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1021,
+          "exact_match_candidates": [
+            10
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-10",
+          "block": 11,
+          "cat03_first_code": "1121",
+          "cat03_last_code": "1132",
+          "stat_inf_id": "000040200720",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200720&fileKind=0",
+          "spreadsheet_sha256": "a5d86d1d0a6f2f3b25ce205bfc7c91a40d4a29669110671e092d2133eee4979f",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1006,
+          "exact_match_candidates": [
+            11
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-11",
+          "block": 12,
+          "cat03_first_code": "1133",
+          "cat03_last_code": "1144",
+          "stat_inf_id": "000040200721",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200721&fileKind=0",
+          "spreadsheet_sha256": "8467d593d8ed8fba88805cc28169215940a65a54010f0e03e037654a3dbfd430",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 997,
+          "exact_match_candidates": [
+            12
+          ],
+          "block_identity": "unique"
+        },
+        {
+          "period": "2023-12",
+          "block": 13,
+          "cat03_first_code": "1145",
+          "cat03_last_code": "1156",
+          "stat_inf_id": "000040200722",
+          "spreadsheet_url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040200722&fileKind=0",
+          "spreadsheet_sha256": "fb9024a97bf6f47fe9d8bb708afa1a557f3bb9ed2f488c90a081de7ca1cdea46",
+          "matching_cells": 1152,
+          "compared_cells": 1152,
+          "runner_up_matches": 1004,
+          "exact_match_candidates": [
+            13
+          ],
+          "block_identity": "unique"
+        }
+      ],
+      "mapping_ambiguities": {}
+    }
+  }
+}

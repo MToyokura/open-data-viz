@@ -49,8 +49,8 @@
     width: auto;
     height: 60vh;
     min-height: 320px;
-    margin: 2rem;
-    padding: 2rem;
+    margin: 2rem 0;
+    padding: 2rem 0;
     border: 2px solid #ccc;
     border-radius: 8px;
   }
@@ -59,7 +59,7 @@
     #chart-container {
       height: 55vh;
       margin: 2rem 0;
-      padding: 1rem;
+      padding: 1rem 0;
     }
   }
 </style>

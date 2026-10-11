@@ -1,0 +1,2417 @@
+{
+  "schema_version": 1,
+  "status": "SOURCE_INVENTORY_ONLY",
+  "statistics_code": "00500226",
+  "products_count": 50,
+  "supported_years": [
+    "2021",
+    "2022",
+    "2023"
+  ],
+  "source_catalogue": {
+    "run_id": "catalogue-1791674151-270316453-89362",
+    "sha256": "5206c24727aecb33a17d3337b403875c7142a192a1915c001915138496621dca"
+  },
+  "products": [
+    {
+      "key": "veg-01",
+      "label": "だいこん",
+      "table_ids": {
+        "2021": "0002008540",
+        "2022": "0002120386",
+        "2023": "0002114330"
+      },
+      "mapping_status": "verified",
+      "mapping_evidence": "product_temporal_mappings/veg-01.json",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791675365-812115046-111368",
+          "metadata_sha256": "09e915e4059130d757c5b9af4636642718f15c7ff84c16662adc31a82a3e6fa2",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691838-447907875-399075",
+          "metadata_sha256": "56f8479cc0e1fe5253d3565250ef205e24ef68c4fc48432dfd1188da9aec1acb",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691838-908898522-399078",
+          "metadata_sha256": "44d488f4d04e0aed950ec7c50eb628479c0ec8798783e3be79ddcd9ae2dee47d",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2023": {
+          "run_id": "observations-1791692419-756420337-410081",
+          "observation_sha256": "0283674fc7871eb7cf0b145a3dd848d8767b77aa9e2131f68a8f1da3f547e0f7",
+          "count": 14976,
+          "metadata_sha256": "44d488f4d04e0aed950ec7c50eb628479c0ec8798783e3be79ddcd9ae2dee47d"
+        },
+        "2021": {
+          "run_id": "observations-1791692419-755230551-410078",
+          "observation_sha256": "112998482724bbc06b9af202e799a8ad43a1204272383c004993b7d6424da84c",
+          "count": 14976,
+          "metadata_sha256": "09e915e4059130d757c5b9af4636642718f15c7ff84c16662adc31a82a3e6fa2"
+        },
+        "2022": {
+          "run_id": "observations-1791692419-756041822-410080",
+          "observation_sha256": "286cfd1fc7e58dbba6d97985d85bbd22e33dbd29260eb7636de4c97f10a62e4d",
+          "count": 14976,
+          "metadata_sha256": "56f8479cc0e1fe5253d3565250ef205e24ef68c4fc48432dfd1188da9aec1acb"
+        }
+      }
+    },
+    {
+      "key": "veg-02",
+      "label": "かぶ",
+      "table_ids": {
+        "2021": "0002008541",
+        "2022": "0002120387",
+        "2023": "0002114331"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691839-371498124-399081",
+          "metadata_sha256": "bdd9eddcfbf2be96ecbebe54de574b34b0849dc6cf533d5915fc53361d15291e",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691839-770487845-399084",
+          "metadata_sha256": "535c7292dc3b79784f28e912c93ce8b7341a3fee1f0ca562565c68f09e424115",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691840-321278839-399111",
+          "metadata_sha256": "7d34fe665538bfbf639a00e3e475ffb25b810d1b49d2705d49718f2fc3aeb958",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692419-751330587-410074",
+          "observation_sha256": "380e31eb2adf7907aa6935e8d7d685d4142b1ea5972bb84119da0ad7d8c7461d",
+          "count": 14976,
+          "metadata_sha256": "bdd9eddcfbf2be96ecbebe54de574b34b0849dc6cf533d5915fc53361d15291e"
+        },
+        "2022": {
+          "run_id": "observations-1791692432-303842421-410349",
+          "observation_sha256": "12050349fcdba07132e85c24df5f29ac7ebef89f478e4631ba1e7300a338ea83",
+          "count": 14976,
+          "metadata_sha256": "535c7292dc3b79784f28e912c93ce8b7341a3fee1f0ca562565c68f09e424115"
+        },
+        "2023": {
+          "run_id": "observations-1791692432-529076211-410366",
+          "observation_sha256": "837ffc1ecfc3220605896013f747a74c36eb7a439b85eac85764858b7f7d7325",
+          "count": 14976,
+          "metadata_sha256": "7d34fe665538bfbf639a00e3e475ffb25b810d1b49d2705d49718f2fc3aeb958"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-02.json"
+    },
+    {
+      "key": "veg-03",
+      "label": "にんじん",
+      "table_ids": {
+        "2021": "0002008542",
+        "2022": "0002120388",
+        "2023": "0002114332"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691840-753936823-399114",
+          "metadata_sha256": "1f7928e8aa7213becfdf298f177a8831696d8f5424fa47121960c26637d302ee",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691841-200990905-399118",
+          "metadata_sha256": "0da9519d13fc424022ee63ab1147df57fcf36a0cb5d14dce7ad5b6c4ad422bc7",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691841-706367820-399121",
+          "metadata_sha256": "4df631d43b4bf619df8f85813edc5f5f1dd8828a5ced829ca65e5da80ae7a652",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692432-637176105-410369",
+          "observation_sha256": "95bc38db2cbba1ee3ac7e80b6d564fcab39b26a6941130d5c0ca201fe158eef2",
+          "count": 14976,
+          "metadata_sha256": "1f7928e8aa7213becfdf298f177a8831696d8f5424fa47121960c26637d302ee"
+        },
+        "2022": {
+          "run_id": "observations-1791692435-546018674-410424",
+          "observation_sha256": "fac7ccb45957bc76ebf5c453af9ac8e3126a80b2d99342f876cbc2ac198eb265",
+          "count": 14976,
+          "metadata_sha256": "0da9519d13fc424022ee63ab1147df57fcf36a0cb5d14dce7ad5b6c4ad422bc7"
+        },
+        "2023": {
+          "run_id": "observations-1791692447-529251130-410641",
+          "observation_sha256": "fd72a5a8137b37d65d6d9a22b75920bf3f1d5eb0ee8906fb78e40909034f5845",
+          "count": 14976,
+          "metadata_sha256": "4df631d43b4bf619df8f85813edc5f5f1dd8828a5ced829ca65e5da80ae7a652"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-03.json"
+    },
+    {
+      "key": "veg-04",
+      "label": "ごぼう",
+      "table_ids": {
+        "2021": "0002008543",
+        "2022": "0002120389",
+        "2023": "0002114333"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691842-109538475-399125",
+          "metadata_sha256": "db8d05b0224814d7964e14d84f36b04d63ebf7e05594c62c24c7b294a6b9ce76",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691842-471864897-399153",
+          "metadata_sha256": "f08114e04d2f5487918cd5cdcdda605362ec8aea4c289f35772408a336c9c71b",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691843-86054609-399156",
+          "metadata_sha256": "5ec89445004c6a89b18f1bc14628149161058b3701abcf1918974edd41e2c894",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2022": {
+          "run_id": "observations-1791692449-234409809-410685",
+          "observation_sha256": "ca48bc33761ccc56f6bbbd21b1e57084c2a96c9f8cccae345ee0899bd9c21a45",
+          "count": 14976,
+          "metadata_sha256": "f08114e04d2f5487918cd5cdcdda605362ec8aea4c289f35772408a336c9c71b"
+        },
+        "2021": {
+          "run_id": "observations-1791692448-182203247-410645",
+          "observation_sha256": "9953a73d236f88f4aa5d419bfa37a5c27da2fde68607b8676b7f57551224a741",
+          "count": 14976,
+          "metadata_sha256": "db8d05b0224814d7964e14d84f36b04d63ebf7e05594c62c24c7b294a6b9ce76"
+        },
+        "2023": {
+          "run_id": "observations-1791692453-991079871-410759",
+          "observation_sha256": "1ea47b56e019db1c56f4c0efc3b9d151b75238da0fd5bd120f164d4c4ea1e899",
+          "count": 14976,
+          "metadata_sha256": "5ec89445004c6a89b18f1bc14628149161058b3701abcf1918974edd41e2c894"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-04.json"
+    },
+    {
+      "key": "veg-05",
+      "label": "たけのこ",
+      "table_ids": {
+        "2021": "0002008544",
+        "2022": "0002120390",
+        "2023": "0002114334"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691843-441352595-399159",
+          "metadata_sha256": "18ea96a5daa685573d1fde46a0b81ab6631db20af861a740f3279876fa5a9f84",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691843-827883274-399162",
+          "metadata_sha256": "05cbab3c35c413899b9b7ad652245c615693eb7285cad3868bfc331379295f69",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691844-201440615-399165",
+          "metadata_sha256": "2cc2ddccf0240a5036e01a7f734f30f3ab1164d4d97c350fd1c1214e9cb996e6",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692463-573158029-410926",
+          "observation_sha256": "976bc9666c9b5ca309e13ffbc96a265ad44a4c7634b1b4a0288e4d79b5ab9995",
+          "count": 14976,
+          "metadata_sha256": "18ea96a5daa685573d1fde46a0b81ab6631db20af861a740f3279876fa5a9f84"
+        },
+        "2023": {
+          "run_id": "observations-1791692468-318029568-411018",
+          "observation_sha256": "80a79b5d8dfd6ae8511668b871219b5601003d634c2110961e7ada99560ed272",
+          "count": 14976,
+          "metadata_sha256": "2cc2ddccf0240a5036e01a7f734f30f3ab1164d4d97c350fd1c1214e9cb996e6"
+        },
+        "2022": {
+          "run_id": "observations-1791692466-465631895-410975",
+          "observation_sha256": "b6c7da55792cad6d7dd89f103a824b93e12a043d9b6cc614f2c8763a5b289193",
+          "count": 14976,
+          "metadata_sha256": "05cbab3c35c413899b9b7ad652245c615693eb7285cad3868bfc331379295f69"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-05.json"
+    },
+    {
+      "key": "veg-06",
+      "label": "れんこん",
+      "table_ids": {
+        "2021": "0002008545",
+        "2022": "0002120391",
+        "2023": "0002114335"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691844-564422821-399195",
+          "metadata_sha256": "3d103aad0bb108a57cb7dac2df9ea0a0a54ce99a999a289c9bb4a7b4b9bee7d2",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691845-34253843-399199",
+          "metadata_sha256": "560d91ebd3b913a38639f6de3624033f16fe245c48e5f3a4babe3c71098a6376",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691845-508445386-399202",
+          "metadata_sha256": "93517f5abb5951275aa61f652c4ebabfbd331147e326f37f968d64b5dadb740b",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692471-861040871-411069",
+          "observation_sha256": "8d0cdfe779fdd1353ede6b2d7ab9eaa5b628007ec0b86770324cbadb01217f57",
+          "count": 14976,
+          "metadata_sha256": "3d103aad0bb108a57cb7dac2df9ea0a0a54ce99a999a289c9bb4a7b4b9bee7d2"
+        },
+        "2022": {
+          "run_id": "observations-1791692481-260936721-411234",
+          "observation_sha256": "dd3c3de961c9857fa9adcbc2bf3c26dddb1431748d03af3c6df3f62e61512a26",
+          "count": 14976,
+          "metadata_sha256": "560d91ebd3b913a38639f6de3624033f16fe245c48e5f3a4babe3c71098a6376"
+        },
+        "2023": {
+          "run_id": "observations-1791692484-812120315-411298",
+          "observation_sha256": "bb40a4f5b60af5f5b5760dc9d45a703fbdc9c7ff2d04c9c89f029249fd18ecdc",
+          "count": 14976,
+          "metadata_sha256": "93517f5abb5951275aa61f652c4ebabfbd331147e326f37f968d64b5dadb740b"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-06.json"
+    },
+    {
+      "key": "veg-07",
+      "label": "はくさい",
+      "table_ids": {
+        "2021": "0002008546",
+        "2022": "0002120392",
+        "2023": "0002114336"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691845-844281697-399217",
+          "metadata_sha256": "42792a205d258015bbd166b5ac08dd281c4db749e948c76b67e2273bf70ffc0f",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691846-241013131-399220",
+          "metadata_sha256": "671f4172ee78e4ea88923794d0fa27005908c23e7dba6ffe7b9444c35a0a9db3",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691846-654489686-399249",
+          "metadata_sha256": "cd070e24ee0a0429fe17651e8008f9d6570b7c0d4cdf0c6d8fe130f728fbd171",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2022": {
+          "run_id": "observations-1791692487-854535785-411380",
+          "observation_sha256": "39a35a23449dc9a98a21bf770b7253d40b97acb62e5cd97e47d16ca187bbe3b3",
+          "count": 14976,
+          "metadata_sha256": "671f4172ee78e4ea88923794d0fa27005908c23e7dba6ffe7b9444c35a0a9db3"
+        },
+        "2021": {
+          "run_id": "observations-1791692487-854607396-411379",
+          "observation_sha256": "f8ca7034d2c0e6b5ca5054e0353775ba2efae8c87ab83dcc2b44e4d4f1e0e236",
+          "count": 14976,
+          "metadata_sha256": "42792a205d258015bbd166b5ac08dd281c4db749e948c76b67e2273bf70ffc0f"
+        },
+        "2023": {
+          "run_id": "observations-1791692498-870896135-411630",
+          "observation_sha256": "99372237255162c2a6f3d21f56defd8aa381876d91e4df32f9b9f758bb0adf9b",
+          "count": 14976,
+          "metadata_sha256": "cd070e24ee0a0429fe17651e8008f9d6570b7c0d4cdf0c6d8fe130f728fbd171"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-07.json"
+    },
+    {
+      "key": "veg-08",
+      "label": "みずな",
+      "table_ids": {
+        "2021": "0002008547",
+        "2022": "0002120393",
+        "2023": "0002114337"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691847-65214242-399261",
+          "metadata_sha256": "610b7d53d5ccff61df7d16777ebb56797e7f646d769b777a37f73b0cb9278ab2",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691847-503640255-399264",
+          "metadata_sha256": "1281c237b6f41422be6cd1a232380771cacdca06a9be9f562152d594b831cb0a",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691847-891132594-399267",
+          "metadata_sha256": "a112460c03723659f8b21511ec94a460634f215a8b81318678f2dcdbb674fb87",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692501-661194475-411671",
+          "observation_sha256": "b37beeebd2e8ddd2e61ed0e9d56f8b216061e3754e5428ce53431f460238c877",
+          "count": 14976,
+          "metadata_sha256": "610b7d53d5ccff61df7d16777ebb56797e7f646d769b777a37f73b0cb9278ab2"
+        },
+        "2022": {
+          "run_id": "observations-1791692504-252709410-411737",
+          "observation_sha256": "2e804f4c8f6fed199b081d019237664b8c3e24cdc1d255d305760c93891ab632",
+          "count": 14976,
+          "metadata_sha256": "1281c237b6f41422be6cd1a232380771cacdca06a9be9f562152d594b831cb0a"
+        },
+        "2023": {
+          "run_id": "observations-1791692507-366670215-411789",
+          "observation_sha256": "7205c1562e81b708d8b6c2055edc789ede4c91bf8adb157046147bd91152ff00",
+          "count": 14976,
+          "metadata_sha256": "a112460c03723659f8b21511ec94a460634f215a8b81318678f2dcdbb674fb87"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-08.json"
+    },
+    {
+      "key": "veg-09",
+      "label": "こまつな",
+      "table_ids": {
+        "2021": "0002008548",
+        "2022": "0002120394",
+        "2023": "0002114338"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691848-257371552-399270",
+          "metadata_sha256": "93d0361ec01f10ea195f25cda0cb504e356ed4661e3e48c1c292009581a67bee",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691848-665698659-399285",
+          "metadata_sha256": "752764dd5e008088e4403fc93ea2a5f16165752f345f81caeb74f8e9bfa88724",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691849-136202592-399299",
+          "metadata_sha256": "9d43e28296fa3207bac5c0d8db99a1534467dfac7ce7858853945a8f91c57d12",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692514-399271092-411893",
+          "observation_sha256": "2007a205736f30be733eac957edc18c58187d28df3835818e63ec25b266a470c",
+          "count": 14976,
+          "metadata_sha256": "93d0361ec01f10ea195f25cda0cb504e356ed4661e3e48c1c292009581a67bee"
+        },
+        "2022": {
+          "run_id": "observations-1791692519-107373485-412007",
+          "observation_sha256": "f81cdd499a275479580e98aadf782d25ed173e85be067d2f2aa249a0a3abfe5d",
+          "count": 14976,
+          "metadata_sha256": "752764dd5e008088e4403fc93ea2a5f16165752f345f81caeb74f8e9bfa88724"
+        },
+        "2023": {
+          "run_id": "observations-1791692522-415773324-412049",
+          "observation_sha256": "1071005ea6726bc706adb1abfdcb676f169b81bc746aaf9f082b7ffde0a9752b",
+          "count": 14976,
+          "metadata_sha256": "9d43e28296fa3207bac5c0d8db99a1534467dfac7ce7858853945a8f91c57d12"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-09.json"
+    },
+    {
+      "key": "veg-10",
+      "label": "その他の菜類",
+      "table_ids": {
+        "2021": "0002008549",
+        "2022": "0002120395",
+        "2023": "0002114339"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691849-784115442-399314",
+          "metadata_sha256": "0102f01194b84b9e876da9c77468c4d4aca1400fa04ef6f0fcdf68a6a1a817ea",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691850-349630043-399317",
+          "metadata_sha256": "e8f88efd5c091138fb36738181f5a6fddc83879da6e1e8b864f6eadd6df7ca65",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691850-922563051-399356",
+          "metadata_sha256": "302371c6e1cb6724b18660bcdd92031e57cd7f2e25238740a8037226e97242f0",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692524-662381151-412089",
+          "observation_sha256": "4d04b937c2bceb3f90574a5839ead34fec2184b9864f5223eca0ef64e2b1950d",
+          "count": 14976,
+          "metadata_sha256": "0102f01194b84b9e876da9c77468c4d4aca1400fa04ef6f0fcdf68a6a1a817ea"
+        },
+        "2022": {
+          "run_id": "observations-1791692529-136845415-412163",
+          "observation_sha256": "aa85e2775d12ab425c044fa1ad8fb85059865cff42a2afb927e15cd4f26e37cc",
+          "count": 14976,
+          "metadata_sha256": "e8f88efd5c091138fb36738181f5a6fddc83879da6e1e8b864f6eadd6df7ca65"
+        },
+        "2023": {
+          "run_id": "observations-1791692534-834054308-412267",
+          "observation_sha256": "f68bcd00e35717d0bba091647f7e17a6a7a5b13aac6753e06efedce3cc856e3e",
+          "count": 14976,
+          "metadata_sha256": "302371c6e1cb6724b18660bcdd92031e57cd7f2e25238740a8037226e97242f0"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-10.json"
+    },
+    {
+      "key": "veg-11",
+      "label": "ちんげんさい",
+      "table_ids": {
+        "2021": "0002008550",
+        "2022": "0002120396",
+        "2023": "0002114340"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691851-350528325-399359",
+          "metadata_sha256": "924ea8ee0a2fe4cf3dee4ad7753a5a86f2b30b8d2bcf7959bcb3d540bf46a0fa",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691851-755688743-399362",
+          "metadata_sha256": "193a24a6851eb36bb9968a7ea1b75cb4f34ca05947d748abbce23ef8613eea6c",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691852-241340612-399366",
+          "metadata_sha256": "133de4fd0c1ec9e235781019a3d20fb0f3e0dd3733c191b624d5beb608ccbe9f",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692537-553667291-412311",
+          "observation_sha256": "4d5d0e25d79261d620613654f7a8aeb65a1cb2da55bc8b5bb1b4a70b7b530609",
+          "count": 14976,
+          "metadata_sha256": "924ea8ee0a2fe4cf3dee4ad7753a5a86f2b30b8d2bcf7959bcb3d540bf46a0fa"
+        },
+        "2022": {
+          "run_id": "observations-1791692538-240686422-412340",
+          "observation_sha256": "60dcb3e4a4c79f26b864fe481abd661a12cda47315a35d90f6dc874f798cb03e",
+          "count": 14976,
+          "metadata_sha256": "193a24a6851eb36bb9968a7ea1b75cb4f34ca05947d748abbce23ef8613eea6c"
+        },
+        "2023": {
+          "run_id": "observations-1791692543-265272715-412460",
+          "observation_sha256": "a550b2aa595d1ed7ada3eb9c8223c3f86a68f19f595aec2b706acb450896b157",
+          "count": 14976,
+          "metadata_sha256": "133de4fd0c1ec9e235781019a3d20fb0f3e0dd3733c191b624d5beb608ccbe9f"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-11.json"
+    },
+    {
+      "key": "veg-12",
+      "label": "キャベツ",
+      "table_ids": {
+        "2021": "0002008551",
+        "2022": "0002120397",
+        "2023": "0002114341"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691852-732711847-399369",
+          "metadata_sha256": "4a45de07ab321f427c64383d8891cd2fc2cbc48fce961df6350e1f6f6a541da5",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691853-78812520-399400",
+          "metadata_sha256": "de9c7a21ca1cc8acbc168793964cf19c206a40228395f92bba566b0d09bb7ae0",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691853-561641502-399404",
+          "metadata_sha256": "1f6740d65ed01f37d7844d0370f887443da029e42a81930660a6086bda899c31",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692548-181303989-412522",
+          "observation_sha256": "39b97c347f4f925d7101bbfea4603b8c58a363084d6f5124df0da4c69100d032",
+          "count": 14976,
+          "metadata_sha256": "4a45de07ab321f427c64383d8891cd2fc2cbc48fce961df6350e1f6f6a541da5"
+        },
+        "2023": {
+          "run_id": "observations-1791692555-283683674-412687",
+          "observation_sha256": "f573154b606c6f210b085481d694fb32816013a79ca36f0f96ecafb41d0e6f50",
+          "count": 14976,
+          "metadata_sha256": "1f6740d65ed01f37d7844d0370f887443da029e42a81930660a6086bda899c31"
+        },
+        "2022": {
+          "run_id": "observations-1791692552-371306712-412611",
+          "observation_sha256": "528159f260be469e53e19555c4714e406a99c52a05b4686748059b694da67750",
+          "count": 14976,
+          "metadata_sha256": "de9c7a21ca1cc8acbc168793964cf19c206a40228395f92bba566b0d09bb7ae0"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-12.json"
+    },
+    {
+      "key": "veg-13",
+      "label": "ほうれんそう",
+      "table_ids": {
+        "2021": "0002008552",
+        "2022": "0002120398",
+        "2023": "0002114342"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691853-921682303-399407",
+          "metadata_sha256": "647601d67e483fb73cfbf2497c1096dd6d147f7e4bc8a2467a4d02164f2b1ff4",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691854-377865331-399411",
+          "metadata_sha256": "b77d6bc57f875e92048535349447389218b0fa0e438b5c2ba208cd704862432e",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691854-876739436-399415",
+          "metadata_sha256": "53f6ff4ea02c3ca9a1a822bc4eb7b8ad8543ad19f8d751de6b33f3d566bab49b",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692562-789408554-412819",
+          "observation_sha256": "e579234cb1ce72d4ca750965cc799d50d6e348cb45a2f4ec095bcaffe50d0e07",
+          "count": 14976,
+          "metadata_sha256": "647601d67e483fb73cfbf2497c1096dd6d147f7e4bc8a2467a4d02164f2b1ff4"
+        },
+        "2022": {
+          "run_id": "observations-1791692566-552694596-412886",
+          "observation_sha256": "8d227303060f38ac2888dc468fa8da637de660e359a5c6d788473cc821e0ada1",
+          "count": 14976,
+          "metadata_sha256": "b77d6bc57f875e92048535349447389218b0fa0e438b5c2ba208cd704862432e"
+        },
+        "2023": {
+          "run_id": "observations-1791692570-603336247-412961",
+          "observation_sha256": "c54eae057fec83535e6dcd17444f38930e2b095bb7883bff08eaaf5dc3c20ba4",
+          "count": 14976,
+          "metadata_sha256": "53f6ff4ea02c3ca9a1a822bc4eb7b8ad8543ad19f8d751de6b33f3d566bab49b"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-13.json"
+    },
+    {
+      "key": "veg-14",
+      "label": "ねぎ",
+      "table_ids": {
+        "2021": "0002008553",
+        "2022": "0002120399",
+        "2023": "0002114343"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691855-255544895-399442",
+          "metadata_sha256": "1077390ef4cfbedad5ad53d00228e7da3ebe61bc91656c16bbcadae31f048f05",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691855-693505332-399445",
+          "metadata_sha256": "565c8c56fca54a10255d93a9c09ae6283f363ef7807da9b4fdd5cdbe7f9ffd2a",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691856-105709944-399448",
+          "metadata_sha256": "0fb35d5cd3253d6645b75dcd7991bcf3bc1d0b7d8b900a0cc18b98cf08671af1",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692570-838654092-412965",
+          "observation_sha256": "db5f3645f159b2a0f0e1d7c734e4efafcd37e6c8f97626e9c7be466fdbed65c2",
+          "count": 14976,
+          "metadata_sha256": "1077390ef4cfbedad5ad53d00228e7da3ebe61bc91656c16bbcadae31f048f05"
+        },
+        "2022": {
+          "run_id": "observations-1791692579-48330683-413114",
+          "observation_sha256": "ea2353b2691c40dbce75812310daede2a750a1544ddd7f3d7248cc9f0ea156e1",
+          "count": 14976,
+          "metadata_sha256": "565c8c56fca54a10255d93a9c09ae6283f363ef7807da9b4fdd5cdbe7f9ffd2a"
+        },
+        "2023": {
+          "run_id": "observations-1791692585-307829592-413221",
+          "observation_sha256": "185d5ffcc249a56e52593b3108af4e5bdf99f1113f8a3e469b7ec2caaa97602c",
+          "count": 14976,
+          "metadata_sha256": "0fb35d5cd3253d6645b75dcd7991bcf3bc1d0b7d8b900a0cc18b98cf08671af1"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-14.json"
+    },
+    {
+      "key": "veg-15",
+      "label": "ふき",
+      "table_ids": {
+        "2021": "0002008554",
+        "2022": "0002120400",
+        "2023": "0002114384"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691856-481620598-399451",
+          "metadata_sha256": "c78de3ae8e8c28a59bd48e364f9704eb1ee4ad5f7c17ae71e42f786f11e85a11",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691857-76152091-399454",
+          "metadata_sha256": "b796f59c90d85516dd4bb7927064176baf347ff63f978168208887a7ec39e970",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691857-610895808-399482",
+          "metadata_sha256": "8adb4b88cc97b629e461405c3e6db3362fe694a1bd7ebc22ced8a99e6f3fbc04",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692586-473142531-413226",
+          "observation_sha256": "6a3e2288260d731883189e09324ee8a1b36f94a3b12f05fc72d139f1cf06dff2",
+          "count": 14976,
+          "metadata_sha256": "c78de3ae8e8c28a59bd48e364f9704eb1ee4ad5f7c17ae71e42f786f11e85a11"
+        },
+        "2022": {
+          "run_id": "observations-1791692591-294307497-413325",
+          "observation_sha256": "be35001bf333c34f0fce5f77233e2bd99f00907651d9331d370e7b4d5fa80d11",
+          "count": 14976,
+          "metadata_sha256": "b796f59c90d85516dd4bb7927064176baf347ff63f978168208887a7ec39e970"
+        },
+        "2023": {
+          "run_id": "observations-1791692593-780197718-413373",
+          "observation_sha256": "23d45140d9c47048bdd5ae515334f27489f21eaf9e1ccf5125749cf1b18e1be1",
+          "count": 14976,
+          "metadata_sha256": "8adb4b88cc97b629e461405c3e6db3362fe694a1bd7ebc22ced8a99e6f3fbc04"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-15.json"
+    },
+    {
+      "key": "veg-16",
+      "label": "うど",
+      "table_ids": {
+        "2021": "0002008555",
+        "2022": "0002120401",
+        "2023": "0002114385"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691858-85909764-399485",
+          "metadata_sha256": "78cce14186f74f8251a7429819a82a42312b237a5b88b4e899cb2eb12304df9d",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691858-539029860-399500",
+          "metadata_sha256": "18670b07dfe42db64ae453b241ed220de229932df5e9baa117fafd84af1fcb61",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691859-37533916-399503",
+          "metadata_sha256": "be818c1927e76ceb63969ec30cb4c743ab17d5bc07ca5d9876dcec727da08568",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692603-417425603-413522",
+          "observation_sha256": "62fefbd53345a08eaf4546ab76774530e05794e7640b60d9381b945ca99cc7b7",
+          "count": 14976,
+          "metadata_sha256": "78cce14186f74f8251a7429819a82a42312b237a5b88b4e899cb2eb12304df9d"
+        },
+        "2022": {
+          "run_id": "observations-1791692607-874266739-413596",
+          "observation_sha256": "4f2cbf323c8ce80a1b0a014d5782c7f326b77163be8b4f287874b59f5013bf15",
+          "count": 14976,
+          "metadata_sha256": "18670b07dfe42db64ae453b241ed220de229932df5e9baa117fafd84af1fcb61"
+        },
+        "2023": {
+          "run_id": "observations-1791692612-934186622-413694",
+          "observation_sha256": "15c65a5e9e3366a4fdf29a1948f6f494ef03c826bb36376f4c6f62dcf4c0bbf2",
+          "count": 14976,
+          "metadata_sha256": "be818c1927e76ceb63969ec30cb4c743ab17d5bc07ca5d9876dcec727da08568"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-16.json"
+    },
+    {
+      "key": "veg-17",
+      "label": "みつば",
+      "table_ids": {
+        "2021": "0002008556",
+        "2022": "0002120402",
+        "2023": "0002114386"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691859-441328998-399540",
+          "metadata_sha256": "efba5d7b08c767518b94eacbe0326472cf4aa27da4f187293a51b21af20d33f0",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691859-830560559-399543",
+          "metadata_sha256": "77c9ced2c691b8ffc6eeada757bc930c08c4ab5a161bf90e3a7374c836112c8b",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691860-352461642-399546",
+          "metadata_sha256": "53430441889ec4cf6c5c00482e299a6644a4335d7b89c69154b89c9487ae8d37",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692615-163579136-413733",
+          "observation_sha256": "91dae3528749070ca4323a3b78fde88cec0ec094c865ca8bb2303b3b2758245f",
+          "count": 14976,
+          "metadata_sha256": "efba5d7b08c767518b94eacbe0326472cf4aa27da4f187293a51b21af20d33f0"
+        },
+        "2022": {
+          "run_id": "observations-1791692621-918148019-413832",
+          "observation_sha256": "363757312b5c7db42f16902fb117064c6f4f15860dd6bf0e156311986fc6eb3b",
+          "count": 14976,
+          "metadata_sha256": "77c9ced2c691b8ffc6eeada757bc930c08c4ab5a161bf90e3a7374c836112c8b"
+        },
+        "2023": {
+          "run_id": "observations-1791692632-335116503-414017",
+          "observation_sha256": "57bc6293428ede93e092f62c9ea231097589189ec258dc872f38e372132d0551",
+          "count": 14976,
+          "metadata_sha256": "53430441889ec4cf6c5c00482e299a6644a4335d7b89c69154b89c9487ae8d37"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-17.json"
+    },
+    {
+      "key": "veg-18",
+      "label": "しゅんぎく",
+      "table_ids": {
+        "2021": "0002008557",
+        "2022": "0002120403",
+        "2023": "0002114387"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691860-753401401-399549",
+          "metadata_sha256": "941b69b08b62c9b04a35b6247b3cb8bd0a2a70fa613cb56c27d999bcf5cd8c52",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691861-154235506-399564",
+          "metadata_sha256": "f7c717662e25a1adcf475fe9d4ae8c0128a2bf831b414f0c057186b9b6a84160",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691861-574610085-399589",
+          "metadata_sha256": "71d7b04792ca6ccab4700b69e072c7eb72b4b82fb08897a13e24c2e4e2f88c83",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692636-886637322-414094",
+          "observation_sha256": "17d55fb3401bc09a8876e137d22afe433add4729ef1fb479181ddb2d430b4d44",
+          "count": 14976,
+          "metadata_sha256": "941b69b08b62c9b04a35b6247b3cb8bd0a2a70fa613cb56c27d999bcf5cd8c52"
+        },
+        "2022": {
+          "run_id": "observations-1791692643-591155289-414216",
+          "observation_sha256": "7745225a795196db3af05b1dc65492a96f0a075625b345c5e04400e2bcc5850f",
+          "count": 14976,
+          "metadata_sha256": "f7c717662e25a1adcf475fe9d4ae8c0128a2bf831b414f0c057186b9b6a84160"
+        },
+        "2023": {
+          "run_id": "observations-1791692648-777261293-414320",
+          "observation_sha256": "cf57e39ca22c43d2b7db1f373f29ce0e8dd74e411d538ad040738b077d27eee5",
+          "count": 14976,
+          "metadata_sha256": "71d7b04792ca6ccab4700b69e072c7eb72b4b82fb08897a13e24c2e4e2f88c83"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-18.json"
+    },
+    {
+      "key": "veg-19",
+      "label": "にら",
+      "table_ids": {
+        "2021": "0002008558",
+        "2022": "0002120404",
+        "2023": "0002114388"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691861-971756324-399601",
+          "metadata_sha256": "2dc2b77098ae5a1d3cb77f52e7a2f33547ff8f9709b24cbcc1e30da8fa23a9b2",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691862-356797211-399616",
+          "metadata_sha256": "efefd070b816398e4b36a31511f34dc8dc231f8e792f89451515be451bbfeac3",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691862-734615564-399619",
+          "metadata_sha256": "1b094c517ef1ade0f88e7ad2454bb4dd13ac0a766e8d0ab330f9bcd6de8bb8a8",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692654-547056353-414401",
+          "observation_sha256": "593bbfc1113b8d253504cdd44011beae36e5997ae41f05ddedcb24ae1a8c1004",
+          "count": 14976,
+          "metadata_sha256": "2dc2b77098ae5a1d3cb77f52e7a2f33547ff8f9709b24cbcc1e30da8fa23a9b2"
+        },
+        "2022": {
+          "run_id": "observations-1791692655-602126181-414432",
+          "observation_sha256": "3658159c20cb2ed99410557c5730802e266a584b0b9074c87769480b3c07749e",
+          "count": 14976,
+          "metadata_sha256": "efefd070b816398e4b36a31511f34dc8dc231f8e792f89451515be451bbfeac3"
+        },
+        "2023": {
+          "run_id": "observations-1791692663-347474103-414560",
+          "observation_sha256": "ea48963953a4f7fb4239d18ed35d889c61c125ca953351e7376199ff5c20704d",
+          "count": 14976,
+          "metadata_sha256": "1b094c517ef1ade0f88e7ad2454bb4dd13ac0a766e8d0ab330f9bcd6de8bb8a8"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-19.json"
+    },
+    {
+      "key": "veg-20",
+      "label": "セルリー",
+      "table_ids": {
+        "2021": "0002008559",
+        "2022": "0002120405",
+        "2023": "0002114389"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691863-111149653-399622",
+          "metadata_sha256": "8dbcbbe01da3fded760fd068c6ca2663ca88fa274c07ae9dff0fbebac4772286",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691863-549741627-399648",
+          "metadata_sha256": "a6c379627b99ace71c731cabc5dd78a2b76c487cee7c4ef8107dcb87eb1a3524",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691863-926395416-399664",
+          "metadata_sha256": "245bd07b26486dc80561f502be5a7e4a0bbbb14c3754e448baa98a02079a0fe5",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692663-701205979-414585",
+          "observation_sha256": "0097abd44ac4269455a1dd6fefccd494e089b9cde6987b6f757038f43014d40c",
+          "count": 14976,
+          "metadata_sha256": "8dbcbbe01da3fded760fd068c6ca2663ca88fa274c07ae9dff0fbebac4772286"
+        },
+        "2022": {
+          "run_id": "observations-1791692669-438657263-414662",
+          "observation_sha256": "ecfe480b1f73b6cec4b925d83a30470adde5cea2cbe2478a3e40336a8df32472",
+          "count": 14976,
+          "metadata_sha256": "a6c379627b99ace71c731cabc5dd78a2b76c487cee7c4ef8107dcb87eb1a3524"
+        },
+        "2023": {
+          "run_id": "observations-1791692673-518343966-414737",
+          "observation_sha256": "804691b65b92be729b249a4d7e184955d33f1966dad975d1c3c9c5c30e5be483",
+          "count": 14976,
+          "metadata_sha256": "245bd07b26486dc80561f502be5a7e4a0bbbb14c3754e448baa98a02079a0fe5"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-20.json"
+    },
+    {
+      "key": "veg-21",
+      "label": "アスパラガス",
+      "table_ids": {
+        "2021": "0002008560",
+        "2022": "0002120406",
+        "2023": "0002114390"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691864-310539541-399668",
+          "metadata_sha256": "f8a2f230d50a016cafceff4c2154ba05062bedd0e7b87b13f28d880258aa8035",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691864-750698587-399671",
+          "metadata_sha256": "8047175695beec12d4233bfc6479c25763947a40c36175df1bd11c587e49ec83",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691865-172592708-399686",
+          "metadata_sha256": "bcd7a7621f87ee39718ba10738618754a1b7868b6b48a29e183aea1329a12ffe",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692676-703769089-414798",
+          "observation_sha256": "248a430536a5845910cf21ab505d3b44e4b4931e0e4a3dbed73f063ed11308b8",
+          "count": 14976,
+          "metadata_sha256": "f8a2f230d50a016cafceff4c2154ba05062bedd0e7b87b13f28d880258aa8035"
+        },
+        "2022": {
+          "run_id": "observations-1791692683-226787793-414917",
+          "observation_sha256": "3fece5be42dbfd40ade3aebfab93eaf6132e63886426d2c97a687ec948efa3af",
+          "count": 14976,
+          "metadata_sha256": "8047175695beec12d4233bfc6479c25763947a40c36175df1bd11c587e49ec83"
+        },
+        "2023": {
+          "run_id": "observations-1791692687-610859215-414993",
+          "observation_sha256": "cb2a61bf823f902a5047dac5526fdb3c281277a6b7a767fe2a3f3c451f391f72",
+          "count": 14976,
+          "metadata_sha256": "bcd7a7621f87ee39718ba10738618754a1b7868b6b48a29e183aea1329a12ffe"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-21.json"
+    },
+    {
+      "key": "veg-22",
+      "label": "カリフラワー",
+      "table_ids": {
+        "2021": "0002008561",
+        "2022": "0002120407",
+        "2023": "0002114391"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691865-650780272-399702",
+          "metadata_sha256": "e37261a74784068646f88a3494a09eac5742aa3d6a970f6ef0d6dca0d7026401",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691866-50363137-399717",
+          "metadata_sha256": "fe39f8a7e3b2c0406d0cd3170ed982d80c69716adabb03f7c361d48a9e66ab80",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691866-549889562-399730",
+          "metadata_sha256": "d6d57139bf905b83c5881dbd8659493a2c7152d47bd0a9983c3e6564e9028df1",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2022": {
+          "run_id": "observations-1791692690-318294659-415032",
+          "observation_sha256": "f057e17bebbfd5a4386e086142fce23ad1799d602d0e4c97a7fa71720be58bf6",
+          "count": 14976,
+          "metadata_sha256": "fe39f8a7e3b2c0406d0cd3170ed982d80c69716adabb03f7c361d48a9e66ab80"
+        },
+        "2021": {
+          "run_id": "observations-1791692690-319260741-415031",
+          "observation_sha256": "46dc7da92fce7bc38793936c3dcc7a996d019e172dc27370af1b0a06ce264e05",
+          "count": 14976,
+          "metadata_sha256": "e37261a74784068646f88a3494a09eac5742aa3d6a970f6ef0d6dca0d7026401"
+        },
+        "2023": {
+          "run_id": "observations-1791692699-569873961-415195",
+          "observation_sha256": "b3a684b0393ef462de1a5107bfc83406fbbd5b11ff7f5da692061fc0b6712241",
+          "count": 14976,
+          "metadata_sha256": "d6d57139bf905b83c5881dbd8659493a2c7152d47bd0a9983c3e6564e9028df1"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-22.json"
+    },
+    {
+      "key": "veg-23",
+      "label": "ブロッコリー",
+      "table_ids": {
+        "2021": "0002008562",
+        "2022": "0002120408",
+        "2023": "0002114392"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691866-966374104-399733",
+          "metadata_sha256": "13416d016dfd731118ab57a84f9a9330dfb52846405cd4f34733ef27aa99f299",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691867-368870901-399748",
+          "metadata_sha256": "3b1d41a3b292d584662791d5a80bd76265cb8185843e411c4e3917aa7c2ece90",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691867-830545283-399763",
+          "metadata_sha256": "aa42bba3609f88f155c90665813ce1fa580ea52d8fee9047cc8444e81cf22acb",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2023": {
+          "run_id": "observations-1791692708-376105769-415357",
+          "observation_sha256": "9ec6daa9d221df431012548f3e51789de73a44049a7ae2144efca5071b870adc",
+          "count": 14976,
+          "metadata_sha256": "aa42bba3609f88f155c90665813ce1fa580ea52d8fee9047cc8444e81cf22acb"
+        },
+        "2022": {
+          "run_id": "observations-1791692706-331788526-415316",
+          "observation_sha256": "5723ab2c5dfe08d56eadc441ea812ec9dab2f8892e74126489e80d2b9f97b5dc",
+          "count": 14976,
+          "metadata_sha256": "3b1d41a3b292d584662791d5a80bd76265cb8185843e411c4e3917aa7c2ece90"
+        },
+        "2021": {
+          "run_id": "observations-1791692703-469971686-415261",
+          "observation_sha256": "f1b94c1a49ccf5368938ef29b2d4ed153d9dedea84aa8daab1dc7bcf1dfcd5aa",
+          "count": 14976,
+          "metadata_sha256": "13416d016dfd731118ab57a84f9a9330dfb52846405cd4f34733ef27aa99f299"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-23.json"
+    },
+    {
+      "key": "veg-24",
+      "label": "レタス",
+      "table_ids": {
+        "2021": "0002008563",
+        "2022": "0002120409",
+        "2023": "0002114393"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691868-177347365-399778",
+          "metadata_sha256": "7657aa7d16d1e52a958ba62b7ebd87a813315d61b0aae4612a94aa1c1e230169",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691868-603532114-399790",
+          "metadata_sha256": "57df65a92bfa595c481e145a32a76e2b7e93ecadca5e39a56837a69fb16651fd",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691869-132865638-399793",
+          "metadata_sha256": "48a103f012cf12c93ef01fded02749f8087f7eab4751d74d685a1b673eb6bec1",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692714-876434149-415473",
+          "observation_sha256": "61ce14b03d14338b60e32df92e7b7bce45b09cc5cc2c2c685d42fe06a7111d63",
+          "count": 14976,
+          "metadata_sha256": "7657aa7d16d1e52a958ba62b7ebd87a813315d61b0aae4612a94aa1c1e230169"
+        },
+        "2023": {
+          "run_id": "observations-1791692720-561137479-415553",
+          "observation_sha256": "10d3b5206294c30992dced47a57a6e0a579d45edc566784bb0cc8ee77a19c7ca",
+          "count": 14976,
+          "metadata_sha256": "48a103f012cf12c93ef01fded02749f8087f7eab4751d74d685a1b673eb6bec1"
+        },
+        "2022": {
+          "run_id": "observations-1791692719-567949145-415548",
+          "observation_sha256": "b1707449fe91d1160d7d4e2d4eca099dd03d10de4c2e17eeb18e99c66f80af7a",
+          "count": 14976,
+          "metadata_sha256": "57df65a92bfa595c481e145a32a76e2b7e93ecadca5e39a56837a69fb16651fd"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-24.json"
+    },
+    {
+      "key": "veg-25",
+      "label": "パセリ",
+      "table_ids": {
+        "2021": "0002008564",
+        "2022": "0002120410",
+        "2023": "0002114394"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691869-581113231-399809",
+          "metadata_sha256": "cfaf225e84c0c9ab94278de97e7302fc1fb107932186aff73dd9522e50c6416d",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691870-4935745-399825",
+          "metadata_sha256": "cf208b2fa2705a4583afd7af5e11770df612292f3df612616e22411af07c39e3",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691870-498093181-399849",
+          "metadata_sha256": "2b4094fd4d29b7d0c57590992be2c03feddebe0e3be91c3429ab6e4ef747d18b",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692720-716023472-415570",
+          "observation_sha256": "d45d0c8884e146b019b4261a409e717380351609a7cc134c2a0bf2349b29c8e3",
+          "count": 14976,
+          "metadata_sha256": "cfaf225e84c0c9ab94278de97e7302fc1fb107932186aff73dd9522e50c6416d"
+        },
+        "2022": {
+          "run_id": "observations-1791692728-20671639-415728",
+          "observation_sha256": "231462f4c3420dfdc7c9347b0fab1bab2ebde584f7c4612fdbe9eed88c717d60",
+          "count": 14976,
+          "metadata_sha256": "cf208b2fa2705a4583afd7af5e11770df612292f3df612616e22411af07c39e3"
+        },
+        "2023": {
+          "run_id": "observations-1791692732-978209401-415803",
+          "observation_sha256": "1607410c1ff9e0d278c66473dc94d84190839e82b44b63ffa277fcde0a600e8a",
+          "count": 14976,
+          "metadata_sha256": "2b4094fd4d29b7d0c57590992be2c03feddebe0e3be91c3429ab6e4ef747d18b"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-25.json"
+    },
+    {
+      "key": "veg-26",
+      "label": "きゅうり",
+      "table_ids": {
+        "2021": "0002008565",
+        "2022": "0002120411",
+        "2023": "0002114395"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691870-922408660-399852",
+          "metadata_sha256": "64550cfbd0b2a46064873c3c980b1197373c71729f7ac83c92dda75ac45eebfe",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691871-344086370-399855",
+          "metadata_sha256": "256282e9000eb7832ae7989bb1933bf8ed75fe628c877efe4bdb11269c129e04",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691871-762974642-399858",
+          "metadata_sha256": "2cfa52c98e8447efc289943e5a683070d5e24321efc28be16acc59747f651d07",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2022": {
+          "run_id": "observations-1791692734-826369638-415846",
+          "observation_sha256": "baa3c41b5011ef7fdac01ab678585bf5ce2769133d65c65c3727308c4d0ac6de",
+          "count": 14976,
+          "metadata_sha256": "256282e9000eb7832ae7989bb1933bf8ed75fe628c877efe4bdb11269c129e04"
+        },
+        "2021": {
+          "run_id": "observations-1791692734-106062628-415842",
+          "observation_sha256": "1b9e33b97d805dc54708b5fc0acd04a0185ebb6fbbe30e4109eb9e93e85c6bc0",
+          "count": 14976,
+          "metadata_sha256": "64550cfbd0b2a46064873c3c980b1197373c71729f7ac83c92dda75ac45eebfe"
+        },
+        "2023": {
+          "run_id": "observations-1791692739-346438229-415923",
+          "observation_sha256": "18ef93015f3f248901e52c4cb0095f11a61367704982cc878ac40381b1cb19fb",
+          "count": 14976,
+          "metadata_sha256": "2cfa52c98e8447efc289943e5a683070d5e24321efc28be16acc59747f651d07"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-26.json"
+    },
+    {
+      "key": "veg-27",
+      "label": "かぼちゃ",
+      "table_ids": {
+        "2021": "0002008566",
+        "2022": "0002120412",
+        "2023": "0002114396"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691872-146173302-399875",
+          "metadata_sha256": "5ff284c0e1ce83bcd82b212f7650cb17da207533f9a92127ef8540cca361d24d",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691872-539803098-399904",
+          "metadata_sha256": "90cebc0b0d6e3350e4e237ced0360b16564702b350be59822152fda35676c94b",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691872-939286224-399907",
+          "metadata_sha256": "36f4aa2c06448c6ec491c7617bf8c14b6517886b0f73f713ff9c606d8f7ebd47",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692744-676923396-416024",
+          "observation_sha256": "52effca60ab8517b507eea3dc698cd16cc0a67a8b5ac6fe11bb7e4153967393d",
+          "count": 14976,
+          "metadata_sha256": "5ff284c0e1ce83bcd82b212f7650cb17da207533f9a92127ef8540cca361d24d"
+        },
+        "2022": {
+          "run_id": "observations-1791692746-754907249-416057",
+          "observation_sha256": "45e70faf15bab0fb2c933f2c5d6f60073a9c863f2e61ac9152d86900f92f918f",
+          "count": 14976,
+          "metadata_sha256": "90cebc0b0d6e3350e4e237ced0360b16564702b350be59822152fda35676c94b"
+        },
+        "2023": {
+          "run_id": "observations-1791692747-490408290-416078",
+          "observation_sha256": "ed88b20a6cbab5052768eb008149d16f5bf60ec5692f9322998e529ab3c76f40",
+          "count": 14976,
+          "metadata_sha256": "36f4aa2c06448c6ec491c7617bf8c14b6517886b0f73f713ff9c606d8f7ebd47"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-27.json"
+    },
+    {
+      "key": "veg-28",
+      "label": "なす",
+      "table_ids": {
+        "2021": "0002008567",
+        "2022": "0002120414",
+        "2023": "0002114397"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691873-303131488-399910",
+          "metadata_sha256": "7722543a31bfd2bb4f0b4bc0306be2d91a7ca1258f1a527c34e3d001ca7d3f31",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691873-710281931-399922",
+          "metadata_sha256": "9eb3f5e3f0d3d6a1a292e0360f76e6c2a1f1ab0026828a74ea45f58a0b838e7f",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691874-77465950-399925",
+          "metadata_sha256": "c2cc21cd970f3254e8f12515148ebaa26ed3870bcd9703a44388ea94e0d42004",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692757-181482535-416241",
+          "observation_sha256": "c48b485ba19ad2ef7a856153f6366bd702715bdc1900c03f7c916ef11f5f712f",
+          "count": 14976,
+          "metadata_sha256": "7722543a31bfd2bb4f0b4bc0306be2d91a7ca1258f1a527c34e3d001ca7d3f31"
+        },
+        "2022": {
+          "run_id": "observations-1791692761-710881875-416317",
+          "observation_sha256": "1beedab32d43f2c653e0581b7de4a70f5a46d66e3c6e2eb11d6b65586862a63e",
+          "count": 14976,
+          "metadata_sha256": "9eb3f5e3f0d3d6a1a292e0360f76e6c2a1f1ab0026828a74ea45f58a0b838e7f"
+        },
+        "2023": {
+          "run_id": "observations-1791692763-798500640-416367",
+          "observation_sha256": "999f6b82edbde1456b75383cf17bc2b6d975300d38edb64c9d294ead51f980c4",
+          "count": 14976,
+          "metadata_sha256": "c2cc21cd970f3254e8f12515148ebaa26ed3870bcd9703a44388ea94e0d42004"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-28.json"
+    },
+    {
+      "key": "veg-29",
+      "label": "トマト",
+      "table_ids": {
+        "2021": "0002008568",
+        "2022": "0002120415",
+        "2023": "0002114398"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691874-519749818-399955",
+          "metadata_sha256": "a2bfc9d4231170cccc81e65a48547b6a8da84d210135bc70105a609d445a5606",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691874-952590026-399959",
+          "metadata_sha256": "3c2f88917c9bbb831e45dbc9a2d394aa4c2a184bdd2bdbd9a45881e98cf2a22b",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691875-574566865-399963",
+          "metadata_sha256": "65b02aa94e0ca29436484bc9032adaad49338879c09d8f7c1f96fc33861f081e",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692763-798469709-416368",
+          "observation_sha256": "b7080a88aa6ca83864630b893f697362c7b02fc4e389c6211ee8b010027f1dd9",
+          "count": 14976,
+          "metadata_sha256": "a2bfc9d4231170cccc81e65a48547b6a8da84d210135bc70105a609d445a5606"
+        },
+        "2022": {
+          "run_id": "observations-1791692770-330191378-416491",
+          "observation_sha256": "45a1814161864350b4edba1004966a4cfe15f6ab394730903184e7306b9a5d7b",
+          "count": 14976,
+          "metadata_sha256": "3c2f88917c9bbb831e45dbc9a2d394aa4c2a184bdd2bdbd9a45881e98cf2a22b"
+        },
+        "2023": {
+          "run_id": "observations-1791692779-450765432-416648",
+          "observation_sha256": "0ce8e7f629183fdd5e39b3fd243bfccf092a2631c9786813c3909681ad2b1d9b",
+          "count": 14976,
+          "metadata_sha256": "65b02aa94e0ca29436484bc9032adaad49338879c09d8f7c1f96fc33861f081e"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-29.json"
+    },
+    {
+      "key": "veg-30",
+      "label": "ミニトマト",
+      "table_ids": {
+        "2021": "0002008569",
+        "2022": "0002120416",
+        "2023": "0002114399"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691876-23224758-399966",
+          "metadata_sha256": "a8677abcaa5ba60f2e3d39d7ba480042fabf97421cb69b8dba179f2afd0221d5",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691876-470428011-399995",
+          "metadata_sha256": "c3c6c9d61402c1d2709d1435e3cf447e454d6a3b79f8c05d03ce58885ade675c",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691876-895032440-399998",
+          "metadata_sha256": "af4d9b8c0edfa51d361df81dff67448c79cc96308e43cebdf65e4d38d8094f3a",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692780-668498065-416676",
+          "observation_sha256": "8a4ad45ace7ed13c481037ff08e0a4f0423f267caf57ea2e874597f61a9c21ea",
+          "count": 14976,
+          "metadata_sha256": "a8677abcaa5ba60f2e3d39d7ba480042fabf97421cb69b8dba179f2afd0221d5"
+        },
+        "2022": {
+          "run_id": "observations-1791692781-361808998-416680",
+          "observation_sha256": "8dca5dce58de2fb22b68d2651ad209be1f2dfb378fe20f20161d23cb59728a69",
+          "count": 14976,
+          "metadata_sha256": "c3c6c9d61402c1d2709d1435e3cf447e454d6a3b79f8c05d03ce58885ade675c"
+        },
+        "2023": {
+          "run_id": "observations-1791692789-753571855-416827",
+          "observation_sha256": "6b8b51bbc8fe6e4b51f062ed9a0fe5c0f9fc97783df76e1e5659f86c39a8e0bc",
+          "count": 14976,
+          "metadata_sha256": "af4d9b8c0edfa51d361df81dff67448c79cc96308e43cebdf65e4d38d8094f3a"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-30.json"
+    },
+    {
+      "key": "veg-31",
+      "label": "ピーマン",
+      "table_ids": {
+        "2021": "0002008570",
+        "2022": "0002120417",
+        "2023": "0002114400"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691877-284397104-400001",
+          "metadata_sha256": "17ccb8d119d0ee469eeb0d7fe430ef5694a37b66e106517ec3dab5739930050f",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691877-645837292-400016",
+          "metadata_sha256": "d3a9f5761b960e432161a84ddab5f3d665a395a97f2e8769daa21c1f9950b9a1",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691878-100393186-400019",
+          "metadata_sha256": "beccea713235bf9deb13bc18051bc0857645a1ea5681d7a0285f16c91a6be4d9",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692797-944967728-416972",
+          "observation_sha256": "8c54930669dfe98aab30991d67c63d635137c7f1c5841c93764a276e13af926d",
+          "count": 14976,
+          "metadata_sha256": "17ccb8d119d0ee469eeb0d7fe430ef5694a37b66e106517ec3dab5739930050f"
+        },
+        "2023": {
+          "run_id": "observations-1791692799-940615623-417014",
+          "observation_sha256": "457c2907d016ea4233153f6d56077c7dbbc8a804fada02e394aa8525819e9afd",
+          "count": 14976,
+          "metadata_sha256": "beccea713235bf9deb13bc18051bc0857645a1ea5681d7a0285f16c91a6be4d9"
+        },
+        "2022": {
+          "run_id": "observations-1791692798-535329328-416985",
+          "observation_sha256": "95db6fceda1fa8f6ff9be0ac933c8360b0166910803ddf324fbf6568bb04926c",
+          "count": 14976,
+          "metadata_sha256": "d3a9f5761b960e432161a84ddab5f3d665a395a97f2e8769daa21c1f9950b9a1"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-31.json"
+    },
+    {
+      "key": "veg-32",
+      "label": "ししとうがらし",
+      "table_ids": {
+        "2021": "0002008571",
+        "2022": "0002120418",
+        "2023": "0002114401"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691878-512562064-400045",
+          "metadata_sha256": "83379df923ea4d4908feb3c9013b83e52c6a991f42fe90594385aa81d3cf2f88",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691878-926572734-400065",
+          "metadata_sha256": "e6f5a650bb1b41e53a286be7fb531bf3a60a5cfbe518965cba44c17cd6c4bb49",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691879-341927642-400068",
+          "metadata_sha256": "181bfe14507f7d24f3bbaa4b2e9fbd1dadf258415ebe649e19c886c32f7d9c80",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692806-381274018-417117",
+          "observation_sha256": "f7eef4b1e4a5fa20bfefa7d695d8814eb94a238a0bb66f4d35ba7acf58e6790d",
+          "count": 14976,
+          "metadata_sha256": "83379df923ea4d4908feb3c9013b83e52c6a991f42fe90594385aa81d3cf2f88"
+        },
+        "2022": {
+          "run_id": "observations-1791692812-262272026-417204",
+          "observation_sha256": "cb2cc1e5b522fc5061c387fc08a13d8e2980ed44d89496db476ea82a6472f8b5",
+          "count": 14976,
+          "metadata_sha256": "e6f5a650bb1b41e53a286be7fb531bf3a60a5cfbe518965cba44c17cd6c4bb49"
+        },
+        "2023": {
+          "run_id": "observations-1791692814-154405999-417241",
+          "observation_sha256": "abdceb222bf5f9c036d120e33f8fc93f9ed6fd3ed0a9a7fca5c476ca25c151a2",
+          "count": 14976,
+          "metadata_sha256": "181bfe14507f7d24f3bbaa4b2e9fbd1dadf258415ebe649e19c886c32f7d9c80"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-32.json"
+    },
+    {
+      "key": "veg-33",
+      "label": "スイートコーン",
+      "table_ids": {
+        "2021": "0002008572",
+        "2022": "0002120419",
+        "2023": "0002114402"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691879-759795654-400083",
+          "metadata_sha256": "0980b86eb005f7e44507e038ac2c11e67a5b401e073ca51701f06e602402d39e",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691880-149709087-400086",
+          "metadata_sha256": "7b775cfc2a6874cc42e4252e35f0a89fed7d146839317fba61afed8140d856bf",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691880-627408852-400101",
+          "metadata_sha256": "191989167cfad1b46d65ef75d7f21ada7cf4bd7fedd6c3da36c3e576d41ca857",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692814-817762550-417270",
+          "observation_sha256": "9af4a7045a66f8bdabe0b704f2af601c0025ca6f25c2fa43740dbc8e5b4c37ef",
+          "count": 14976,
+          "metadata_sha256": "0980b86eb005f7e44507e038ac2c11e67a5b401e073ca51701f06e602402d39e"
+        },
+        "2022": {
+          "run_id": "observations-1791692820-629711626-417382",
+          "observation_sha256": "eba683152e45ec2fbea82f2c88aace56086b3cf1201c9f2fb60003425f45870b",
+          "count": 14976,
+          "metadata_sha256": "7b775cfc2a6874cc42e4252e35f0a89fed7d146839317fba61afed8140d856bf"
+        },
+        "2023": {
+          "run_id": "observations-1791692824-319953140-417447",
+          "observation_sha256": "4c2bc75f70a721b6ae76c52245c164cac19c684b66a98740d0425fac4c186cc5",
+          "count": 14976,
+          "metadata_sha256": "191989167cfad1b46d65ef75d7f21ada7cf4bd7fedd6c3da36c3e576d41ca857"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-33.json"
+    },
+    {
+      "key": "veg-34",
+      "label": "さやいんげん",
+      "table_ids": {
+        "2021": "0002008573",
+        "2022": "0002120421",
+        "2023": "0002114403"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691881-9667054-400126",
+          "metadata_sha256": "67a3e17dd0c39fec11b5141e892877a99f77bf4b97a310dbf9e50de2e707cc2d",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691881-435274078-400129",
+          "metadata_sha256": "7bbf67d22ef91771ff67724da2ea36d90f7cad99fda9e30699bb6275a44ca712",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691881-822700734-400132",
+          "metadata_sha256": "62dbd20e76b005ceeec481b9143ae5af7e073c12f2af8b7fa5e18bb486b830dd",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692827-827697776-417517",
+          "observation_sha256": "d493f2fd1b419d3edef90d09b043ce8c7483814ed925496e364084a7baf910d8",
+          "count": 14976,
+          "metadata_sha256": "67a3e17dd0c39fec11b5141e892877a99f77bf4b97a310dbf9e50de2e707cc2d"
+        },
+        "2022": {
+          "run_id": "observations-1791692828-106000351-417521",
+          "observation_sha256": "6dbf39a5dc6e5853c87a18a2e5d6e738006decbace910691977fc575815cb266",
+          "count": 14976,
+          "metadata_sha256": "7bbf67d22ef91771ff67724da2ea36d90f7cad99fda9e30699bb6275a44ca712"
+        },
+        "2023": {
+          "run_id": "observations-1791692837-566693101-417673",
+          "observation_sha256": "4074f5beed53e5f24b53bfd9856feeeda65319ec25ce283596cccaefc3a18364",
+          "count": 14976,
+          "metadata_sha256": "62dbd20e76b005ceeec481b9143ae5af7e073c12f2af8b7fa5e18bb486b830dd"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-34.json"
+    },
+    {
+      "key": "veg-35",
+      "label": "さやえんどう",
+      "table_ids": {
+        "2021": "0002008574",
+        "2022": "0002120422",
+        "2023": "0002114404"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691882-182131262-400135",
+          "metadata_sha256": "ca02979ab8503b051ee98e910a343f02d096507a46d5cb4c88ae83ff2bb07527",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691882-558022128-400151",
+          "metadata_sha256": "922dc79571fc3166bb498f11bfff83fdd1dcddd06bd8d13eb5e8f4b31c99fd10",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691882-949058311-400181",
+          "metadata_sha256": "85c7e621772be30a3d5e33a51dae4ecb6dd664d15b3da202d466b3f185fe7731",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692839-818734264-417722",
+          "observation_sha256": "b111e37503101c5aa67892f32e48c465a4527d1a5a831ca9fbddba52a7cc03e0",
+          "count": 14976,
+          "metadata_sha256": "ca02979ab8503b051ee98e910a343f02d096507a46d5cb4c88ae83ff2bb07527"
+        },
+        "2023": {
+          "run_id": "observations-1791692844-45067925-417809",
+          "observation_sha256": "0e9c298ff5ae56b85c4c64a93c06c9855df1d70e652a9d4f6c59c9a5bbc96b93",
+          "count": 14976,
+          "metadata_sha256": "85c7e621772be30a3d5e33a51dae4ecb6dd664d15b3da202d466b3f185fe7731"
+        },
+        "2022": {
+          "run_id": "observations-1791692841-204186595-417738",
+          "observation_sha256": "78a3121b06e82afd67d850a006f33ea7b3f2e6f854f424c449ec78e9d99d0b64",
+          "count": 14976,
+          "metadata_sha256": "922dc79571fc3166bb498f11bfff83fdd1dcddd06bd8d13eb5e8f4b31c99fd10"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-35.json"
+    },
+    {
+      "key": "veg-36",
+      "label": "実えんどう",
+      "table_ids": {
+        "2021": "0002008575",
+        "2022": "0002120423",
+        "2023": "0002114405"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691883-343481508-400184",
+          "metadata_sha256": "d30e266c9c5f68b110b1d021716956c4542e3d5599e8f314011f22f561057003",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691883-762643115-400196",
+          "metadata_sha256": "4da9123cde793c136323f8d38a8ad7b7bcf62de5843b4b9e5033de75ad5bac17",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691884-148808441-400199",
+          "metadata_sha256": "cf45f8844f53d42fc714ed68ce676546e29cf989433b15f30b7dac66f537c526",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692851-969296438-417923",
+          "observation_sha256": "a5dda6128910abd4149abca4006b81af97103a56b954e91d4d4ac5122b803c61",
+          "count": 14976,
+          "metadata_sha256": "d30e266c9c5f68b110b1d021716956c4542e3d5599e8f314011f22f561057003"
+        },
+        "2022": {
+          "run_id": "observations-1791692856-711536550-418009",
+          "observation_sha256": "1ec80864edf3b56ac030086a5647f353b56475569a066545c67b59486fd80578",
+          "count": 14976,
+          "metadata_sha256": "4da9123cde793c136323f8d38a8ad7b7bcf62de5843b4b9e5033de75ad5bac17"
+        },
+        "2023": {
+          "run_id": "observations-1791692859-399332252-418090",
+          "observation_sha256": "d5a70dac7bcc65f3014ed229bfa2dc4f42577d6cf68e94232904c7ab27a430fb",
+          "count": 14976,
+          "metadata_sha256": "cf45f8844f53d42fc714ed68ce676546e29cf989433b15f30b7dac66f537c526"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-36.json"
+    },
+    {
+      "key": "veg-37",
+      "label": "そらまめ",
+      "table_ids": {
+        "2021": "0002008576",
+        "2022": "0002120424",
+        "2023": "0002114406"
+      },
+      "mapping_status": "verified_with_equivalent_blocks",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691884-608107494-400223",
+          "metadata_sha256": "acffe13c72b216ce302c7ea197a7a71b6e095cf5185af8ba6dbee7d786d74996",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691884-985820394-400270",
+          "metadata_sha256": "54ab5f35ba24f5c6becbad38eb3e46dd3e3367524da9ca063f2140b39f0f4963",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691885-373134713-400281",
+          "metadata_sha256": "65bfece3ae2b72c7959f2ab37629fafbfe76d5e9903a832972527d6718b27772",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692859-915438050-418094",
+          "observation_sha256": "423a1f0e81eba8f0731341f50372413655ad74061df4f20f78814f624482905f",
+          "count": 14976,
+          "metadata_sha256": "acffe13c72b216ce302c7ea197a7a71b6e095cf5185af8ba6dbee7d786d74996"
+        },
+        "2022": {
+          "run_id": "observations-1791692867-525299210-418225",
+          "observation_sha256": "db3004d7e372316be197c72a6ba4b9657b51de5707b109770f1d1b4dcee7e1ef",
+          "count": 14976,
+          "metadata_sha256": "54ab5f35ba24f5c6becbad38eb3e46dd3e3367524da9ca063f2140b39f0f4963"
+        },
+        "2023": {
+          "run_id": "observations-1791692869-599391076-418261",
+          "observation_sha256": "6465230a0eeb71eb4c7ea52fd29ab058a76100c4e0cecfd5d025c576f9408b86",
+          "count": 14976,
+          "metadata_sha256": "65bfece3ae2b72c7959f2ab37629fafbfe76d5e9903a832972527d6718b27772"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-37.json"
+    },
+    {
+      "key": "veg-38",
+      "label": "えだまめ",
+      "table_ids": {
+        "2021": "0002008577",
+        "2022": "0002120425",
+        "2023": "0002114407"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691885-744634934-400345",
+          "metadata_sha256": "494c4f7f5261107a332fbf7b2cfdc307f8185be066616608870f59f1a98d5491",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691886-122550952-400352",
+          "metadata_sha256": "dd2c142e9716f188ca6dd8c2bb520616d50722f5687c31817b582bcf9a713d0f",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691886-555425499-400355",
+          "metadata_sha256": "c64ea9bbe0ceb9427b52046103156978fbd6340049c7bc8837632d91358973ef",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692873-549334412-418324",
+          "observation_sha256": "ea7b071cd81324d7aa16bff86484d2acf371ca2db7b78b73c646b717d443facd",
+          "count": 14976,
+          "metadata_sha256": "494c4f7f5261107a332fbf7b2cfdc307f8185be066616608870f59f1a98d5491"
+        },
+        "2022": {
+          "run_id": "observations-1791692874-633664659-418353",
+          "observation_sha256": "5c68a891c22f0f44d436b30d0ba41a8e9fe6d26c03036d6d5b83fb902cad751d",
+          "count": 14976,
+          "metadata_sha256": "dd2c142e9716f188ca6dd8c2bb520616d50722f5687c31817b582bcf9a713d0f"
+        },
+        "2023": {
+          "run_id": "observations-1791692880-333929899-418448",
+          "observation_sha256": "e0514c819fa0d18275037c596c6ebc368f08026bd58836e4f4d1a7a67c6ebccc",
+          "count": 14976,
+          "metadata_sha256": "c64ea9bbe0ceb9427b52046103156978fbd6340049c7bc8837632d91358973ef"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-38.json"
+    },
+    {
+      "key": "veg-39",
+      "label": "かんしょ",
+      "table_ids": {
+        "2021": "0002008578",
+        "2022": "0002120426",
+        "2023": "0002114408"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691886-919127594-400372",
+          "metadata_sha256": "fdab43ad79897c461bc8d1fd46c2d6a3195bd98414dddd748dac4d89475aafb5",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691887-293308294-400388",
+          "metadata_sha256": "e4c0ab566e7907a51d2ddd82531b68cf17a2d08545d09d068c68da00169e2de9",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691887-789996668-400403",
+          "metadata_sha256": "67b68bed921895c6f1c69d8fc543f96ed78fcc566e5a37faa04850eaab18432a",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692883-15309320-418503",
+          "observation_sha256": "2cd3fcb5ae7887b4271e0bc6939ab3aa0bda9127b1aad76e7d7debb5ae3a4502",
+          "count": 14976,
+          "metadata_sha256": "fdab43ad79897c461bc8d1fd46c2d6a3195bd98414dddd748dac4d89475aafb5"
+        },
+        "2022": {
+          "run_id": "observations-1791692887-404806309-418579",
+          "observation_sha256": "98cb3759d1bfa8610e8152a8018bc911a6866e5a2c80681eb732ddf2ebabbfa3",
+          "count": 14976,
+          "metadata_sha256": "e4c0ab566e7907a51d2ddd82531b68cf17a2d08545d09d068c68da00169e2de9"
+        },
+        "2023": {
+          "run_id": "observations-1791692888-494443643-418595",
+          "observation_sha256": "99f85444171bdc388b2aa18ce07403fa3cf91ed218979428a48213097f9e8fd5",
+          "count": 14976,
+          "metadata_sha256": "67b68bed921895c6f1c69d8fc543f96ed78fcc566e5a37faa04850eaab18432a"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-39.json"
+    },
+    {
+      "key": "veg-40",
+      "label": "ばれいしょ",
+      "table_ids": {
+        "2021": "0002008579",
+        "2022": "0002120427",
+        "2023": "0002114409"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691888-207614211-400407",
+          "metadata_sha256": "0c461f166d04748f2531d61384f794faabb402163e9d857a9bac4f83447de2c4",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691888-580425923-400419",
+          "metadata_sha256": "43e165b4bdfdf72e3f88e053e93fa598b4fa7cf66589ab52712a78d5ff6724f1",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691889-7402622-400432",
+          "metadata_sha256": "7f3ecbf98b822e9c9a1a3e19a4556d147073f763f178dcd1a51ea3a3961166d5",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692892-775301499-418662",
+          "observation_sha256": "1da9a55415bac52496b7eb809ac375267b5fa89a43ac2a15bd8ae4341480b720",
+          "count": 14976,
+          "metadata_sha256": "0c461f166d04748f2531d61384f794faabb402163e9d857a9bac4f83447de2c4"
+        },
+        "2022": {
+          "run_id": "observations-1791692898-152015428-418767",
+          "observation_sha256": "a36ba53a6d6d48eb439397ea30053652d6dcfa15cf9f955de0362b78ba545ce0",
+          "count": 14976,
+          "metadata_sha256": "43e165b4bdfdf72e3f88e053e93fa598b4fa7cf66589ab52712a78d5ff6724f1"
+        },
+        "2023": {
+          "run_id": "observations-1791692900-855193522-418803",
+          "observation_sha256": "fff2cb3b04ae1eb3f9712de475d80d1e060fdebcd89e0d3fdb92747d3a3fcf95",
+          "count": 14976,
+          "metadata_sha256": "7f3ecbf98b822e9c9a1a3e19a4556d147073f763f178dcd1a51ea3a3961166d5"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-40.json"
+    },
+    {
+      "key": "veg-41",
+      "label": "さといも",
+      "table_ids": {
+        "2021": "0002008580",
+        "2022": "0002120428",
+        "2023": "0002114410"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691889-455806190-400452",
+          "metadata_sha256": "a1e35a839cc9a1d1cdf9a55f43a56bae4a17da75199cc6d890bd588b69618799",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691889-792253534-400455",
+          "metadata_sha256": "e8b470b6bcf82f5cb59b4b7298df3ddbedd334bd0db37bc437f324a443b06462",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691890-162505078-400459",
+          "metadata_sha256": "7b6720256dfcbf61ac89133fa0de7f864fce2842130dc8f60f7633298b34c347",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692902-338698831-418833",
+          "observation_sha256": "45ca5db272054b7e4bf2a6923aeabe695c3cb365ee890f15594209519ba49b24",
+          "count": 14976,
+          "metadata_sha256": "a1e35a839cc9a1d1cdf9a55f43a56bae4a17da75199cc6d890bd588b69618799"
+        },
+        "2022": {
+          "run_id": "observations-1791692907-304841139-418934",
+          "observation_sha256": "3ea5291c2fec7ac5a4e3d9684fd1ee43fe2d429d44205aafe7dbbaaf0cba5a03",
+          "count": 14976,
+          "metadata_sha256": "e8b470b6bcf82f5cb59b4b7298df3ddbedd334bd0db37bc437f324a443b06462"
+        },
+        "2023": {
+          "run_id": "observations-1791692913-257918292-419047",
+          "observation_sha256": "812cd3163c6b8e7e445feadbc815219062635f9ade1e6b8f1e1573dbd9105e20",
+          "count": 14976,
+          "metadata_sha256": "7b6720256dfcbf61ac89133fa0de7f864fce2842130dc8f60f7633298b34c347"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-41.json"
+    },
+    {
+      "key": "veg-42",
+      "label": "やまのいも",
+      "table_ids": {
+        "2021": "0002008581",
+        "2022": "0002120429",
+        "2023": "0002114411"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691890-598134875-400462",
+          "metadata_sha256": "d149d4c208553801bd67d5f5272c235f23c4c842a656f5a6f36aa752a23ed517",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691890-976873500-400465",
+          "metadata_sha256": "5265313a44c56e6d9a34bd914f63ff0587102189491d53c484686157c165d509",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691891-342182125-400494",
+          "metadata_sha256": "edc4affe3a48203ab896c13acf14b5e387f6a4f44dcb40bb02f668a7b6664675",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2022": {
+          "run_id": "observations-1791692915-600575309-419089",
+          "observation_sha256": "e8fa30a662948c9928967fd18f1839340fa02ea6a9c655f969033fba54d5e546",
+          "count": 14976,
+          "metadata_sha256": "5265313a44c56e6d9a34bd914f63ff0587102189491d53c484686157c165d509"
+        },
+        "2021": {
+          "run_id": "observations-1791692915-336340486-419085",
+          "observation_sha256": "3e779f5520820ef2597ee19f9c2fba9a702a01d40b6b4fdab362e63f9b60183c",
+          "count": 14976,
+          "metadata_sha256": "d149d4c208553801bd67d5f5272c235f23c4c842a656f5a6f36aa752a23ed517"
+        },
+        "2023": {
+          "run_id": "observations-1791692921-670456959-419193",
+          "observation_sha256": "28b43ed812e3a983633a6ad74330e130acf73f537fa2b5a312fbb75d0243f584",
+          "count": 14976,
+          "metadata_sha256": "edc4affe3a48203ab896c13acf14b5e387f6a4f44dcb40bb02f668a7b6664675"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-42.json"
+    },
+    {
+      "key": "veg-43",
+      "label": "たまねぎ",
+      "table_ids": {
+        "2021": "0002008582",
+        "2022": "0002120430",
+        "2023": "0002114412"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691891-738108377-400497",
+          "metadata_sha256": "e3c5a6ef5a4627eaea3bbd810476bc0ede46bdc3351d3b73fbf623a40ea2339f",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691892-105359804-400500",
+          "metadata_sha256": "4fef88fe2a058155352f5d38ccdcc1f93b6faed1ef71d472c046bb9ea9ba23aa",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691892-511074488-400515",
+          "metadata_sha256": "3841173f48755c289bf22aad972fa0e9a7e556e188d270a9a692b8e0cfb70625",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692928-116333446-419334",
+          "observation_sha256": "4dfce3508291706d6ec839087111d150bafe30ae3fa0646e9473faf3a0b05aec",
+          "count": 14976,
+          "metadata_sha256": "e3c5a6ef5a4627eaea3bbd810476bc0ede46bdc3351d3b73fbf623a40ea2339f"
+        },
+        "2022": {
+          "run_id": "observations-1791692928-220728369-419337",
+          "observation_sha256": "6088a29b4baec6a5661600da2e458935a51c431f6c2c5b0303236b13e762adcf",
+          "count": 14976,
+          "metadata_sha256": "4fef88fe2a058155352f5d38ccdcc1f93b6faed1ef71d472c046bb9ea9ba23aa"
+        },
+        "2023": {
+          "run_id": "observations-1791692931-144056227-419408",
+          "observation_sha256": "44d2f96759bbe74e85ecc7fac8526bb64702a5ac2b10a5e22927166e90f96857",
+          "count": 14976,
+          "metadata_sha256": "3841173f48755c289bf22aad972fa0e9a7e556e188d270a9a692b8e0cfb70625"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-43.json"
+    },
+    {
+      "key": "veg-44",
+      "label": "にんにく",
+      "table_ids": {
+        "2021": "0002008583",
+        "2022": "0002120431",
+        "2023": "0002114413"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691892-889902407-400518",
+          "metadata_sha256": "6b2f8b8de6d9bfdf18fa21fe276241b4d1c7385685ac39e7b3d3a7cdd08ca933",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691893-275770713-400533",
+          "metadata_sha256": "2bc04548e45940e1bc6de7a6c09900cb3cde0f4697f9f11dc80fee848581b07b",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691893-711986468-400557",
+          "metadata_sha256": "22f3c646335e85d031717020b851b958e432f280558bfd7dd50e0783b5af65f6",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692936-688840319-419497",
+          "observation_sha256": "8bdc41e576b07e481da2e47643fa0a06f1e4ebd79bac41bcd157229a14bf4c6d",
+          "count": 14976,
+          "metadata_sha256": "6b2f8b8de6d9bfdf18fa21fe276241b4d1c7385685ac39e7b3d3a7cdd08ca933"
+        },
+        "2023": {
+          "run_id": "observations-1791692944-621347914-419651",
+          "observation_sha256": "6319afc97d05413a2214ebf2d81cae1ee670480102d6d9ae9f2697e0b087e43f",
+          "count": 14976,
+          "metadata_sha256": "22f3c646335e85d031717020b851b958e432f280558bfd7dd50e0783b5af65f6"
+        },
+        "2022": {
+          "run_id": "observations-1791692943-717839393-419621",
+          "observation_sha256": "ed9036a55a15a41f00b58a99494d934dd7911cfb82d173c00655ac973de6abb1",
+          "count": 14976,
+          "metadata_sha256": "2bc04548e45940e1bc6de7a6c09900cb3cde0f4697f9f11dc80fee848581b07b"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-44.json"
+    },
+    {
+      "key": "veg-45",
+      "label": "しょうが",
+      "table_ids": {
+        "2021": "0002008584",
+        "2022": "0002120432",
+        "2023": "0002114414"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691894-115651842-400560",
+          "metadata_sha256": "f2e4c9173266b91e78ac2ae19cba08ee01c58ade888e451d1b934c64c5c8b18b",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691894-547314586-400563",
+          "metadata_sha256": "39d775e2d821991c13398222daffcb4c3cda495eecd4c2afe2679ae38315ee35",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691894-947394857-400566",
+          "metadata_sha256": "ebc7af4ad2fb6fa447417598034dc93ccb85aeaf1ea5e43175f3c8ff71086ec5",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692947-742865529-419695",
+          "observation_sha256": "61fa48fe9c5432cb69f7fd897cd98c61c72eaaa3c25dbcb052109dbe5ff35256",
+          "count": 14976,
+          "metadata_sha256": "f2e4c9173266b91e78ac2ae19cba08ee01c58ade888e451d1b934c64c5c8b18b"
+        },
+        "2022": {
+          "run_id": "observations-1791692952-945392431-419822",
+          "observation_sha256": "a07f235542535b812cefece0ad586d72570850f1da9043c6be1c14c5877382c2",
+          "count": 14976,
+          "metadata_sha256": "39d775e2d821991c13398222daffcb4c3cda495eecd4c2afe2679ae38315ee35"
+        },
+        "2023": {
+          "run_id": "observations-1791692958-564108899-419889",
+          "observation_sha256": "43b094581e89c3056e9151f987fa8967f75f4b4c9163dd7362b8e221e5658431",
+          "count": 14976,
+          "metadata_sha256": "ebc7af4ad2fb6fa447417598034dc93ccb85aeaf1ea5e43175f3c8ff71086ec5"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-45.json"
+    },
+    {
+      "key": "veg-46",
+      "label": "生しいたけ",
+      "table_ids": {
+        "2021": "0002008585",
+        "2022": "0002120433",
+        "2023": "0002114415"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691895-316492482-400569",
+          "metadata_sha256": "8d772b652b3e731279179b35a4677763e0b4718e885d5f7cab8e15b2c9715d99",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691895-714954461-400598",
+          "metadata_sha256": "01e095f6579ee97865b602a125fb2940143ace4de3d1ea5e0cbaf3acd3bb53d7",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691896-110026723-400601",
+          "metadata_sha256": "58ddd2ecaee2ae30d749385a217e66e769e265b8166bcb63444e1c0b8641f798",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2022": {
+          "run_id": "observations-1791692961-423140646-420002",
+          "observation_sha256": "7556f97bc68215103a922ba55b9745a74f86e68cf5cd99286e78e9da8fcbc581",
+          "count": 14976,
+          "metadata_sha256": "01e095f6579ee97865b602a125fb2940143ace4de3d1ea5e0cbaf3acd3bb53d7"
+        },
+        "2021": {
+          "run_id": "observations-1791692958-675559187-419892",
+          "observation_sha256": "3862224879e4916e3b5f2053facfb71cac9748429dc22691aa21803860b3f8a2",
+          "count": 14976,
+          "metadata_sha256": "8d772b652b3e731279179b35a4677763e0b4718e885d5f7cab8e15b2c9715d99"
+        },
+        "2023": {
+          "run_id": "observations-1791692966-93444104-420109",
+          "observation_sha256": "b6ded88d1e67b7893dc85459b45abbd3c819607265ec86379fc0fdb90d284a54",
+          "count": 14976,
+          "metadata_sha256": "58ddd2ecaee2ae30d749385a217e66e769e265b8166bcb63444e1c0b8641f798"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-46.json"
+    },
+    {
+      "key": "veg-47",
+      "label": "なめこ",
+      "table_ids": {
+        "2021": "0002008586",
+        "2022": "0002120434",
+        "2023": "0002114416"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691896-478883690-400604",
+          "metadata_sha256": "d0e751c7bdc8271d18578d1d39de3879d7331f26b8bbba2a32543b0a40d1f6cc",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691896-877830464-400608",
+          "metadata_sha256": "ed8e422ea497e3922c179293ed6e6b17f467a130d621872e2d1e05adfeca5686",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691897-256821129-400611",
+          "metadata_sha256": "1bbb192018f71b6f140f9a187e4a5fdc1ab5ecc40a312467d9e755fa40ed5ef9",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692971-842072104-420204",
+          "observation_sha256": "f6c08c748a52d0f82bd2a3444344b95f94c3ea9f64baf38b330c5b4afa8bf45c",
+          "count": 14976,
+          "metadata_sha256": "d0e751c7bdc8271d18578d1d39de3879d7331f26b8bbba2a32543b0a40d1f6cc"
+        },
+        "2023": {
+          "run_id": "observations-1791692974-173232318-420275",
+          "observation_sha256": "2f269f7e1641d3074673956f4980acbcaad6a679fdb737eece0801ec22919777",
+          "count": 14976,
+          "metadata_sha256": "1bbb192018f71b6f140f9a187e4a5fdc1ab5ecc40a312467d9e755fa40ed5ef9"
+        },
+        "2022": {
+          "run_id": "observations-1791692973-337364622-420232",
+          "observation_sha256": "f406af63243d589b11f27304318aa1d13a856ae0e59bf6ab542d6f784c69b7c7",
+          "count": 14976,
+          "metadata_sha256": "ed8e422ea497e3922c179293ed6e6b17f467a130d621872e2d1e05adfeca5686"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-47.json"
+    },
+    {
+      "key": "veg-48",
+      "label": "えのきだけ",
+      "table_ids": {
+        "2021": "0002008587",
+        "2022": "0002120435",
+        "2023": "0002114417"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691897-616965656-400639",
+          "metadata_sha256": "008412b02a18f95d9752aa56cf70fb560f8e617fca5584bd5c8b0909a161b726",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691897-976654506-400678",
+          "metadata_sha256": "da5b01a4e571e2485f2618e8a8c26c594f7325cddd5bb738b57f05a1eba02ad6",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691898-365698996-400690",
+          "metadata_sha256": "4081f90019a058c7c368eb02f4ab8a27f14ecba1f10fb5b5c713c6c77543e61b",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692978-199341703-420329",
+          "observation_sha256": "9faa82f34541d8358274979dc8b855c0e52be694f27422ee60fd0a0b3029639b",
+          "count": 14976,
+          "metadata_sha256": "008412b02a18f95d9752aa56cf70fb560f8e617fca5584bd5c8b0909a161b726"
+        },
+        "2023": {
+          "run_id": "observations-1791692987-18381920-420490",
+          "observation_sha256": "bd8a00e10fc901071b71f39e7680c77eae0fe756c7fcd307b00c6312f021bc6b",
+          "count": 14976,
+          "metadata_sha256": "4081f90019a058c7c368eb02f4ab8a27f14ecba1f10fb5b5c713c6c77543e61b"
+        },
+        "2022": {
+          "run_id": "observations-1791692985-95205714-420458",
+          "observation_sha256": "b95df63fe094c332de2a934f055979291d1eda8a1707a4f825a2761c3424fb5a",
+          "count": 14976,
+          "metadata_sha256": "da5b01a4e571e2485f2618e8a8c26c594f7325cddd5bb738b57f05a1eba02ad6"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-48.json"
+    },
+    {
+      "key": "veg-49",
+      "label": "しめじ",
+      "table_ids": {
+        "2021": "0002008588",
+        "2022": "0002120437",
+        "2023": "0002114418"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691898-747658266-400722",
+          "metadata_sha256": "041f0d44fe170d051cea60eea3b23613e9657bb98f31ca90e16c998edec3521f",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691899-118789613-400725",
+          "metadata_sha256": "f2b82b6ec8a0cb5ee795251ac3eb7b7b9f1d5a54b35f56f30d0b1a2ab63efdb6",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691899-515124312-400728",
+          "metadata_sha256": "6006fc7ca9e7c9bcc9850a1dbcc21fae7cab0613d1eb521a3e0ae31b1ebed225",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791692988-701833793-420528",
+          "observation_sha256": "488d9fe5b38761d2a63324d260c4365db658c91a9b52d11683ec340a7cbaf100",
+          "count": 14976,
+          "metadata_sha256": "041f0d44fe170d051cea60eea3b23613e9657bb98f31ca90e16c998edec3521f"
+        },
+        "2022": {
+          "run_id": "observations-1791692992-555289808-420602",
+          "observation_sha256": "069da52cbcba0653c6f0cf8b3abe24ae2203039241c51e75299cf48315e370c2",
+          "count": 14976,
+          "metadata_sha256": "f2b82b6ec8a0cb5ee795251ac3eb7b7b9f1d5a54b35f56f30d0b1a2ab63efdb6"
+        },
+        "2023": {
+          "run_id": "observations-1791692998-13825535-420725",
+          "observation_sha256": "4257033882cbe4cd494a00abdac577228b044ce7ed71ef2f8a3325e5d8222983",
+          "count": 14976,
+          "metadata_sha256": "6006fc7ca9e7c9bcc9850a1dbcc21fae7cab0613d1eb521a3e0ae31b1ebed225"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-49.json"
+    },
+    {
+      "key": "veg-50",
+      "label": "その他の野菜",
+      "table_ids": {
+        "2021": "0002008589",
+        "2022": "0002120438",
+        "2023": "0002114419"
+      },
+      "mapping_status": "verified",
+      "metadata_runs": {
+        "2021": {
+          "run_id": "metadata-1791691899-888325302-400757",
+          "metadata_sha256": "2b7f87efa0af2580639aa7956860410dd6aacdafc17b7b56ea3fd694af063ebc",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2022": {
+          "run_id": "metadata-1791691900-295712535-400762",
+          "metadata_sha256": "f5e64d9b7c41633e53425f16c0d1e211fb843117f841f1c6447c48ab799b76c6",
+          "inventory_status": "pending_semantic_verification"
+        },
+        "2023": {
+          "run_id": "metadata-1791691900-701122273-400766",
+          "metadata_sha256": "8513f3927d6ef5b076fca243c3c2199ae13daa17854e856fb6206f3b9a3ffaae",
+          "inventory_status": "pending_semantic_verification"
+        }
+      },
+      "observation_runs": {
+        "2021": {
+          "run_id": "observations-1791693000-639267774-420770",
+          "observation_sha256": "b120e6399d4dc3e29aef53bf7b186f071591a58811ac222f1366db186a90012f",
+          "count": 14976,
+          "metadata_sha256": "2b7f87efa0af2580639aa7956860410dd6aacdafc17b7b56ea3fd694af063ebc"
+        },
+        "2022": {
+          "run_id": "observations-1791693001-308618788-420775",
+          "observation_sha256": "a33248729d0bba3f7b9b5e3ae6ac22b93d0e8d8c0ba7832e4a849901545c53e9",
+          "count": 14976,
+          "metadata_sha256": "f5e64d9b7c41633e53425f16c0d1e211fb843117f841f1c6447c48ab799b76c6"
+        },
+        "2023": {
+          "run_id": "observations-1791693005-665436184-420866",
+          "observation_sha256": "13722b552fb00b7c822bcdd5f454fb0fde173c8ae4e37ad4cc0abdfb449a8c85",
+          "count": 14976,
+          "metadata_sha256": "8513f3927d6ef5b076fca243c3c2199ae13daa17854e856fb6206f3b9a3ffaae"
+        }
+      },
+      "mapping_evidence": "product_temporal_mappings/veg-50.json"
+    }
+  ]
+}
