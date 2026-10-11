@@ -82,7 +82,7 @@
     if (code) void relayData.selectPrefectureDetail(code);
   }
   function adjustScale(amount: number) {
-    scale = Math.min(20, Math.max(1, Number((scale + amount).toFixed(1))));
+    scale = Math.max(1, Number((scale + amount).toFixed(1)));
   }
   const quantityFormatter = new Intl.NumberFormat("ja-JP", {
     maximumFractionDigits: 2,
@@ -175,17 +175,14 @@
             aria-label="円のスケール"
             type="number"
             min="1"
-            max="20"
             step="1"
             bind:value={scale}
-            onblur={() =>
-              (scale = Math.min(20, Math.max(1, Number(scale) || 5)))}
+            onblur={() => (scale = Math.max(1, Number(scale) || 5))}
           />
           <button
             class="step-button"
             aria-label="円を大きく"
-            onclick={() => adjustScale(1)}
-            disabled={scale >= 20}>＋</button
+            onclick={() => adjustScale(1)}>＋</button
           >
         </div>
       </section>
