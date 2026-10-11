@@ -1,8 +1,13 @@
 import {
-  DAIKON_AGGREGATION_DATA_PATH,
   PREFECTURE_GEOJSON_DATA_PATH,
+  VEGETABLE_PRODUCT_INDEX_PATH,
+  VEGETABLE_PRODUCTION_RELAY_DATA_PATH,
 } from "../constants/constants";
-import type { AggregationData, GeoCollection } from "../constants/types";
+import type {
+  AggregationData,
+  GeoCollection,
+  RelayProductIndex,
+} from "../constants/types";
 
 async function fetchJson<T>(path: string, label: string): Promise<T> {
   const response = await fetch(path, {
@@ -17,8 +22,18 @@ async function fetchJson<T>(path: string, label: string): Promise<T> {
   return response.json();
 }
 
-export function fetchDaikonAggregation(): Promise<AggregationData> {
-  return fetchJson<AggregationData>(DAIKON_AGGREGATION_DATA_PATH, "データ");
+export function fetchRelayProductIndex(): Promise<RelayProductIndex> {
+  return fetchJson<RelayProductIndex>(VEGETABLE_PRODUCT_INDEX_PATH, "品目一覧");
+}
+
+export function fetchRelayAggregation(key: string): Promise<AggregationData> {
+  if (!/^[a-z0-9_-]+$/.test(key)) {
+    return Promise.reject(new Error("品目の指定が正しくありません"));
+  }
+  return fetchJson<AggregationData>(
+    `${VEGETABLE_PRODUCTION_RELAY_DATA_PATH}/${key}.json`,
+    "データ",
+  );
 }
 
 export function fetchPrefectureGeojson(): Promise<GeoCollection> {

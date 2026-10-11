@@ -96,7 +96,7 @@
                   class="delete-button"
                   aria-label="{item.cat02_name}【{item.area_name}】を削除"
                   onclick={() => handleRemove(item)}
-                ><img src={deleteIcon} alt="" aria-hidden="true" /></button
+                  ><img src={deleteIcon} alt="" aria-hidden="true" /></button
                 >
               </li>
             {/each}

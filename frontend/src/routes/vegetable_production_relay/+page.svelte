@@ -7,6 +7,11 @@
   let aggregation = $derived(relayData.aggregation);
   let dataError = $derived(relayData.error?.message ?? "");
   let years = $derived(aggregation?.years ?? []);
+  let selectedProductLabel = $derived(
+    relayData.products.find(
+      (product) => product.key === relayData.selectedProduct,
+    )?.label ?? "野菜",
+  );
   let geojson = $derived(relayData.geojson);
   let mapError = $derived(relayData.mapError?.message ?? "");
   let months = $derived(
@@ -83,7 +88,18 @@
       <p class="error" role="alert">{dataError}</p>
     {:else if relayData.isLoading}
       <p class="map-loading" role="status">データを読み込んでいます…</p>
-    {:else if aggregation?.status === "incomplete"}
+    {/if}
+    {#if aggregation?.mapping_warnings?.length}
+      <aside class="data-notice" aria-label="月対応の注意" role="note">
+        <strong>一部の月は同じ値の地域区分に対応します</strong>
+        <ul>
+          {#each aggregation.mapping_warnings as warning (warning)}
+            <li>{warning}</li>
+          {/each}
+        </ul>
+      </aside>
+    {/if}
+    {#if aggregation?.status === "incomplete"}
       <aside class="data-notice" aria-label="データの欠測状況" role="note">
         <strong>一部に不完全な値があります</strong>
         <p>
@@ -93,11 +109,18 @@
     {/if}
     {#if aggregation}
       <section class="controls" aria-label="表示設定">
-        <label class="vegetable-control"
-          >野菜
-          <select value="daikon" disabled
-            ><option value="daikon">だいこん</option></select
+        <label class="vegetable-control">
+          野菜
+          <select
+            value={relayData.selectedProduct}
+            onchange={(event) =>
+              relayData.selectProduct(event.currentTarget.value)}
+            disabled={relayData.products.length < 2 || relayData.isLoading}
           >
+            {#each relayData.products as product (product.key)}
+              <option value={product.key}>{product.label}</option>
+            {/each}
+          </select>
         </label>
         <div class="month-control">
           <span class="control-label">年月</span>
@@ -155,7 +178,9 @@
 
       <div class="map-heading">
         <div>
-          <h2>{displayMonth(selectedMonth)}の出荷元</h2>
+          <h2>
+            {selectedProductLabel} · {displayMonth(selectedMonth)}の出荷元
+          </h2>
           <p>円の面積は報告値の合計に比例します</p>
         </div>
       </div>

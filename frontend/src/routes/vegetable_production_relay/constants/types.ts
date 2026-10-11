@@ -4,10 +4,7 @@ export type Contribution = {
   source_position: number;
   source_cat03_code: string;
   value_kind:
-    | "reported"
-    | "below_display_unit"
-    | "no_fact"
-    | "unknown_or_uncollected";
+    "reported" | "below_display_unit" | "no_fact" | "unknown_or_uncollected";
   raw_value: string;
 };
 
@@ -35,7 +32,20 @@ export type YearData = {
 export type AggregationData = {
   status: "valid" | "incomplete" | "invalid";
   coverage_warning: string;
+  commodity: string;
+  commodity_label: string;
+  mapping_warnings: string[];
   years: YearData[];
+};
+
+export type RelayProduct = {
+  key: string;
+  label: string;
+};
+
+export type RelayProductIndex = {
+  schema_version: 1;
+  products: RelayProduct[];
 };
 
 export type GeoCollection = {

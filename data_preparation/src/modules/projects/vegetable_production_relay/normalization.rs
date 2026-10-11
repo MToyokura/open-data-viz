@@ -309,19 +309,23 @@ pub fn normalize_2021_2023(
     use serde_json::Value;
     let raw_mapping = fs::read(mapping_path)?;
     let mapping: Value = serde_json::from_slice(&raw_mapping)?;
-    let year = match source.table_id.as_str() {
-        "0002008540" => "2021",
-        "0002120386" => "2022",
-        "0002114330" => "2023",
-        _ => return Err(fail("unsupported historical table")),
-    };
-    let year_entry = mapping
+    let years = mapping
         .get("years")
-        .and_then(|v| v.get(year))
-        .ok_or("missing temporal mapping year")?;
-    if year_entry.get("table_id").and_then(Value::as_str) != Some(&source.table_id)
-        || year_entry.get("metadata_sha256").and_then(Value::as_str)
-            != Some(&source.source_metadata_sha256)
+        .and_then(Value::as_object)
+        .ok_or("temporal mapping years missing")?;
+    let mut matching_years = years.iter().filter(|(_, entry)| {
+        entry.get("table_id").and_then(Value::as_str) == Some(source.table_id.as_str())
+    });
+    let (year, year_entry) = matching_years
+        .next()
+        .ok_or("source table is not listed in the temporal mapping")?;
+    if matching_years.next().is_some() || !["2021", "2022", "2023"].contains(&year.as_str()) {
+        return Err(fail(
+            "source table has an ambiguous or unsupported year mapping",
+        ));
+    }
+    if year_entry.get("metadata_sha256").and_then(Value::as_str)
+        != Some(&source.source_metadata_sha256)
         || source.gate != "RAW_ONLY_NOT_PUBLISHABLE"
         || source.count != 14_976
         || source.rows.len() != 14_976
@@ -339,6 +343,7 @@ pub fn normalize_2021_2023(
     }
     let mut block_period = BTreeMap::new();
     let mut annual_blocks = BTreeSet::new();
+    let mut monthly_periods = BTreeSet::new();
     for period in periods {
         let block = period
             .get("block")
@@ -356,8 +361,21 @@ pub fn normalize_2021_2023(
             .get("cat03_last_code")
             .and_then(Value::as_str)
             .ok_or("missing last code")?;
+        let exact_candidates: BTreeSet<_> = period
+            .get("exact_match_candidates")
+            .and_then(Value::as_array)
+            .ok_or("missing exact-match candidate evidence")?
+            .iter()
+            .filter_map(Value::as_u64)
+            .collect();
+        let block_identity = period
+            .get("block_identity")
+            .and_then(Value::as_str)
+            .ok_or("missing block identity status")?;
         if period.get("matching_cells").and_then(Value::as_u64) != Some(1152)
             || period.get("compared_cells").and_then(Value::as_u64) != Some(1152)
+            || !exact_candidates.contains(&(block as u64))
+            || !matches!(block_identity, "unique" | "equivalent_candidates")
             || period
                 .get("spreadsheet_sha256")
                 .and_then(Value::as_str)
@@ -381,13 +399,23 @@ pub fn normalize_2021_2023(
         }
         if label == "total" {
             annual_blocks.insert(block);
-        } else if label != format!("{year}-{:02}", block - 1) || !(2..=13).contains(&block) {
-            return Err(fail("monthly period mapping invalid"));
+        } else {
+            let month = label
+                .strip_prefix(&format!("{year}-"))
+                .ok_or("monthly period label has wrong year")?
+                .parse::<u8>()
+                .map_err(|_| fail("monthly period label invalid"))?;
+            if !(1..=12).contains(&month) || !monthly_periods.insert(label.to_owned()) {
+                return Err(fail("monthly period mapping invalid or duplicated"));
+            }
         }
     }
-    if block_period.len() != 13 || annual_blocks.len() != 1 || !annual_blocks.contains(&1) {
+    if block_period.keys().copied().collect::<BTreeSet<_>>() != (1..=13).collect()
+        || annual_blocks.len() != 1
+        || monthly_periods != (1..=12).map(|month| format!("{year}-{month:02}")).collect()
+    {
         return Err(fail(
-            "mapping must contain block 1 annual summary and 12 months",
+            "mapping must uniquely cover all 13 source blocks, annual summary, and 12 months",
         ));
     }
     let expected_meta = year_entry

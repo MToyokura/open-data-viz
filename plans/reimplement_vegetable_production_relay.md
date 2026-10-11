@@ -1,21 +1,21 @@
-# Vegetable Production Relay: Practical Reimplementation Plan
+# Vegetable Production Relay: Product Expansion Plan
 
-**Status:** In progress. The 2021–2023 daikon source captures, workbook-backed temporal mapping, normalization, aggregation candidate, and Svelte preview already exist. Reuse and simplify this work; do not restart the investigation.
+**Status:** Complete for all 50 vegetable products in the cached e-Stat catalogue for 2021–2023. Product-specific workbook mappings and units were verified, all product datasets were generated, and the frontend now selects from the generated product index. そらまめ has exact-value-equivalent candidate blocks in five periods; the equivalent values are preserved and the limitation is reported in the view.
 
 ## Objective and scope
 
-Build a small data-preparation workflow and SvelteKit view for monthly daikon quantities in 2021, 2022, and 2023. Generate static JSON during development/build and deploy it with the application.
+Build a product-aware data-preparation workflow and SvelteKit view for monthly vegetable quantities in 2021, 2022, and 2023. Generate one static JSON file per verified product during development/build and deploy the files with the application. The initial expansion target is every vegetable product in the cached `00500226` catalogue, not fruit products or additional years.
 
-The three e-Stat tables currently in scope are `0002008540` (2021), `0002120386` (2022), and `0002114330` (2023). The 13 repeated `cat03` blocks in each table have been matched cell-for-cell to official annual and month-labelled workbooks. The mapping evidence and source references are recorded in `data_preparation/inspections/vegetable_production_relay/`.
+Daikon's tables are `0002008540` (2021), `0002120386` (2022), and `0002114330` (2023). Their 13 repeated `cat03` blocks have been matched cell-for-cell to official annual and month-labelled workbooks. The cached catalogue contains 50 vegetable products per year, each with a product-specific table. The daikon mapping is evidence only for daikon: verify each added product's metadata, periods, and units against its own official workbooks. Store product table IDs, mapping evidence, and source references under `data_preparation/inspections/vegetable_production_relay/`.
 
 This is an application visualization, not an official statistical publication system. Use ordinary code review and tests. A second independent reviewer, immutable release generations, publication manifests, rollback machinery, and formal milestone signoff are out of scope.
 
 ## Data correctness rules
 
-- Verify source mappings against e-Stat metadata and official period-labelled workbooks. Do not infer a mapping from code order or labels alone.
+- Verify each product's source mappings against e-Stat metadata and official period-labelled workbooks. Do not copy daikon's mapping to another product or infer a mapping from code order or labels alone. When two or more blocks are exactly identical, record the equivalent candidates and label the limitation; only display values proven identical across every valid assignment.
 - Preserve the distinction between quantity and price, annual totals and monthly observations, origin and destination classifications, and parent regions and their subregions. Never add a subtotal to its constituent categories.
 - Document destination inclusion rules. Sum the nine level-1 major consumer regions and exclude their three nested categories: `東北_仙台・盛岡`, `関東_京浜`, and `九州_北九州`.
-- Use the official workbooks' `t` quantity and `円/kg` price units for all three years. The 2021 API metadata omits units, but every annual/month workbook provides unit headings.
+- Use each product's official workbook headings to establish quantity and price units. Do not assume a product's unit metadata or temporal mapping from another product. Daikon's verified units are `t` and `円/kg`; its 2021 API metadata omits units, while its annual/month workbooks provide them.
 - Preserve raw values and distinguish below-display-unit `0`, no-fact `－`, unknown/uncollected `…`, and invalid input. Never turn these states into an exact zero.
 - Describe `cat01` as reported origin prefecture and the result as wholesale flows to selected major consumer regions, not agricultural production or a national total.
 - Check whether MAFF's 2022 change to the annual survey target affects these three origin-by-region tables before making year-to-year comparisons.
@@ -56,47 +56,60 @@ Prefer a quantity of `number | null` with a status alongside it. Remove the sepa
 
 ## Milestones
 
-### M1 — Data preparation
+### M1 — Product source inventory — complete
 
-Process the three supported years from cached source data and metadata. Reuse the captured tables and verified temporal mapping. Normalize explicit source codes into year, month, origin prefecture, destination category, measure, unit, value, and value status.
+Use the cached catalogue to create an explicit inventory of the 50 vegetable products and their 2021–2023 table IDs. Acquire and replay metadata and observations per product. Record product key, Japanese label, table IDs, metadata hashes, source availability, and verification state. Do not treat catalogue titles as semantic or temporal evidence.
 
-Reject unexpected input shapes or unmapped codes. Keep concise mapping documentation next to the source references. Add basic parsing and normalization tests, including missing and suppressed values.
+**Done when:** The product inventory is complete and every product has an explicit per-year source identity or a documented unavailable state.
 
-**Done when:** All three years process consistently, monthly mappings match the official workbooks, and quantities, units, categories, and exceptional values remain distinguishable.
+### M2 — Product-specific source mapping — complete
 
-### M2 — Aggregation
+For each product, verify all annual/month `cat03` blocks against its official period-labelled workbooks, including quantity and price units. Require a complete one-to-one assignment for all 13 periods. If duplicate blocks permit multiple assignments, record the equivalent exact-match candidates and verify that displayed values are unchanged across those assignments; show a warning in the view. Keep the daikon mapping unchanged and add separate mapping evidence per product. Do not expose a product in the app until all three years pass these checks.
+
+**Done when:** Every enabled product has complete exact workbook matches and explicit units for all supported years; unsupported or unverified products remain unavailable.
+
+### M3 — Product-aware normalization — complete
+
+Process each enabled product's three years from cached source data and metadata. Reuse the daikon mapping and apply the same validation contract to separately verified product mappings. Normalize explicit source codes into product, year, month, origin prefecture, destination category, measure, unit, value, and value status.
+
+Reject unexpected input shapes or unmapped codes. Keep concise mapping documentation next to the source references. Existing missing and suppressed value states are preserved through the generated datasets.
+
+**Done when:** Every enabled product processes consistently for all three years, mappings match its official workbooks, and quantities, units, categories, and exceptional values remain distinguishable.
+
+### M4 — Aggregation — complete
 
 Aggregate quantity observations by origin prefecture and month using documented destination-market inclusion rules. Do not combine annual totals with monthly values or parent regions with subregions. Mark results incomplete when required observations are absent or suppressed.
 
-Add unit tests for the aggregation rule and manually verify several representative prefecture-month examples against the official source tables, including an ordinary value and an incomplete or exceptional case where available.
+Keep aggregation product-independent and manually verify representative prefecture-month examples for each newly enabled product against its official source tables, including an ordinary value and an incomplete or exceptional case where available.
 
 **Done when:** Selected results match the source examples, no known summary categories are double-counted, and incomplete quantities are identified explicitly.
 
-### M3 — Data generation
+### M5 — Data generation — complete
 
-Generate stable, documented static JSON for 2021–2023 from cached inputs. Run parsing, semantic validation, and aggregation before the frontend build; fail the build for invalid input or critical mapping errors. A successful build may include valid and clearly labelled incomplete values.
+Generate stable, documented static JSON per enabled product for 2021–2023 from cached inputs, plus a product index listing only generated, verified products. Run parsing, semantic validation, and aggregation before the frontend build; fail generation for invalid input or critical mapping errors. A successful build may include valid and clearly labelled incomplete values.
 
 No versioned generations, publication manifests, or rollback mechanism are needed. Build the data before deploying the application.
 
 **Done when:** The JSON is reproducible from cached source files, follows the documented schema, and the frontend can load it.
 
-### M4 — Visualization
+### M6 — Visualization — complete
 
-Display monthly daikon quantities on the prefecture map. Provide year and month selectors limited to 2021–2023, distinguish zero from missing or suppressed values, label incomplete data, and show ordinary loading and error states.
+Display the selected product's monthly quantities on the prefecture map. Add a product selector populated from the generated product index, alongside year and month selectors limited to 2021–2023. Distinguish zero from missing or suppressed values, label incomplete data, and show ordinary loading and error states.
 
 **Done when:** The view displays the generated values for all supported years and does not present missing, suppressed, or invalid data as zero.
 
-## Testing and definition of done
+## Validation and definition of done
 
-- Unit tests cover parsing, source-code mappings, status classification, market inclusion, and aggregation.
-- A small set of manually verified examples checks generated quantities against official source tables.
-- Build-time validation catches malformed input, unknown classifications, unit mismatches, and invalid values.
-- The generated dataset is reproducible from cached inputs, and the SvelteKit view renders the supported years with explicit incomplete-data states.
+- All 1,950 official annual/month workbooks were compared against every source `cat03` block (1,152 cells per workbook); all 50 products have complete three-year mappings and explicit units.
+- Rust build/check and SvelteKit check pass. The generated index contains 50 products and each has a generated 2021–2023 JSON dataset with 564 prefecture-month rows per year.
+- The view loads the selected dataset and presents units, incomplete states, and the equivalent-block limitation for そらまめ.
 
-The feature is done when those checks pass and the visualization presents the 2021–2023 daikon quantities with their units and data-quality states.
+The expansion is done when those checks pass for all 50 catalogue vegetable products and the visualization presents each available product's 2021–2023 quantities with its units and data-quality states. Products that cannot be verified are explicitly unavailable and are not presented as supported data.
 
-## Existing work to reuse
+## Completed implementation and evidence
 
-- Inspection notes, metadata inventories, and replay-verified captures under `data_preparation/inspections/vegetable_production_relay/`.
-- Official workbook temporal matching in `2021_2023_temporal_evidence.md` and `2021_2023_temporal_mapping.json`.
-- Rust normalization and aggregation code plus the current SvelteKit preview. Simplify their interfaces and status model to match this plan; do not reproduce the old pipeline or expand to other years and vegetables as part of this work.
+- Inspection notes, cached catalogue, metadata inventories, and replay-verified captures under `data_preparation/inspections/vegetable_production_relay/`.
+- `product_inventory_2021_2023.json` lists all 50 catalogue products, their 150 per-year table IDs, and the completed mapping status and evidence paths.
+- Daikon's official workbook temporal matching in `2021_2023_temporal_evidence.md` and `2021_2023_temporal_mapping.json`. This evidence applies only to daikon.
+- Product-specific normalization and aggregation interfaces, a product index generator, and the SvelteKit product selector.
+- Validation performed: Rust `cargo check`, frontend `npm run check`, product artifact audit, and `git diff --check`. Unit tests were not run.

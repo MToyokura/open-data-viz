@@ -30,32 +30,53 @@ fn main() {
 
         Some("vegetable-relay-aggregate-2021-2023") => {
             let args: Vec<String> = std::env::args().collect();
-            if !(7..=8).contains(&args.len()) {
+            if !(7..=10).contains(&args.len()) {
                 eprintln!(
-                    "Usage: cargo run -- vegetable-relay-aggregate-2021-2023 <2021-m5b.json> <2022-m5b.json> <2023-m5b.json> <metadata-runs-dir> <temporal-mapping.json> [output-dir]"
+                    "Usage: cargo run -- vegetable-relay-aggregate-2021-2023 <2021-m5b.json> <2022-m5b.json> <2023-m5b.json> <metadata-runs-dir> <temporal-mapping.json> [output-dir [commodity-key commodity-label]]"
                 );
                 std::process::exit(2);
             }
-            let output_dir_arg = args.get(7).map(String::as_str).unwrap_or(
-                modules::projects::vegetable_production_relay::OUTPUT_DIR,
-            );
+            let output_dir_arg = args
+                .get(7)
+                .map(String::as_str)
+                .unwrap_or(modules::projects::vegetable_production_relay::OUTPUT_DIR);
             let output_dir = std::path::Path::new(output_dir_arg);
             if let Err(error) = std::fs::create_dir_all(output_dir) {
                 eprintln!("Could not create output directory: {error}");
                 std::process::exit(1);
             }
-            let output_path = output_dir.join("daikon.json");
-            match modules::projects::vegetable_production_relay::aggregation::run_2021_2023(
+            let commodity = args.get(8).map(String::as_str).unwrap_or("daikon");
+            let commodity_label = args.get(9).map(String::as_str).unwrap_or("だいこん");
+            let output_path = output_dir.join(format!("{commodity}.json"));
+            match modules::projects::vegetable_production_relay::aggregation::run_2021_2023_product(
                 std::path::Path::new(&args[2]),
                 std::path::Path::new(&args[3]),
                 std::path::Path::new(&args[4]),
                 std::path::Path::new(&args[5]),
                 std::path::Path::new(&args[6]),
                 &output_path,
+                commodity,
+                commodity_label,
             ) {
                 Ok(path) => println!("Generated 2021–2023 aggregation: {}", path.display()),
                 Err(error) => {
                     eprintln!("M6 aggregation refused: {error}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+
+        Some("vegetable-relay-product-index") => {
+            let output_dir = std::env::args().nth(2).unwrap_or_else(|| {
+                modules::projects::vegetable_production_relay::OUTPUT_DIR.into()
+            });
+            match modules::projects::vegetable_production_relay::product_index::generate(
+                std::path::Path::new(&output_dir),
+            ) {
+                Ok(path) => println!("Generated product index: {}", path.display()),
+                Err(error) => {
+                    eprintln!("Product index generation refused: {error}");
                     std::process::exit(1);
                 }
             }
@@ -77,12 +98,7 @@ fn main() {
                     std::path::Path::new(&first),
                     std::path::Path::new(&second),
                 )
-                .map(|r| {
-                    format!(
-                        "Replayed {} raw observations successfully",
-                        r.count
-                    )
-                })
+                .map(|r| format!("Replayed {} raw observations successfully", r.count))
             };
             match result {
                 Ok(msg) => println!("{msg}"),
@@ -307,6 +323,6 @@ fn main() {
 fn print_usage() {
     println!("Usage: cargo run -- <command> [arguments]");
     println!(
-        "Commands include commodity-prices, prefectures-update, vegetable-relay-normalize-2021-2023, and vegetable-relay-aggregate-2021-2023."
+        "Commands include commodity-prices, prefectures-update, vegetable-relay-normalize-2021-2023, vegetable-relay-aggregate-2021-2023, and vegetable-relay-product-index."
     );
 }

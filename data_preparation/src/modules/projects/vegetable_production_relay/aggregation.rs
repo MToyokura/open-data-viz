@@ -1,4 +1,4 @@
-//! Aggregation for the three evidenced 2021–2023 daikon tables.
+//! Aggregation for product-specific, evidenced 2021–2023 tables.
 //! Non-numeric source states remain visible as incomplete counts in the output.
 use super::{
     metadata::{ClassValue, Inventory},
@@ -21,11 +21,7 @@ const MAJOR_REGIONS: [&str; 9] = [
     "1001", "1002", "1004", "1006", "1007", "1008", "1009", "1010", "1011",
 ];
 const SUBREGIONS: [&str; 3] = ["1003", "1005", "1012"];
-const YEARS: [(&str, &str); 3] = [
-    ("2021", "0002008540"),
-    ("2022", "0002120386"),
-    ("2023", "0002114330"),
-];
+const YEARS: [&str; 3] = ["2021", "2022", "2023"];
 
 fn fail(message: impl Into<String>) -> Box<dyn Error> {
     message.into().into()
@@ -78,6 +74,8 @@ struct AggregationCandidate {
     aggregation: String,
     coverage_warning: String,
     commodity: String,
+    commodity_label: String,
+    mapping_warnings: Vec<String>,
     years: Vec<YearData>,
 }
 
@@ -137,8 +135,35 @@ fn verify_mapping_blocks(
     let cat03 = class_values(inventory, "cat03")?;
     let mut blocks = BTreeMap::new();
     let mut total_found = false;
+    let mut seen_blocks = BTreeSet::new();
     for period in periods {
         let name = required_string(period, "period")?;
+        let block = period
+            .get("block")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| fail(format!("{year} {name}: source block is missing")))?;
+        if !(1..=13).contains(&block) || !seen_blocks.insert(block) {
+            return Err(fail(format!(
+                "{year} {name}: source block is invalid or duplicated"
+            )));
+        }
+        let exact_candidates: BTreeSet<_> = period
+            .get("exact_match_candidates")
+            .and_then(Value::as_array)
+            .ok_or_else(|| fail(format!("{year} {name}: exact match evidence missing")))?
+            .iter()
+            .filter_map(Value::as_u64)
+            .collect();
+        if !exact_candidates.contains(&block)
+            || !matches!(
+                required_string(period, "block_identity")?,
+                "unique" | "equivalent_candidates"
+            )
+        {
+            return Err(fail(format!(
+                "{year} {name}: source block is not supported by exact workbook matches"
+            )));
+        }
         let first = required_string(period, "cat03_first_code")?
             .parse::<u32>()
             .map_err(|_| fail("invalid first cat03 code"))?;
@@ -152,8 +177,14 @@ fn verify_mapping_blocks(
                 "{year} {name}: official workbook match is not complete"
             )));
         }
+        let expected_first = 1001 + (block as u32 - 1) * 12;
+        if first != expected_first {
+            return Err(fail(format!(
+                "{year} {name}: source code range differs from mapped block"
+            )));
+        }
         if name == "total" {
-            if first != 1001 || last != 1012 || total_found {
+            if total_found {
                 return Err(fail(format!("{year}: invalid annual summary block")));
             }
             total_found = true;
@@ -164,7 +195,7 @@ fn verify_mapping_blocks(
             .ok_or_else(|| fail(format!("invalid period label {name}")))?
             .parse()
             .map_err(|_| fail(format!("invalid period label {name}")))?;
-        if !(1..=12).contains(&month) || first != 1001 + month * 12 || last != first + 11 {
+        if !(1..=12).contains(&month) || last != first + 11 {
             return Err(fail(format!("{year} {name}: period/code block mismatch")));
         }
         for offset in 0..12 {
@@ -190,7 +221,7 @@ fn verify_mapping_blocks(
             return Err(fail(format!("{year}: duplicate period {name}")));
         }
     }
-    if !total_found || blocks.len() != 12 {
+    if !total_found || blocks.len() != 12 || seen_blocks != (1..=13).collect() {
         return Err(fail(format!("{year}: incomplete annual/monthly mapping")));
     }
     Ok(blocks)
@@ -559,16 +590,84 @@ pub fn run_2021_2023(
     mapping_path: &Path,
     output_path: &Path,
 ) -> Result<PathBuf> {
+    run_2021_2023_product(
+        input_2021,
+        input_2022,
+        input_2023,
+        metadata_dir,
+        mapping_path,
+        output_path,
+        "daikon",
+        "だいこん",
+    )
+}
+
+/// Aggregate a product whose three table IDs and workbook matches are explicitly
+/// recorded in the temporal mapping. Product identity is supplied by the caller;
+/// table IDs are always read from and checked against that mapping.
+pub fn run_2021_2023_product(
+    input_2021: &Path,
+    input_2022: &Path,
+    input_2023: &Path,
+    metadata_dir: &Path,
+    mapping_path: &Path,
+    output_path: &Path,
+    commodity: &str,
+    commodity_label: &str,
+) -> Result<PathBuf> {
+    if commodity.is_empty()
+        || !commodity.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
+        })
+        || commodity_label.trim().is_empty()
+    {
+        return Err(fail("invalid product key or label"));
+    }
     let mapping_bytes = fs::read(mapping_path)?;
     let mapping: Value = serde_json::from_slice(&mapping_bytes)?;
-    if mapping.get("status").and_then(Value::as_str) != Some("VALUE_MATCH_VERIFIED")
-    {
-        return Err(fail("temporal mapping is not verified exact-match evidence"));
+    if !matches!(
+        mapping.get("status").and_then(Value::as_str),
+        Some("VALUE_MATCH_VERIFIED" | "VALUE_MATCH_VERIFIED_WITH_EQUIVALENT_BLOCKS")
+    ) {
+        return Err(fail(
+            "temporal mapping is not verified exact-match evidence",
+        ));
     }
     let mapping_sha = hash(&mapping_bytes);
+    let mut mapping_warnings = Vec::new();
+    for year in YEARS {
+        let ambiguous_periods: Vec<_> = mapping
+            .get("years")
+            .and_then(|entries| entries.get(year))
+            .and_then(|entry| entry.get("periods"))
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter(|period| {
+                period.get("block_identity").and_then(Value::as_str)
+                    == Some("equivalent_candidates")
+            })
+            .filter_map(|period| period.get("period").and_then(Value::as_str))
+            .collect();
+        if !ambiguous_periods.is_empty() {
+            mapping_warnings.push(format!(
+                "{} {}: {} period(s) have equivalent exact-match cat03 blocks; the displayed quantities are identical across those candidate blocks.",
+                commodity_label.trim(),
+                year,
+                ambiguous_periods.len()
+            ));
+        }
+    }
     let input_paths = [input_2021, input_2022, input_2023];
     let mut years = Vec::with_capacity(YEARS.len());
-    for ((year, table_id), input_path) in YEARS.iter().zip(input_paths) {
+    for (year, input_path) in YEARS.iter().zip(input_paths) {
+        let table_id = mapping
+            .get("years")
+            .and_then(|entries| entries.get(*year))
+            .and_then(|entry| entry.get("table_id"))
+            .and_then(Value::as_str)
+            .filter(|table_id| !table_id.is_empty())
+            .ok_or_else(|| fail(format!("temporal mapping lacks a table ID for {year}")))?;
         years.push(aggregate_year(
             year,
             table_id,
@@ -588,7 +687,9 @@ pub fn run_2021_2023(
         .into(),
         aggregation: "sum numeric reported quantity values across nine top-level major consumer regions; exclude below-display-unit, no-fact, and unknown/uncollected values".into(),
         coverage_warning: "Sums omit below-display-unit, no-fact, and unknown/uncollected cells. They represent wholesale flows into selected major consumer regions, not total production or a national quantity. Check year-specific survey scope before comparing years.".into(),
-        commodity: "daikon".into(),
+        commodity: commodity.into(),
+        commodity_label: commodity_label.trim().into(),
+        mapping_warnings,
         years,
     };
     let mut file = OpenOptions::new()
