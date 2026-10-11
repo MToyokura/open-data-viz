@@ -1,4 +1,4 @@
-use super::{OUTPUT_DIR, acquisition, aggregation, normalization, product_index};
+use super::{OUTPUT_DIR, acquisition, aggregation, metadata, normalization, product_index};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
@@ -70,6 +70,43 @@ fn newest_observation_runs(runs_dir: &Path) -> Result<HashMap<String, PathBuf>> 
         .collect())
 }
 
+fn newest_metadata_runs(runs_dir: &Path) -> Result<HashMap<String, PathBuf>> {
+    let mut newest: HashMap<String, (SystemTime, PathBuf)> = HashMap::new();
+    for entry in fs::read_dir(runs_dir)? {
+        let entry = entry?;
+        if !entry.file_type()?.is_dir()
+            || !entry.file_name().to_string_lossy().starts_with("metadata-")
+        {
+            continue;
+        }
+        let run = entry.path();
+        let Ok(capture) = metadata::replay(&run) else {
+            continue;
+        };
+        let modified = entry.metadata()?.modified().unwrap_or(UNIX_EPOCH);
+        if newest
+            .get(&capture.stats_data_id)
+            .is_none_or(|(existing, _)| modified > *existing)
+        {
+            newest.insert(capture.stats_data_id, (modified, run));
+        }
+    }
+    Ok(newest
+        .into_iter()
+        .map(|(table_id, (_, path))| (table_id, path))
+        .collect())
+}
+
+fn replay_metadata_for_table(
+    path: PathBuf,
+    table_id: &str,
+) -> Option<(PathBuf, metadata::Inventory)> {
+    metadata::replay(&path)
+        .ok()
+        .filter(|capture| capture.stats_data_id == table_id)
+        .map(|capture| (path, capture))
+}
+
 struct CaptureTask {
     product_index: usize,
     year: String,
@@ -82,6 +119,78 @@ struct CaptureResult {
     year: String,
     run: PathBuf,
     report: acquisition::SourceReport,
+}
+
+fn ensure_product_metadata_captures(
+    inventory: &mut Value,
+    app_id: &str,
+    persist_inventory: bool,
+) -> Result<()> {
+    let runs_dir = Path::new(ROOT).join("runs");
+    let mut cached_runs = None;
+    let product_count = inventory
+        .get("products")
+        .and_then(Value::as_array)
+        .ok_or_else(|| fail("product inventory is missing products"))?
+        .len();
+
+    for product_index in 0..product_count {
+        let key = value_string(&inventory["products"][product_index], "key")?.to_owned();
+        for year in YEARS {
+            let table_id = inventory["products"][product_index]["table_ids"][year]
+                .as_str()
+                .ok_or_else(|| fail(format!("{key} {year}: table ID is missing")))?
+                .to_owned();
+            let existing_run_id =
+                inventory["products"][product_index]["metadata_runs"][year]["run_id"]
+                    .as_str()
+                    .map(str::to_owned);
+
+            let existing = existing_run_id
+                .as_deref()
+                .map(|run_id| runs_dir.join(run_id))
+                .and_then(|path| replay_metadata_for_table(path, &table_id));
+            let existing = match existing {
+                Some(existing) => Some(existing),
+                None => {
+                    if cached_runs.is_none() {
+                        cached_runs = Some(newest_metadata_runs(&runs_dir)?);
+                    }
+                    cached_runs
+                        .as_ref()
+                        .and_then(|runs| runs.get(&table_id))
+                        .cloned()
+                        .and_then(|path| replay_metadata_for_table(path, &table_id))
+                }
+            };
+            let (run, capture) = match existing {
+                Some(existing) => existing,
+                None => {
+                    println!("fetching metadata for {key} {year} ({table_id})");
+                    let run = metadata::capture(app_id, &table_id)?;
+                    let capture = metadata::replay(&run)?;
+                    (run, capture)
+                }
+            };
+            let run_id = run
+                .file_name()
+                .ok_or_else(|| fail(format!("{key} {year}: metadata run has no name")))?
+                .to_string_lossy()
+                .into_owned();
+            let record = json!({
+                "run_id": run_id,
+                "metadata_sha256": capture.source_sha256,
+                "inventory_status": capture.status,
+            });
+            if inventory["products"][product_index]["metadata_runs"][year] != record {
+                inventory["products"][product_index]["metadata_runs"][year] = record;
+                if persist_inventory {
+                    write_inventory(inventory)?;
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 fn capture_table(
@@ -113,7 +222,17 @@ fn capture_table(
 /// Acquire or reuse replay-verified e-Stat observations and refresh the source inventory.
 pub fn acquire_product_observations() -> Result<()> {
     let app_id = std::env::var("ESTAT_APP_ID").map_err(|_| fail("ESTAT_APP_ID is required"))?;
-    let mut inventory = read_json(Path::new(INVENTORY))?;
+    let inventory = read_json(Path::new(INVENTORY))?;
+    acquire_product_observations_with_inventory(inventory, &app_id, true)?;
+    Ok(())
+}
+
+fn acquire_product_observations_with_inventory(
+    mut inventory: Value,
+    app_id: &str,
+    persist_inventory: bool,
+) -> Result<Value> {
+    ensure_product_metadata_captures(&mut inventory, app_id, persist_inventory)?;
     let products = inventory
         .get("products")
         .and_then(Value::as_array)
@@ -193,7 +312,9 @@ pub fn acquire_product_observations() -> Result<()> {
             Err(error) => errors.push(error),
         }
     }
-    write_inventory(&inventory)?;
+    if persist_inventory {
+        write_inventory(&inventory)?;
+    }
     if !errors.is_empty() {
         return Err(fail(format!(
             "{} product observation capture(s) failed:\n{}",
@@ -205,7 +326,7 @@ pub fn acquire_product_observations() -> Result<()> {
         "Captured or replayed {} product/year observations",
         tasks.len()
     );
-    Ok(())
+    Ok(inventory)
 }
 
 fn value_string<'a>(value: &'a Value, key: &str) -> Result<&'a str> {
@@ -223,8 +344,7 @@ fn timestamp() -> u128 {
 }
 
 /// Normalize all verified products, aggregate their years, and refresh the frontend index.
-pub fn generate_product_data() -> Result<()> {
-    let inventory = read_json(Path::new(INVENTORY))?;
+pub fn generate_product_data(inventory: &Value) -> Result<()> {
     let products = inventory
         .get("products")
         .and_then(Value::as_array)
@@ -352,6 +472,8 @@ pub fn generate_product_data() -> Result<()> {
 
 /// Run the full Rust data workflow: capture observations, then generate product files.
 pub fn run() -> Result<()> {
-    acquire_product_observations()?;
-    generate_product_data()
+    let app_id = std::env::var("ESTAT_APP_ID").map_err(|_| fail("ESTAT_APP_ID is required"))?;
+    let inventory = read_json(Path::new(INVENTORY))?;
+    let inventory = acquire_product_observations_with_inventory(inventory, &app_id, false)?;
+    generate_product_data(&inventory)
 }

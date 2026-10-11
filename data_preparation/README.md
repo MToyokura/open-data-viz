@@ -37,18 +37,18 @@ cargo run -- commodity-prices
 
 月対応と単位は各品目の公式ワークブックで確認済みです。解釈の根拠と残る年次比較の確認事項は [野菜データの解釈メモ](inspections/vegetable_production_relay/SOURCE_INTERPRETATION.md) にあります。Rust の `vegetable_production_relay::aggregation` は、品目別に検証済みの正規化データを集計し、主要消費地域9区分の数量を産地都道府県・月ごとに出力します。表示単位未満、該当なし、不詳・調査なしの値を数値合計に含めず、状態別の件数を保持します。品目のテーブル ID は品目ごとの temporal mapping から読み込みます。
 
-ワークブックに基づく月対応の検証が済んでいる状態で、次のコマンドを実行します。e-Stat の観測値は有効なキャッシュがあれば再利用し、なければ API から取得して再検証した後、全品目の正規化・年次集計・`products.json` の更新を行います。
+品目ごとのワークブック照合と月対応 mapping がリポジトリに用意されている状態で、次のコマンドを実行します。このコマンドはワークブック検査や mapping の作成は行いません。metadata と e-Stat 観測値は、有効な capture があれば再利用し、なければ API から取得して検証します。その後、全品目を正規化・年次集計し、`products.json` を更新します。新しい環境で実行する場合も `ESTAT_APP_ID` が必要です。
 
 ```sh
 export ESTAT_APP_ID="取得したアプリケーションID"
 cargo run -- vegetable-relay
 ```
 
-同じ品目の出力がすでにあり、mapping・表示名・正規化済み入力が一致すれば再利用し、いずれかが異なれば再生成します。アプリは `products.json` から品目を選び、対応する品目 JSON を読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、不完全なセルの状態を示します。令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。この表への影響は未確認のため、年をまたぐ比較にはご注意ください。
+metadata と観測値の capture は `inspections/vegetable_production_relay/runs/` に保存されます。通常の `vegetable-relay` 実行では、これらの capture 参照を inspection 用 inventory に書き戻しません。同じ品目の出力がすでにあり、mapping・表示名・正規化済み入力が一致すれば再利用し、いずれかが異なれば再生成します。アプリは `products.json` から品目を選び、対応する品目 JSON を読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、不完全なセルの状態を示します。令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。この表への影響は未確認のため、年をまたぐ比較にはご注意ください。
 
 #### 50 品目の一括処理
 
-全品目の source inventory と metadata capture が揃ったら、ワークブックと e-Stat 観測値を取得して月対応を検証します。ワークブックの取得にはネット接続が必要です。観測値の取得には `ESTAT_APP_ID` が必要です。
+以下は月対応の根拠を再取得・再検証するための inspection 手順です。通常のデータ生成とは独立しており、検証済み mapping がリポジトリにあれば `vegetable-relay` の前に実行する必要はありません。ワークブックの取得にはネット接続が必要です。metadata と観測値の取得には `ESTAT_APP_ID` が必要です。
 
 ```sh
 export ESTAT_APP_ID="取得したアプリケーションID"
@@ -57,7 +57,7 @@ cargo run -- vegetable-relay-acquire-product-observations
 cargo run -- vegetable-relay-verify-product-mappings
 ```
 
-その後 `cargo run -- vegetable-relay` を実行します。観測値取得は有効な capture を再利用し、mapping・表示名・正規化済み入力が既存 JSON と一致する品目も再利用します。必要な検証や生成に失敗すると処理全体がエラー終了し、`products.json` は更新されません。これらの操作は Rust の CLI から実行できます。
+3つ目のコマンドは取得済みワークブックと観測値を使って mapping を検証し、inspection 用 inventory を更新します。通常の生成では `cargo run -- vegetable-relay` を実行します。metadata・観測値の取得には同じ capture/replay 処理を使い、有効な capture を再利用します。mapping・表示名・正規化済み入力が既存 JSON と一致する品目も再利用します。必要な検証や生成に失敗すると処理全体がエラー終了し、`products.json` は更新されません。これらの操作は Rust の CLI から実行できます。
 
 各品目の 39 ワークブックを API の 13 `cat03` ブロックすべてと 1,152 セルで照合し、全期間の対応が成立することを確認します。同じ値を持つ候補ブロックが複数ある場合は等価候補として記録し、その値の同一性を確認します。照合マッピング、ワークブックの URL と SHA-256 は `inspections/vegetable_production_relay/` に記録します。元ワークブック、metadata、観測値のキャッシュは `runs/` 以下の Git-ignore 対象に保存します。
 

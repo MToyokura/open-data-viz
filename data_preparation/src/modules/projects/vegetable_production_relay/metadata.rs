@@ -221,8 +221,8 @@ pub fn write_report(dir: &Path) -> Result<()> {
     );
     Ok(())
 }
-/// Online inspection captures exact final response bytes, including HTTP failures.
-pub fn inspect(app_id: &str, table: &str) -> Result<PathBuf> {
+/// Fetch and capture metadata so both generation and inspection can replay the same evidence.
+pub fn capture(app_id: &str, table: &str) -> Result<PathBuf> {
     if app_id.is_empty() {
         return Err(err("ESTAT_APP_ID is empty"));
     }
@@ -281,7 +281,7 @@ pub fn inspect(app_id: &str, table: &str) -> Result<PathBuf> {
                 if status != 200 {
                     return Err(err(format!("HTTP {status} captured in {}", dir.display())));
                 }
-                write_report(&dir)?;
+                replay(&dir)?;
                 return Ok(dir);
             }
             Err(_) => {
@@ -293,6 +293,13 @@ pub fn inspect(app_id: &str, table: &str) -> Result<PathBuf> {
         }
     }
     Err(err(last_error.unwrap_or("inspection failed")))
+}
+
+/// Online inspection captures metadata and writes the human-readable inventory report.
+pub fn inspect(app_id: &str, table: &str) -> Result<PathBuf> {
+    let dir = capture(app_id, table)?;
+    write_report(&dir)?;
+    Ok(dir)
 }
 
 #[cfg(test)]
