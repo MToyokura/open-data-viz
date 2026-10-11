@@ -1,9 +1,17 @@
+import adapter from "@sveltejs/adapter-static";
 import { svelteTesting } from "@testing-library/svelte/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [sveltekit()],
+  plugins: [
+    sveltekit({
+      adapter: adapter({ fallback: "404.html" }),
+      paths: {
+        base: process.argv.includes("dev") ? "" : process.env.BASE_PATH,
+      },
+    }),
+  ],
   test: {
     projects: [
       {

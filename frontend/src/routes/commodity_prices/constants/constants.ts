@@ -1,4 +1,4 @@
-import { VITE_STORAGE_BASE_URL } from "$lib/paths";
+import { VITE_STORAGE_BASE_URL } from "#lib/paths.js";
 
 export const COMMODITY_PRICES_DATA_PATH = `${VITE_STORAGE_BASE_URL}/commodity_prices`;
 

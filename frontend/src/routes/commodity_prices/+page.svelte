@@ -1,6 +1,6 @@
 <script lang="ts">
-  import deleteIcon from "$lib/assets/icons/delete.svg";
-  import Spinner from "$lib/Spinner.svelte";
+  import deleteIcon from "#lib/assets/icons/delete.svg";
+  import Spinner from "#lib/Spinner.svelte";
   import type { EChartsOption } from "echarts";
   import { untrack } from "svelte";
   import type { CommodityPrices } from "./constants/types";

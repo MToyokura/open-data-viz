@@ -1,7 +1,7 @@
 <script lang="ts">
-  import CcIcon from "$lib/CcIcon.svelte";
-  import CcZeroIcon from "$lib/CcZeroIcon.svelte";
-  import { VITE_ROOT_PATH } from "$lib/paths";
+  import CcIcon from "#lib/CcIcon.svelte";
+  import CcZeroIcon from "#lib/CcZeroIcon.svelte";
+  import { VITE_ROOT_PATH } from "#lib/paths.js";
 
   let { children } = $props();
 </script>

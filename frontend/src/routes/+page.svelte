@@ -1,5 +1,5 @@
 <script>
-  import { VITE_ROOT_PATH } from "$lib/paths";
+  import { VITE_ROOT_PATH } from "#lib/paths.js";
 </script>
 
 <div class="page-shell">
