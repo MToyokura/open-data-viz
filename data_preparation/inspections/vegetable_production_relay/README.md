@@ -1,5 +1,13 @@
 # Vegetable relay API inspections
 
+## Current status (2026-10-11)
+
+Raw captures for the selected 2020–2024 daikon tables are present. Offline replay passed for the 2021–2024 tables checked in the current investigation. The 2024 table has explicit month codes; its classification and grid-coverage findings are recorded in [`2024_daikon_validation.md`](2024_daikon_validation.md) and [`2024_daikon_codebook.json`](2024_daikon_codebook.json).
+
+The **2021–2023 temporal mapping is now evidenced** for tables `0002008540`, `0002120386` and `0002114330`: official e-Stat spreadsheets labelled `計` and January–December each uniquely match one `cat03` block across all 1,152 cells. Block 1 (`1001`–`1012`) is the annual `計`; blocks 2–13 (`1013`–`1156`) are January–December in order. See [`2021_2023_temporal_evidence.md`](2021_2023_temporal_evidence.md), [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json) and [`verify_temporal_mapping.py`](verify_temporal_mapping.py).
+
+Independent reviewer approval and the remaining origin, region, unit, symbol, completeness and cross-year checks are pending. **Monthly normalization and publication remain blocked.** The handoff below records what was known before the dated spreadsheet comparison; its unresolved-month statements are historical.
+
 ## M4: complete raw observation capture (JSON source format)
 
 From `data_preparation/`, with a **replay-verified** M3 metadata capture:
@@ -59,7 +67,7 @@ cargo run -- vegetable-relay-metadata-report inspections/vegetable_production_re
 
 The inspection preserves exact `getMetaInfo` response bytes in `response.bin`, sanitized `capture.json`, and an `inventory.json` / `inventory.md` retaining source classification codes, names, levels, parent references, and source units where present. Replay validates the response checksum offline. Reports never overwrite existing files. Treat the inventory as **unverified evidence**, not an origin/prefecture/market/time mapping. The M3 gate remains blocked until documented interpretations are reviewed and checked against real captured metadata. Do not publish statistical observations from this inspection.
 
-## M3 extension: repeated-region semantic evidence (still blocked)
+## M3 extension: repeated-region semantic evidence (historical investigation)
 
 For 2021 (`0002008540`), 2022 (`0002120386`) and 2023 (`0002114330`), use the corresponding **replay-verified** metadata run directory:
 
@@ -72,7 +80,7 @@ cargo run -- vegetable-relay-semantic-replay inspections/vegetable_production_re
 
 `semantic_blocks.md` records exact source-code boundaries for the 13 repeated 12-label blocks **without assigning month names**. The probe explicitly filters one valid `cat03` code and requests at most 10 `getStatsData` rows. It stores exact final bytes, checksum, and sanitized request metadata, and can be verified offline against the same metadata capture. `sample.json` retains raw observation references and lexical values only; it is inspection evidence, **not a normalized dataset**. Failures leave evidence in ignored run directories; source values may be sensitive and must be sanitized before committing. Month-to-block correspondence, total-block identity, geographic coverage and unit comparability remain unverified. Limited samples cannot prove any of them. No candidate selection or M4 data publication occurs.
 
-## M3 handoff decision: proceed to M4 with unresolved temporal semantics
+## M3 handoff decision: proceed to M4 with unresolved temporal semantics (historical)
 
 **Decision (2026-10-11):** M3 inspection tooling and representative evidence collection are complete enough to begin M4 acquisition work. This is a **scoped engineering handoff**, not approval of every statistical interpretation. Older M3 command output and reports that say `Gate: BLOCKED` remain valid: **semantic approval for the ambiguous 2021–2023 blocks is still blocked**. Do not reinterpret that message as a failed capture/replay, or treat this handoff as a data-quality pass.
 

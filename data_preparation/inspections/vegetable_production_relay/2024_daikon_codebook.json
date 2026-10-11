@@ -1,0 +1,419 @@
+{
+  "table_id": "0004044496",
+  "metadata_sha256": "db04e07721badf811b429bb82a6ffee6ac151a6727a18f1d9029da909c0b90ef",
+  "status": "INSPECTION_ONLY_REVIEW_PENDING",
+  "source_documents": [
+    "https://www.e-stat.go.jp/stat-search/files?cycle=7&layout=datalist&page=1&stat_infid=000040317746&tclass1=000001020455&tclass2=000001232266&tclass3val=0&toukei=00500226&tstat=000001015623",
+    "https://www.e-stat.go.jp/stat-search/file-download?fileKind=2&statInfId=000040317745"
+  ],
+  "time": [
+    {
+      "code": "10",
+      "label": "計",
+      "role": "summary_excluded",
+      "reporting_month": null
+    },
+    {
+      "code": "2024000101",
+      "label": "2024年1月",
+      "role": "monthly",
+      "reporting_month": "2024-01"
+    },
+    {
+      "code": "2024000202",
+      "label": "2024年2月",
+      "role": "monthly",
+      "reporting_month": "2024-02"
+    },
+    {
+      "code": "2024000303",
+      "label": "2024年3月",
+      "role": "monthly",
+      "reporting_month": "2024-03"
+    },
+    {
+      "code": "2024000404",
+      "label": "2024年4月",
+      "role": "monthly",
+      "reporting_month": "2024-04"
+    },
+    {
+      "code": "2024000505",
+      "label": "2024年5月",
+      "role": "monthly",
+      "reporting_month": "2024-05"
+    },
+    {
+      "code": "2024000606",
+      "label": "2024年6月",
+      "role": "monthly",
+      "reporting_month": "2024-06"
+    },
+    {
+      "code": "2024000707",
+      "label": "2024年7月",
+      "role": "monthly",
+      "reporting_month": "2024-07"
+    },
+    {
+      "code": "2024000808",
+      "label": "2024年8月",
+      "role": "monthly",
+      "reporting_month": "2024-08"
+    },
+    {
+      "code": "2024000909",
+      "label": "2024年9月",
+      "role": "monthly",
+      "reporting_month": "2024-09"
+    },
+    {
+      "code": "2024001010",
+      "label": "2024年10月",
+      "role": "monthly",
+      "reporting_month": "2024-10"
+    },
+    {
+      "code": "2024001111",
+      "label": "2024年11月",
+      "role": "monthly",
+      "reporting_month": "2024-11"
+    },
+    {
+      "code": "2024001212",
+      "label": "2024年12月",
+      "role": "monthly",
+      "reporting_month": "2024-12"
+    }
+  ],
+  "origin": [
+    {
+      "code": "1001",
+      "label": "計",
+      "role": "total_excluded"
+    },
+    {
+      "code": "1002",
+      "label": "北海道",
+      "role": "prefecture"
+    },
+    {
+      "code": "1003",
+      "label": "青森",
+      "role": "prefecture"
+    },
+    {
+      "code": "1004",
+      "label": "岩手",
+      "role": "prefecture"
+    },
+    {
+      "code": "1005",
+      "label": "宮城",
+      "role": "prefecture"
+    },
+    {
+      "code": "1006",
+      "label": "秋田",
+      "role": "prefecture"
+    },
+    {
+      "code": "1007",
+      "label": "山形",
+      "role": "prefecture"
+    },
+    {
+      "code": "1008",
+      "label": "福島",
+      "role": "prefecture"
+    },
+    {
+      "code": "1009",
+      "label": "茨城",
+      "role": "prefecture"
+    },
+    {
+      "code": "1010",
+      "label": "栃木",
+      "role": "prefecture"
+    },
+    {
+      "code": "1011",
+      "label": "群馬",
+      "role": "prefecture"
+    },
+    {
+      "code": "1012",
+      "label": "埼玉",
+      "role": "prefecture"
+    },
+    {
+      "code": "1013",
+      "label": "千葉",
+      "role": "prefecture"
+    },
+    {
+      "code": "1014",
+      "label": "東京",
+      "role": "prefecture"
+    },
+    {
+      "code": "1015",
+      "label": "神奈川",
+      "role": "prefecture"
+    },
+    {
+      "code": "1016",
+      "label": "新潟",
+      "role": "prefecture"
+    },
+    {
+      "code": "1017",
+      "label": "富山",
+      "role": "prefecture"
+    },
+    {
+      "code": "1018",
+      "label": "石川",
+      "role": "prefecture"
+    },
+    {
+      "code": "1019",
+      "label": "福井",
+      "role": "prefecture"
+    },
+    {
+      "code": "1020",
+      "label": "山梨",
+      "role": "prefecture"
+    },
+    {
+      "code": "1021",
+      "label": "長野",
+      "role": "prefecture"
+    },
+    {
+      "code": "1022",
+      "label": "岐阜",
+      "role": "prefecture"
+    },
+    {
+      "code": "1023",
+      "label": "静岡",
+      "role": "prefecture"
+    },
+    {
+      "code": "1024",
+      "label": "愛知",
+      "role": "prefecture"
+    },
+    {
+      "code": "1025",
+      "label": "三重",
+      "role": "prefecture"
+    },
+    {
+      "code": "1026",
+      "label": "滋賀",
+      "role": "prefecture"
+    },
+    {
+      "code": "1027",
+      "label": "京都",
+      "role": "prefecture"
+    },
+    {
+      "code": "1028",
+      "label": "大阪",
+      "role": "prefecture"
+    },
+    {
+      "code": "1029",
+      "label": "兵庫",
+      "role": "prefecture"
+    },
+    {
+      "code": "1030",
+      "label": "奈良",
+      "role": "prefecture"
+    },
+    {
+      "code": "1031",
+      "label": "和歌山",
+      "role": "prefecture"
+    },
+    {
+      "code": "1032",
+      "label": "鳥取",
+      "role": "prefecture"
+    },
+    {
+      "code": "1033",
+      "label": "島根",
+      "role": "prefecture"
+    },
+    {
+      "code": "1034",
+      "label": "岡山",
+      "role": "prefecture"
+    },
+    {
+      "code": "1035",
+      "label": "広島",
+      "role": "prefecture"
+    },
+    {
+      "code": "1036",
+      "label": "山口",
+      "role": "prefecture"
+    },
+    {
+      "code": "1037",
+      "label": "徳島",
+      "role": "prefecture"
+    },
+    {
+      "code": "1038",
+      "label": "香川",
+      "role": "prefecture"
+    },
+    {
+      "code": "1039",
+      "label": "愛媛",
+      "role": "prefecture"
+    },
+    {
+      "code": "1040",
+      "label": "高知",
+      "role": "prefecture"
+    },
+    {
+      "code": "1041",
+      "label": "福岡",
+      "role": "prefecture"
+    },
+    {
+      "code": "1042",
+      "label": "佐賀",
+      "role": "prefecture"
+    },
+    {
+      "code": "1043",
+      "label": "長崎",
+      "role": "prefecture"
+    },
+    {
+      "code": "1044",
+      "label": "熊本",
+      "role": "prefecture"
+    },
+    {
+      "code": "1045",
+      "label": "大分",
+      "role": "prefecture"
+    },
+    {
+      "code": "1046",
+      "label": "宮崎",
+      "role": "prefecture"
+    },
+    {
+      "code": "1047",
+      "label": "鹿児島",
+      "role": "prefecture"
+    },
+    {
+      "code": "1048",
+      "label": "沖縄",
+      "role": "prefecture"
+    }
+  ],
+  "measure": [
+    {
+      "code": "1001",
+      "label": "数量",
+      "unit": "t",
+      "role": "quantity"
+    },
+    {
+      "code": "1002",
+      "label": "価格",
+      "unit": "円/kg",
+      "role": "price_excluded"
+    }
+  ],
+  "consumer_region": [
+    {
+      "code": "1001",
+      "label": "北海道",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1002",
+      "label": "東北",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1003",
+      "label": "東北_仙台・盛岡",
+      "parent_code": "1002",
+      "role": "overlapping_subset_excluded"
+    },
+    {
+      "code": "1004",
+      "label": "関東",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1005",
+      "label": "関東_京浜",
+      "parent_code": "1004",
+      "role": "overlapping_subset_excluded"
+    },
+    {
+      "code": "1006",
+      "label": "北陸",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1007",
+      "label": "東海",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1008",
+      "label": "近畿",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1009",
+      "label": "中国",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1010",
+      "label": "四国",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1011",
+      "label": "九州",
+      "parent_code": null,
+      "role": "candidate_disjoint_contributor"
+    },
+    {
+      "code": "1012",
+      "label": "九州_北九州",
+      "parent_code": "1011",
+      "role": "overlapping_subset_excluded"
+    }
+  ]
+}

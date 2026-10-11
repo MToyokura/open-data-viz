@@ -28,6 +28,14 @@ cargo run -- commodity-prices
 
 取得したメタデータ、API の生データ、加工後のデータは、それぞれ `output/commodity_prices/meta_data/`、`output/commodity_prices/raw_data/`、`output/commodity_prices/transformed_data/` に保存されます。既存のメタデータや生データのファイルがある場合、そのファイルを再利用して取得を省略します。
 
+### 野菜の産地別卸売データ（調査中）
+
+だいこんの e-Stat データについて、2020～2024 年の候補表のメタデータと観測値を保存し、オフラインで再検証できるようにしています。2021～2023 年の表では、月を示す明示的な軸がありませんが、e-Stat が別途公開する「計」と各月の Excel 表を全セル照合し、13 個の `cat03` ブロックを特定しました。先頭ブロックが年間の「計」、残る 12 ブロックが 1～12 月です。各 Excel 表は対応するブロックの 1,152 セルすべてと一致しています。
+
+照合の根拠、表 ID、元ファイルのチェックサム、再検証方法は [野菜データの調査記録](inspections/vegetable_production_relay/README.md) と [2021～2023 年の月対応の根拠](inspections/vegetable_production_relay/2021_2023_temporal_evidence.md) にあります。2024 年の分類と観測範囲は [2024 年の検証記録](inspections/vegetable_production_relay/2024_daikon_validation.md) を参照してください。
+
+この月対応は独立したレビューが未完了です。また、産地・消費地域の意味、単位、欠測値、年をまたぐ比較可能性、集計値の整合性の検証も残っています。正規化・集計・公開用の新しいデータパイプラインは未実装であり、これらの生データをそのまま公開用データとして扱うことはできません。
+
 ### 都道府県データ
 
 ```sh
