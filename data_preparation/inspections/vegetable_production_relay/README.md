@@ -24,7 +24,6 @@ cargo run -- vegetable-relay-discovery-replay inspections/vegetable_production_r
 
 This captures every `getStatsList` page for statistics code `00500226` (100 records per request), including raw bytes and per-page checksums. Successful inspection writes a validated `catalogue.json` containing table IDs, titles, and basic metadata. Replay verifies all captured pages offline and rejects gaps, duplicates, checksum mismatches, changed totals, and API errors. Selection of statistical tables is explicitly out of scope. On failed inspection, captured pages remain in the ignored run directory for diagnosis; no validated catalogue is published.
 
-
 ## M2-B: offline daikon candidate assessment
 
 After successfully running discovery and its offline replay:
@@ -48,7 +47,6 @@ cargo run -- vegetable-relay-metadata-report inspections/vegetable_production_re
 
 The inspection preserves exact `getMetaInfo` response bytes in `response.bin`, sanitized `capture.json`, and an `inventory.json` / `inventory.md` retaining source classification codes, names, levels, parent references, and source units where present. Replay validates the response checksum offline. Reports never overwrite existing files. Treat the inventory as **unverified evidence**, not an origin/prefecture/market/time mapping. The M3 gate remains blocked until documented interpretations are reviewed and checked against real captured metadata. Do not publish statistical observations from this inspection.
 
-
 ## M3 extension: repeated-region semantic evidence (still blocked)
 
 For 2021 (`0002008540`), 2022 (`0002120386`) and 2023 (`0002114330`), use the corresponding **replay-verified** metadata run directory:
@@ -61,3 +59,24 @@ cargo run -- vegetable-relay-semantic-replay inspections/vegetable_production_re
 ```
 
 `semantic_blocks.md` records exact source-code boundaries for the 13 repeated 12-label blocks **without assigning month names**. The probe explicitly filters one valid `cat03` code and requests at most 10 `getStatsData` rows. It stores exact final bytes, checksum, and sanitized request metadata, and can be verified offline against the same metadata capture. `sample.json` retains raw observation references and lexical values only; it is inspection evidence, **not a normalized dataset**. Failures leave evidence in ignored run directories; source values may be sensitive and must be sanitized before committing. Month-to-block correspondence, total-block identity, geographic coverage and unit comparability remain unverified. Limited samples cannot prove any of them. No candidate selection or M4 data publication occurs.
+
+## M3 handoff decision: proceed to M4 with unresolved temporal semantics
+
+**Decision (2026-10-11):** M3 inspection tooling and representative evidence collection are complete enough to begin M4 acquisition work. This is a **scoped engineering handoff**, not approval of every statistical interpretation. Older M3 command output and reports that say `Gate: BLOCKED` remain valid: **semantic approval for the ambiguous 2021–2023 blocks is still blocked**. Do not reinterpret that message as a failed capture/replay, or treat this handoff as a data-quality pass.
+
+Evidence gathered:
+
+- **2020:** Separate month-titled tables (e.g. `0001910468`) and annual-total tables (e.g. `0001910467`), each with 48 `cat01` codes, 2 `cat02` measures, and 12 `cat03` regions; no explicit `time` axis in those inspected tables. A title month is a hint, not proof of populated observations.
+- **2021–2023:** Consolidated candidate tables `0002008540`, `0002120386`, and `0002114330` each expose 156 `cat03` codes: 13 consecutive repetitions of the same 12 region labels and hierarchy levels, without an explicit `time` axis. The 2023 `TABLE_INF.SURVEY_DATE` is `202301-202312`, and its title is `計_1月～12月`; these establish overall coverage only, **not** a month or total for any individual block.
+- **2024:** Table `0004044496` exposes 12 `cat03` regions **and** a separate `time` axis containing an aggregate code and explicitly named January–December 2024 codes. The existence of a time code does not, by itself, prove populated observations or comparability.
+- **2023 API checks:** `getMetaInfo` and a bounded `getStatsData` probe succeeded. The observation capture replayed successfully against the matching metadata capture. The probed observations had classification references, units, and lexical values (including `-`); they carried no independent month mapping. An explicit `getMetaInfo` request with `explanationGetFlg=Y` returned an empty table description and no classification-object descriptions or extra attributes in the inspected fields. The e-Stat display and exported workbook likewise did not identify the 13 blocks by month.
+
+### M4 requirements: fail closed on unresolved meaning
+
+1. M4 may **acquire and replay raw observations** for these tables with exact source table IDs, classification codes, lexical values (including nonnumeric markers), response checksums, and provenance. Acquisition is **not** monthly normalization or publication.
+2. For 2021–2023, represent the 13 blocks by their **source `cat03` codes / block ordinals only**. Keep `reporting_month` and annual-total identity **unknown**; never derive them from block order, repeated labels, `SURVEY_DATE`, titles, or arithmetic patterns (`156 = 13 × 12`).
+3. For 2020, use month-titled tables as candidates only; validate observation coverage and annual-total semantics before publishing dated records. For 2024, use explicit source `time` codes but still validate observations, coverage, and any aggregate/total behavior.
+4. Do not join codes across table families by raw identifier alone (for example, pre-2021 `001` versus later `1001`), and do not infer geography, inclusion/exclusion rules, unit equivalence, or measure comparability solely from similar labels. Preserve original units and missing/suppression markers; `-` is **not** zero.
+5. Block downstream **monthly normalization and publication of 2021–2023 data** until independent, citable source evidence establishes a complete `cat03` block-to-month (and total) mapping and a reviewer approves it. Keep the source reference, mapping rationale, and validation results alongside the decision. An unverified mapping must never silently become a default.
+
+**Status:** M3 capture/replay and structural investigation: **complete for representative tables**. M3 cross-year semantic verification: **partially unresolved**. M4 raw acquisition: **permitted under these constraints**. Monthly publication of 2021–2023 observations: **blocked**.
