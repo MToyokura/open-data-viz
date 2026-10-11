@@ -2,11 +2,7 @@
 
 ## Current status (2026-10-11)
 
-The next milestone is **M6-A historical expansion and unified normalization**, before aggregation is stabilized. The working coverage target is 2012–2025, with 2026 supported only as explicitly partial data when available. Current source findings and compatibility limits are in [`YEAR_EXPANSION_RESEARCH.md`](YEAR_EXPANSION_RESEARCH.md); the year list is a research scope, not a claim that all years are normalized.
-
-The repository contains raw captures and inspection artifacts for selected 2020–2024 daikon sources. The source shapes differ: 2020 and older use separate period tables, 2021–2023 use repeated `cat03` blocks, and 2024 uses an explicit time axis. 2025 final statistics were published by MAFF on 2026-09-30, but the exact daikon flow table still needs discovery and metadata verification. The long-term series reaching back to 1985 is an annual city-class series, not the origin-to-consumer-region flow. A generated availability manifest must report these series separately and only expose a year after its actual coverage has been checked.
-
-The 2024 table has explicit month codes; its classification and grid-coverage findings are recorded in [`2024_daikon_validation.md`](2024_daikon_validation.md) and [`2024_daikon_codebook.json`](2024_daikon_codebook.json).
+The next milestone is **2021–2023 semantic review and aggregation verification**. Only daikon monthly flows for those three years are in display scope. Historical expansion and 2024-only validation/demo work are out of scope.
 
 The **2021–2023 temporal mapping is now evidenced** for tables `0002008540`, `0002120386` and `0002114330`: official e-Stat spreadsheets labelled `計` and January–December each uniquely match one `cat03` block across all 1,152 cells. Block 1 (`1001`–`1012`) is the annual `計`; blocks 2–13 (`1013`–`1156`) are January–December in order. See [`2021_2023_temporal_evidence.md`](2021_2023_temporal_evidence.md), [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json) and [`verify_temporal_mapping.py`](verify_temporal_mapping.py).
 
@@ -90,16 +86,14 @@ cargo run -- vegetable-relay-semantic-replay inspections/vegetable_production_re
 
 Evidence gathered:
 
-- **2020:** Separate month-titled tables (e.g. `0001910468`) and annual-total tables (e.g. `0001910467`), each with 48 `cat01` codes, 2 `cat02` measures, and 12 `cat03` regions; no explicit `time` axis in those inspected tables. A title month is a hint, not proof of populated observations.
 - **2021–2023:** Consolidated candidate tables `0002008540`, `0002120386`, and `0002114330` each expose 156 `cat03` codes: 13 consecutive repetitions of the same 12 region labels and hierarchy levels, without an explicit `time` axis. The 2023 `TABLE_INF.SURVEY_DATE` is `202301-202312`, and its title is `計_1月～12月`; these establish overall coverage only, **not** a month or total for any individual block.
-- **2024:** Table `0004044496` exposes 12 `cat03` regions **and** a separate `time` axis containing an aggregate code and explicitly named January–December 2024 codes. The existence of a time code does not, by itself, prove populated observations or comparability.
 - **2023 API checks:** `getMetaInfo` and a bounded `getStatsData` probe succeeded. The observation capture replayed successfully against the matching metadata capture. The probed observations had classification references, units, and lexical values (including `-`); they carried no independent month mapping. An explicit `getMetaInfo` request with `explanationGetFlg=Y` returned an empty table description and no classification-object descriptions or extra attributes in the inspected fields. The e-Stat display and exported workbook likewise did not identify the 13 blocks by month.
 
 ### M4 requirements: fail closed on unresolved meaning
 
 1. M4 may **acquire and replay raw observations** for these tables with exact source table IDs, classification codes, lexical values (including nonnumeric markers), response checksums, and provenance. Acquisition is **not** monthly normalization or publication.
 2. For 2021–2023, represent the 13 blocks by their **source `cat03` codes / block ordinals only**. Keep `reporting_month` and annual-total identity **unknown**; never derive them from block order, repeated labels, `SURVEY_DATE`, titles, or arithmetic patterns (`156 = 13 × 12`).
-3. For 2020, use month-titled tables as candidates only; validate observation coverage and annual-total semantics before publishing dated records. For 2024, use explicit source `time` codes but still validate observations, coverage, and any aggregate/total behavior.
+3. Do not infer additional years from similar table shapes. Only 2021–2023 are in scope.
 4. Do not join codes across table families by raw identifier alone (for example, pre-2021 `001` versus later `1001`), and do not infer geography, inclusion/exclusion rules, unit equivalence, or measure comparability solely from similar labels. Preserve original units and missing/suppression markers; `-` is **not** zero.
 5. Block downstream **monthly normalization and publication of 2021–2023 data** until independent, citable source evidence establishes a complete `cat03` block-to-month (and total) mapping and a reviewer approves it. Keep the source reference, mapping rationale, and validation results alongside the decision. An unverified mapping must never silently become a default.
 

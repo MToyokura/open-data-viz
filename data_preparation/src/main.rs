@@ -5,29 +5,6 @@ use modules::projects::commodity_prices::process_commodity_prices::process_commo
 
 fn main() {
     match std::env::args().nth(1).as_deref() {
-        Some("vegetable-relay-normalize-2024-daikon") => {
-            let args: Vec<String> = std::env::args().collect();
-            if args.len() != 6 {
-                eprintln!(
-                    "Usage: cargo run -- vegetable-relay-normalize-2024-daikon <observations-run-dir> <metadata-run-dir> <reviewed-codebook.json> <output-inspection-dir>"
-                );
-                std::process::exit(2);
-            }
-            match modules::projects::vegetable_production_relay::normalization::run(
-                std::path::Path::new(&args[2]),
-                std::path::Path::new(&args[3]),
-                std::path::Path::new(&args[4]),
-                std::path::Path::new(&args[5]),
-            ) {
-                Ok(path) => println!("M5-A inspection only (NOT publishable): {}", path.display()),
-                Err(error) => {
-                    eprintln!("M5-A refused: {error}");
-                    std::process::exit(1);
-                }
-            }
-            return;
-        }
-
         Some("vegetable-relay-normalize-2021-2023") => {
             let args: Vec<String> = std::env::args().collect();
             if args.len() != 6 {

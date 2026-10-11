@@ -12,7 +12,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
 MAPPING = ROOT / "2021_2023_temporal_mapping.json"
-CODEBOOK = ROOT / "2024_daikon_codebook.json"
 
 
 def sha(path):
@@ -22,8 +21,6 @@ def sha(path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--review", type=Path, help="independent semantic review JSON")
-    parser.add_argument("--2024-workbooks", dest="workbooks", type=Path,
-                        help="directory of 13 official workbooks and manifest.json")
     parser.add_argument("--output", type=Path, default=RUNS / "m3-m5-validation-report.json")
     args = parser.parse_args()
     checks = []
@@ -127,51 +124,6 @@ def main():
             {"rows": len(rows), "period_assignments_verified": period_assignments_verified if valid else 0,
              "symbols_and_provenance_preserved": bool(valid)})
 
-    codebook = json.loads(CODEBOOK.read_text())
-    valid_book = (codebook.get("status") == "INSPECTION_ONLY_REVIEW_PENDING"
-                  and codebook.get("table_id") == "0004044496"
-                  and len(codebook.get("time", [])) == 13
-                  and len(codebook.get("origin", [])) == 48
-                  and len(codebook.get("measure", [])) == 2
-                  and len(codebook.get("consumer_region", [])) == 12
-                  and len(codebook.get("source_documents", [])) >= 2)
-    add("2024 codebook structure and documentary references", "passed" if valid_book else "failed",
-        {"status": codebook.get("status"), "axes": {k: len(codebook.get(k, [])) for k in ("time", "origin", "measure", "consumer_region")},
-         "codebook_sha256": sha(CODEBOOK)})
-
-    obs_id = "observations-1791678455-860323437-165827"
-    meta_id = "metadata-1791675366-450693749-111423"
-    out_dir = RUNS / f"m5-validation-replay-{int(time.time())}"
-    out_dir.mkdir(exist_ok=True)
-    normalized = subprocess.run(["cargo", "run", "--quiet", "--", "vegetable-relay-normalize-2024-daikon",
-                                 str(RUNS / obs_id), str(RUNS / meta_id), str(CODEBOOK), str(out_dir)],
-                                cwd=data_dir, capture_output=True, text=True)
-    result_path = out_dir / "m5a_inspection_only.json"
-    if normalized.returncode == 0 and result_path.exists():
-        evidence = json.loads(result_path.read_text())
-        add("2024 normalized cell grid, units, region roles, and symbols", "passed",
-            {"input_count": evidence["validation"]["input_count"],
-             "normalized_count": evidence["validation"]["normalized_count"],
-             "reported": evidence["validation"]["reported_count"],
-             "below_display_unit": evidence["validation"]["below_display_unit_count"],
-             "no_fact": evidence["validation"]["no_fact_count"],
-             "publishable": evidence["validation"]["publishable"]})
-    else:
-        add("2024 normalized cell grid, units, region roles, and symbols", "failed",
-            normalized.stderr[-2000:].strip())
-
-    if args.workbooks and (args.workbooks / "manifest.json").is_file():
-        rec = subprocess.run([sys.executable, str(ROOT / "reconcile_2024.py"),
-                              "--workbooks", str(args.workbooks),
-                              "--capture", str(RUNS / obs_id / "source_observations.json"),
-                              "--codebook", str(CODEBOOK)],
-                             cwd=data_dir, capture_output=True, text=True)
-        add("2024 official workbook reconciliation", "passed" if rec.returncode == 0 else "failed",
-            rec.stdout.strip() if rec.returncode == 0 else rec.stderr[-2000:])
-    else:
-        add("2024 official workbook reconciliation", "blocked",
-            "provide --2024-workbooks with 13 official XLSX files and their checksum manifest")
-
     review_ok = False
     if args.review and args.review.exists():
         review = json.loads(args.review.read_text())
@@ -180,8 +132,6 @@ def main():
         decisions = review.get("decisions", {})
         expected_hashes = {
             "temporal_mapping_sha256": sha(MAPPING),
-            "2024_codebook_sha256": sha(CODEBOOK),
-            "2024_metadata_sha256": codebook["metadata_sha256"],
             **{f"{year}_metadata_sha256": entry["metadata_sha256"]
                for year, entry in mapping["years"].items()},
         }

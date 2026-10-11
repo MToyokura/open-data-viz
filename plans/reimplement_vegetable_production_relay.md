@@ -8,7 +8,7 @@
 
 The previous `vegetable_production_relay` implementation combined e-Stat discovery, data acquisition, CSV parsing, metadata interpretation, validation, aggregation, and publication in a large pipeline. Its complexity made it difficult to determine whether the published quantities were statistically correct. The implementation has been removed, and **this project starts from scratch**.
 
-Build an observable, year-independent pipeline whose values can be traced back to the original e-Stat responses and independently verified. The initial integration target is daikon, with source coverage researched from 2012 through 2025 and optional partial 2026 data. **Do not use the old output as a correctness oracle.** It is useful for identifying requirements and possible edge cases, but any statistical assumption must be re-established from source evidence.
+Build an observable pipeline for **daikon data from 2021, 2022, and 2023 only**, whose values can be traced back to the original e-Stat responses and independently verified. **Do not use the old output as a correctness oracle.** It is useful for identifying requirements and possible edge cases, but any statistical assumption must be re-established from source evidence.
 
 This plan incorporates the inspection-first principles of the former `plans/refactor_vegetable_relay_data_fetching.md`, adjusted from refactoring to greenfield reimplementation.
 
@@ -52,7 +52,7 @@ e-Stat getSimpleStatsData
 
 raw CSV + verified metadata
     -> typed source observations
-    -> source-shape adapter (separate-period / repeated-block / explicit-time)
+    -> verified 2021–2023 repeated-cat03-block normalization
     -> common normalized observations with source lineage
     -> semantic/coverage validation
     -> monthly prefecture aggregation
@@ -62,7 +62,7 @@ raw CSV + verified metadata
     -> SvelteKit consumer
 ```
 
-The application availability manifest is generated from normalized artifacts and validation reports. It must describe each series' actual grain and coverage (`origin-to-region monthly flow`, annual city-class series, or another documented type), completeness, release status, and source provenance. It must never infer support from a configured list of years. The UI may expose partial or annual-only datasets with an explicit type, but must not present them as complete monthly flows.
+The application must restrict selectable years to **2021, 2022, and 2023**, and must only expose validated monthly flow data for those years. Availability and completeness must derive from validated artifacts, not an assumed calendar range. Incomplete cells remain explicit; unvalidated candidate output must not be presented as approved statistics.
 
 **Design constraint:** Do not combine these steps in a single large `pipeline.rs`. That file should orchestrate components rather than implement their business logic. Use typed records for boundaries, retaining source table IDs and source classification codes for traceability. Prefer explicit error types and structured validation findings over silent filtering or `unwrap()`.
 
@@ -128,7 +128,7 @@ The CLI shape is not fixed yet; implement these concepts before stabilizing flag
 
 ### Current scoped slice (2026-10-11)
 
-The broad year expansion described by M6-A is deferred. Current implementation work is limited to the 2021–2023 daikon tables whose monthly blocks have exact matches to official period-labelled workbooks. The Rust module `data_preparation/src/modules/projects/vegetable_production_relay/aggregation.rs` creates M6 candidate sums and per-market lineage; the Svelte page displays those values while retaining unresolved cells and review status. This is not an M6 validation pass: the unit/semantic review, independent aggregation reference calculation, and M7 publication gate remain outstanding. Do not add other years to this view until their individual source coverage and semantics are established.
+Historical expansion is out of scope. Current implementation work is limited to the 2021–2023 daikon tables whose monthly blocks have exact matches to official period-labelled workbooks. The Rust module `data_preparation/src/modules/projects/vegetable_production_relay/aggregation.rs` creates M6 candidate sums and per-market lineage; the Svelte page displays those values while retaining unresolved cells and review status. This is not an M6 validation pass: the unit/semantic review, independent aggregation reference calculation, and M7 publication gate remain outstanding. Do not add other years to this view until their individual source coverage and semantics are established.
 
 ### M1 — Minimal API capture and replay
 
@@ -188,17 +188,17 @@ The broad year expansion described by M6-A is deferred. Current implementation w
 
 **Deliverable:** Validation report and stable rules covered by tests.
 
-### M6-A — Historical expansion and unified normalization (**next milestone**)
+### M6-A — Finalize 2021–2023 normalization and semantic review (**next milestone**)
 
-**Target:** First integrate the inspected 2020–2025 releases while preserving the existing 2021–2024 evidence and adapters; investigate 2012–2019 for the same flow grain. Support 2026 only as a separately identified partial release when source observations exist. The 1985-onward daikon long-term city-class series is a distinct series type, not flow data.
+**Target:** Verify the three daikon tables (`0002008540`, `0002120386`, `0002114330`) and no other years. Preserve the official workbook-backed `cat03` total/month mapping and its source checksums.
 
-**Implement:** Keep discovery keyed to the e-Stat statistics code and select table IDs from current replayable catalogues rather than year-specific constants. Introduce adapters for (1) separate annual/monthly tables, (2) repeated temporal blocks, and (3) an explicit time axis. Define a provisional common normalized record after inspecting representative early, transition, and recent releases. Preserve source values, source codes, table/revision IDs, unit, period mapping, and mapping evidence. Generate an availability manifest from validated build artifacts, with per-series grain and completeness.
+**Implement:** Stabilize the existing 2021–2023 replay/normalization path. Retain table/revision IDs, units, raw lexical values, origin/region codes, period mapping, and source-row lineage. No adapters or year inventories for 2020, 2024, or other years are required.
 
-**Inspect:** Refresh the 2025 catalogue and verify the exact daikon flow candidate. Replay and verify 2020. Inventory 2012–2019 by metadata/schema fingerprints, beginning with 2012 and apparent transition years. Keep the long-term city-class series and partial 2026 results in separate coverage profiles.
+**Inspect:** Obtain independent reviewer signoff on the period mapping and resolve origin, destination-region, unit, value-symbol, completeness, and cross-year comparability questions for 2021–2023. Test absence, suppression, duplicates, and mismatched metadata.
 
-**Gate:** No year is advertised as a monthly flow until its specific table, period coverage, geography, measures, unit, and source revision have been checked. A year may have annual-only or partial availability without being dropped, but the manifest and UI must say so. No cross-release code join is inferred from matching labels or numeric codes.
+**Gate:** All three years must pass source identity, semantic, coverage, and independent review checks before any corresponding monthly output is approved. Failed or unresolved cells remain explicitly incomplete; no other year may be published or selected.
 
-**Deliverable:** Evidence-backed year/series inventory, tested source adapters, common provisional observations, and a generated coverage manifest. See [`data_preparation/inspections/vegetable_production_relay/YEAR_EXPANSION_RESEARCH.md`](../data_preparation/inspections/vegetable_production_relay/YEAR_EXPANSION_RESEARCH.md).
+**Deliverable:** Reviewed 2021–2023 normalization evidence and repeatable regression tests.
 
 ### M6-B — Aggregate and independently verify reference values
 
@@ -230,13 +230,13 @@ This formula is **provisional** until M3–M5 establish units and market meaning
 
 ### M8 — Coverage-aware frontend
 
-**Implement:** Restore the SvelteKit route/map against the generated availability manifest and the common aggregate format. Build year/series selectors from the manifest; distinguish complete monthly flows, partial periods, and annual-only historical series in the UI.
+**Implement:** Bind the SvelteKit route/map to the validated 2021–2023 monthly aggregates. Restrict the year selector to those three years and distinguish complete, missing, suppressed, and incomplete monthly cells. Do not offer a historical/annual-series selector.
 
 **Inspect:** UI examples that trace to source table/revision and show coverage state for each selected series.
 
-**Gate:** Unsupported years and mismatched grains cannot be rendered as flows; missing, suppressed, and incomplete values remain distinct from zero.
+**Gate:** Years outside 2021–2023 and mismatched grains cannot be rendered as flows; missing, suppressed, and incomplete values remain distinct from zero.
 
-**Deliverable:** Frontend integration for the validated common format and explicit coverage profiles.
+**Deliverable:** Frontend integration for validated 2021–2023 monthly data and explicit completeness states.
 
 ### M9 — Expand vegetables
 
@@ -299,7 +299,7 @@ Work in small PRs aligned with milestones, optionally splitting any milestone if
 ## 10. Non-goals until correctness is established
 
 - Reproducing the old pipeline's outputs byte-for-byte.
-- Supporting every vegetable at once. Historical daikon expansion is now part of the next milestone, but other commodities remain incremental.
+- Supporting years outside 2021–2023 or every vegetable at once. Other commodities remain incremental only after the scoped daikon results pass review.
 - Optimizing requests/parallelism before acquisition and data semantics are verified.
 - Building a generic ETL/inspection framework unrelated to the relay.
 - Treating a rendered map as proof that underlying data is correct.
