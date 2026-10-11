@@ -17,7 +17,7 @@
     </li>
     <li>
       <a href={`${VITE_ROOT_PATH}/vegetable_production_relay`}
-        >野菜の産地別卸売数量リレー</a
+        >野菜の産地リレー</a
       >
     </li>
   </ul>

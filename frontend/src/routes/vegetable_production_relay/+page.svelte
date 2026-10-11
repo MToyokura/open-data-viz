@@ -21,7 +21,7 @@
       ),
     ].sort(),
   );
-  let selectedMonth = $state("2023-01");
+  let selectedMonth = $state("2022-01");
   let selectedPrefecture = $state("北海道");
   let scale = $state(5);
 
@@ -72,15 +72,14 @@
 </script>
 
 <svelte:head>
-  <title>野菜の産地別卸売数量リレー | Open Data Viz</title>
+  <title>野菜の産地リレー | Open Data Viz</title>
 </svelte:head>
 
 <div class="relay-page">
   <main>
     <header class="page-heading">
       <div>
-        <p class="eyebrow">青果物卸売市場調査</p>
-        <h1>野菜の産地別卸売数量リレー</h1>
+        <h1>野菜の産地リレー</h1>
       </div>
     </header>
 
@@ -97,14 +96,6 @@
             <li>{warning}</li>
           {/each}
         </ul>
-      </aside>
-    {/if}
-    {#if aggregation?.status === "incomplete"}
-      <aside class="data-notice" aria-label="データの欠測状況" role="note">
-        <strong>一部に不完全な値があります</strong>
-        <p>
-          表示単位未満、該当なし、不詳または調査なしの値は数値合計に含めず、地域ごとの詳細に状態を表示します。
-        </p>
       </aside>
     {/if}
     {#if aggregation}
@@ -153,7 +144,7 @@
           <button
             class="step-button"
             aria-label="円を小さく"
-            onclick={() => adjustScale(-0.5)}
+            onclick={() => adjustScale(-1)}
             disabled={scale <= 1}>−</button
           >
           <input
@@ -161,7 +152,7 @@
             type="number"
             min="1"
             max="20"
-            step="0.5"
+            step="1"
             bind:value={scale}
             onblur={() =>
               (scale = Math.min(20, Math.max(1, Number(scale) || 5)))}
@@ -169,17 +160,16 @@
           <button
             class="step-button"
             aria-label="円を大きく"
-            onclick={() => adjustScale(0.5)}
+            onclick={() => adjustScale(1)}
             disabled={scale >= 20}>＋</button
           >
-          <small>基準 5</small>
         </div>
       </section>
 
       <div class="map-heading">
         <div>
           <h2>
-            {selectedProductLabel} · {displayMonth(selectedMonth)}の出荷元
+            {selectedProductLabel} · {displayMonth(selectedMonth)}の出荷数量
           </h2>
           <p>円の面積は報告値の合計に比例します</p>
         </div>
@@ -203,8 +193,8 @@
           <div>
             <p class="eyebrow">{displayMonth(selectedMonth)} · 報告値合計</p>
             <h2>{selectedPrefecture}</h2>
+            <strong class="total">{valueLabel(selectedObservation)}</strong>
           </div>
-          <strong class="total">{valueLabel(selectedObservation)}</strong>
         </div>
         {#if selectedObservation}
           <p class="detail-note">
@@ -236,18 +226,58 @@
       <section class="notes">
         <h2>備考</h2>
         <p>
-          都道府県をマウスでホバー、またはタップすると報告値を確認できます。円の大きさは操作盤で変更できます。
+          都道府県または円をクリック・タップすると、地図下にその産地の報告値と内訳を表示します。
+          地図上のスクロールで拡大・縮小できます。円の大きさは＋／−ボタンで調整できます。
         </p>
         <p>
-          数値は報告された産地都道府県ごとに、主要消費地域9区分への卸売数量を合計したものです。農業生産量や全国計ではありません。
+          報告値合計は、産地都道府県ごとに主要消費地域9区分のうち数値が報告された区分を合計したものです。
+          表示単位未満、該当なし、不詳・調査なしの区分は合計に含みません。農業生産量や全国計ではありません。
         </p>
         <p>
           令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
         </p>
-        <p>
-          統計表: e-Stat {yearData?.table_id} · 単位: {yearData?.source_unit} · 地図:
-          国土交通省 国土数値情報 N03
-        </p>
+      </section>
+
+      <section class="reference">
+        <h2>出典情報等</h2>
+        <table class="reference-table">
+          <tbody>
+            <tr>
+              <th>統計表ID</th>
+              <td>
+                {#if yearData}
+                  <div>{yearData.table_id}</div>
+                  <div>
+                    <a
+                      href={`https://www.e-stat.go.jp/dbview?sid=${yearData.table_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer">https://www.e-stat.go.jp/dbview?sid={yearData.table_id}</a
+                    >
+                  </div>
+                {/if}
+              </td>
+            </tr>
+            <tr>
+              <th>地図データ</th>
+              <td>
+                <div>
+                  国土交通省「国土数値情報 行政区域データ（N03）」2026年版（<a
+                    href="https://creativecommons.org/licenses/by/4.0/deed.ja"
+                    target="_blank"
+                    rel="noopener noreferrer">CC BY 4.0</a
+                  >）
+                </div>
+                <div>
+                  <a
+                    href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html"
+                    target="_blank"
+                    rel="noopener noreferrer">https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html</a
+                  >
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </section>
     {/if}
   </main>
@@ -268,15 +298,13 @@
   .controls,
   .month-control,
   .scale-control,
-  .map-heading,
-  .selection-heading {
+  .map-heading {
     display: flex;
     align-items: center;
     gap: 0.75rem;
   }
   .page-heading,
-  .map-heading,
-  .selection-heading {
+  .map-heading {
     justify-content: space-between;
   }
   .page-heading,
@@ -320,6 +348,10 @@
     border-radius: 6px;
     background: white;
   }
+  .total {
+    display: block;
+    margin-top: 0.25rem;
+  }
   .contributions {
     display: grid;
     grid-template-columns: repeat(9, minmax(0, 1fr));
@@ -333,9 +365,42 @@
     border: 1px solid #eee;
   }
   .notes {
-    max-width: 850px;
     margin: 2rem auto 1rem;
     line-height: 1.6;
+  }
+  .reference {
+    margin-top: 2rem;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+  }
+  .reference h2 {
+    margin-top: 0;
+    margin-bottom: 1em;
+  }
+  .reference-table {
+    width: 100%;
+    margin-top: 1em;
+    border-collapse: collapse;
+  }
+  .reference-table th,
+  .reference-table td {
+    padding: 8px;
+    border: 1px solid #bdbdbd;
+    background-color: #fff;
+    text-align: left;
+  }
+  .reference-table th {
+    background-color: #e7e7e7;
+    font-weight: bold;
+    vertical-align: top;
+  }
+  .reference-table td {
+    vertical-align: top;
+  }
+  .reference-table a {
+    word-break: break-all;
   }
   @media (max-width: 700px) {
     main {

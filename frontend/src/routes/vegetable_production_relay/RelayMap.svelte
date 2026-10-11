@@ -163,10 +163,12 @@
       map = L.map(host, {
         zoomControl: true,
         attributionControl: true,
-        scrollWheelZoom: false,
+        scrollWheelZoom: true,
       });
       map.attributionControl.setPrefix("Leaflet");
-      map.attributionControl.addAttribution("国土交通省 国土数値情報 N03");
+      map.attributionControl.addAttribution(
+        '<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html" target="_blank" rel="noreferrer">国土交通省「国土数値情報 行政区域データ（N03）」2026年版</a>',
+      );
       map.setView([37, 137], 5);
       mapReady = true;
     })();
@@ -205,7 +207,6 @@
           // The observation effect supplies the actual label.
           layer.bindTooltip(`${name}: 値なし`);
           layer.on("click", () => onSelect(name));
-          layer.on("mouseover", () => onSelect(name));
         },
       })
       .addTo(map);
