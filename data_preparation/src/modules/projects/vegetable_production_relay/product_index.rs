@@ -45,7 +45,6 @@ pub fn generate(output_dir: &Path) -> Result<PathBuf> {
         let label = data
             .get("commodity_label")
             .and_then(Value::as_str)
-            .or_else(|| (key == "daikon").then_some("だいこん"))
             .filter(|label| !label.trim().is_empty())
             .ok_or_else(|| fail(format!("{key}: product label missing")))?;
         let years = data

@@ -1,7 +1,7 @@
 {
   "status": "VALUE_MATCH_VERIFIED",
   "method": "For each official title-labelled workbook, compare all 48 origin × 12 region × 2 measure lexical cells against every one of the 13 source cat03 blocks. Require a complete one-to-one assignment from periods to blocks using 1,152/1,152 exact matches. If more than one assignment is possible, record every equivalent exact-match candidate; the displayed values are invariant across those candidates and the UI labels the equivalence.",
-  "commodity": "daikon",
+  "commodity": "veg-01",
   "commodity_label": "だいこん",
   "years": {
     "2021": {

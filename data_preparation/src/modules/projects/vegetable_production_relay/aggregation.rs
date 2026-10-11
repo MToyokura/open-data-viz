@@ -597,7 +597,7 @@ pub fn run_2021_2023(
         metadata_dir,
         mapping_path,
         output_path,
-        "daikon",
+        "veg-01",
         "だいこん",
     )
 }

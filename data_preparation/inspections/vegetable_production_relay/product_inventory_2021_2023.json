@@ -14,7 +14,7 @@
   },
   "products": [
     {
-      "key": "daikon",
+      "key": "veg-01",
       "label": "だいこん",
       "table_ids": {
         "2021": "0002008540",
@@ -22,7 +22,7 @@
         "2023": "0002114330"
       },
       "mapping_status": "verified",
-      "mapping_evidence": "product_temporal_mappings/daikon.json",
+      "mapping_evidence": "product_temporal_mappings/veg-01.json",
       "metadata_runs": {
         "2021": {
           "run_id": "metadata-1791675365-812115046-111368",

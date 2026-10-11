@@ -62,7 +62,7 @@ export function useRelayData() {
             product.label.trim().length > 0,
         );
         const initialProduct =
-          products.find((product) => product.key === "daikon") ?? products[0];
+          products.find((product) => product.key === "veg-01") ?? products[0];
         if (initialProduct) await selectProduct(initialProduct.key);
         else error = new Error("表示できる品目がありません");
       }

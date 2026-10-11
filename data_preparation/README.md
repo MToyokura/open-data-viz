@@ -41,22 +41,22 @@ cargo run -- commodity-prices
 ```sh
 cargo run -- vegetable-relay-normalize-2021-2023 \
   <observations-run-dir-2021> <metadata-run-dir-2021> \
-  inspections/vegetable_production_relay/2021_2023_temporal_mapping.json \
+  inspections/vegetable_production_relay/product_temporal_mappings/veg-01.json \
   <new-m5b-output-dir-2021>
 cargo run -- vegetable-relay-normalize-2021-2023 \
   <observations-run-dir-2022> <metadata-run-dir-2022> \
-  inspections/vegetable_production_relay/2021_2023_temporal_mapping.json \
+  inspections/vegetable_production_relay/product_temporal_mappings/veg-01.json \
   <new-m5b-output-dir-2022>
 cargo run -- vegetable-relay-normalize-2021-2023 \
   <observations-run-dir-2023> <metadata-run-dir-2023> \
-  inspections/vegetable_production_relay/2021_2023_temporal_mapping.json \
+  inspections/vegetable_production_relay/product_temporal_mappings/veg-01.json \
   <new-m5b-output-dir-2023>
 cargo run -- vegetable-relay-aggregate-2021-2023 \
   <new-m5b-output-dir-2021>/m5b_inspection_only.json \
   <new-m5b-output-dir-2022>/m5b_inspection_only.json \
   <new-m5b-output-dir-2023>/m5b_inspection_only.json \
   inspections/vegetable_production_relay/runs \
-  inspections/vegetable_production_relay/2021_2023_temporal_mapping.json
+  inspections/vegetable_production_relay/product_temporal_mappings/veg-01.json
 cargo run -- vegetable-relay-product-index
 ```
 

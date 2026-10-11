@@ -45,7 +45,7 @@ fn main() {
                 eprintln!("Could not create output directory: {error}");
                 std::process::exit(1);
             }
-            let commodity = args.get(8).map(String::as_str).unwrap_or("daikon");
+            let commodity = args.get(8).map(String::as_str).unwrap_or("veg-01");
             let commodity_label = args.get(9).map(String::as_str).unwrap_or("だいこん");
             let output_path = output_dir.join(format!("{commodity}.json"));
             match modules::projects::vegetable_production_relay::aggregation::run_2021_2023_product(
