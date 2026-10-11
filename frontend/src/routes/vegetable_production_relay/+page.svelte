@@ -39,6 +39,21 @@
     ),
   );
   let selectedObservation = $derived(observations[selectedPrefecture]);
+  let excludedCategoryCounts = $derived(
+    selectedObservation
+      ? [
+          {
+            label: "表示単位未満",
+            count: selectedObservation.below_display_unit_cells,
+          },
+          { label: "該当なし", count: selectedObservation.no_fact_cells },
+          {
+            label: "不詳・調査なし",
+            count: selectedObservation.unknown_or_uncollected_cells,
+          },
+        ].filter((category) => category.count > 0)
+      : [],
+  );
   // here
   let detailRows = $derived.by(() => {
     const currentDetail = relayData.detail;
@@ -218,9 +233,13 @@
         <!-- here -->
         {#if selectedObservation}
           <p class="detail-note">
-            主要消費地域9区分の数値を合計しています。表示単位未満 {selectedObservation.below_display_unit_cells}
-            区分、該当なし {selectedObservation.no_fact_cells} 区分、不詳・調査なし
-            {selectedObservation.unknown_or_uncollected_cells} 区分は含みません。
+            合計しているのは、主要消費地域9区分のうち数値が報告された区分です。
+            {#if excludedCategoryCounts.length > 0}
+              合計対象外の区分数：
+              {#each excludedCategoryCounts as category, index (category.label)}
+                {#if index > 0}、{/if}{category.label}（{category.count}区分）
+              {/each}。
+            {/if}
           </p>
           <!-- here -->
           {#if relayData.isDetailLoading}
@@ -267,8 +286,8 @@
           地図上のスクロールで拡大・縮小できます。円の大きさは＋／−ボタンで調整できます。
         </p>
         <p>
-          報告値合計は、産地都道府県ごとに主要消費地域9区分のうち数値が報告された区分を合計したものです。
-          表示単位未満、該当なし、不詳・調査なしの区分は合計に含みません。農業生産量や全国計ではありません。
+          報告値合計は、産地都道府県ごとに、主要消費地域9区分のうち数値が報告された区分だけを合計したものです。
+          表示単位未満、該当なし、不詳・調査なしの区分は含めていません。農業生産量や全国計を示す値ではありません。
         </p>
         <p>
           令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
