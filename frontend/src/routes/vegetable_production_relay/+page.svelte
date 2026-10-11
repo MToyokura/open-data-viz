@@ -26,8 +26,7 @@
   let scale = $state(5);
 
   let yearData = $derived(
-    years.find((item) => item.year === Number(selectedMonth.slice(0, 4))) ??
-      years[0],
+    years.find((item) => item.year === Number(selectedMonth.slice(0, 4))),
   );
   let monthIndex = $derived(months.indexOf(selectedMonth));
   let prefectures = $derived(
@@ -38,9 +37,7 @@
       prefectures.map((item) => [item.consignor_prefecture_name, item]),
     ),
   );
-  let selectedObservation = $derived(
-    observations[selectedPrefecture] as PrefectureMonth | undefined,
-  );
+  let selectedObservation = $derived(observations[selectedPrefecture]);
 
   function changeMonth(index: number) {
     if (index >= 0 && index < months.length) selectedMonth = months[index];
@@ -51,10 +48,11 @@
   function adjustScale(amount: number) {
     scale = Math.min(20, Math.max(1, Number((scale + amount).toFixed(1))));
   }
+  const quantityFormatter = new Intl.NumberFormat("ja-JP", {
+    maximumFractionDigits: 2,
+  });
   function formatValue(value: string) {
-    return new Intl.NumberFormat("ja-JP", { maximumFractionDigits: 2 }).format(
-      Number(value),
-    );
+    return quantityFormatter.format(Number(value));
   }
   function valueLabel(row: PrefectureMonth | undefined) {
     if (!row) return "値なし";
