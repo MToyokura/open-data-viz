@@ -330,8 +330,6 @@
   }
   .page-heading,
   .controls,
-  .month-control,
-  .scale-control,
   .map-heading {
     display: flex;
     align-items: center;
@@ -340,13 +338,11 @@
   .page-heading,
   .map-heading {
     justify-content: space-between;
-  }
-  .page-heading,
-  .map-heading {
     margin-bottom: 1rem;
   }
   .controls {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
     padding: 0.75rem;
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -356,15 +352,90 @@
     display: grid;
     gap: 0.25rem;
   }
+  .vegetable-control {
+    align-self: flex-start;
+  }
+  .month-control,
+  .scale-control {
+    display: grid;
+    align-items: center;
+    width: 100%;
+    gap: 0.5rem;
+  }
   .month-control {
-    flex: 1;
-    min-width: 260px;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem max-content;
+    min-width: 0;
+    grid-template-areas:
+      "label date date date"
+      "previous range next .";
+  }
+  .month-control > .control-label {
+    grid-area: label;
+  }
+  .month-control > button[aria-label="前月"] {
+    grid-area: previous;
   }
   .month-control input[type="range"] {
-    flex: 1;
+    grid-area: range;
+    min-width: 0;
+  }
+  .month-control > button[aria-label="次月"] {
+    grid-area: next;
+  }
+  .step-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+  .month-control > strong {
+    grid-area: date;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .scale-control {
+    grid-template-columns: 2.5rem 4rem 2.5rem;
+    grid-template-areas:
+      "label label label"
+      "smaller value larger";
+  }
+  .scale-control > .control-label {
+    grid-area: label;
+  }
+  .scale-control > button[aria-label="円を小さく"] {
+    grid-area: smaller;
+  }
+  .scale-control > input {
+    grid-area: value;
+  }
+  .scale-control > button[aria-label="円を大きく"] {
+    grid-area: larger;
   }
   .scale-control input {
+    box-sizing: border-box;
     width: 4rem;
+  }
+  @media (max-width: 360px) {
+    .controls {
+      gap: 0.25rem;
+    }
+    .month-control,
+    .scale-control {
+      gap: 0.25rem;
+    }
+    .step-button {
+      width: 2.25rem;
+    }
+    .month-control {
+      grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem max-content;
+    }
+    .scale-control {
+      grid-template-columns: 2.25rem 3.25rem 2.25rem;
+    }
+    .scale-control input {
+      width: 3.25rem;
+    }
   }
   .data-notice {
     margin-bottom: 1rem;
@@ -434,8 +505,7 @@
     word-break: break-all;
   }
   @media (max-width: 700px) {
-    .controls,
-    .month-control {
+    .controls {
       align-items: stretch;
       flex-direction: column;
     }
