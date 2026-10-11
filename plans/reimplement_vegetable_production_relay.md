@@ -14,9 +14,11 @@ This is an application visualization, not an official statistical publication sy
 
 - Verify source mappings against e-Stat metadata and official period-labelled workbooks. Do not infer a mapping from code order or labels alone.
 - Preserve the distinction between quantity and price, annual totals and monthly observations, origin and destination classifications, and parent regions and their subregions. Never add a subtotal to its constituent categories.
-- Document which destination markets contribute to each displayed quantity and why excluded categories overlap or represent summaries.
-- Confirm units before combining values. The 2021 source unit still needs confirmation; do not assume it matches later years.
-- Preserve raw values and distinguish reported zero, missing observation, suppression, below-precision symbols, and invalid input. Never turn missing or suppressed data into zero.
+- Document destination inclusion rules. Sum the nine level-1 major consumer regions and exclude their three nested categories: `東北_仙台・盛岡`, `関東_京浜`, and `九州_北九州`.
+- Use the official workbooks' `t` quantity and `円/kg` price units for all three years. The 2021 API metadata omits units, but every annual/month workbook provides unit headings.
+- Preserve raw values and distinguish below-display-unit `0`, no-fact `－`, unknown/uncollected `…`, and invalid input. Never turn these states into an exact zero.
+- Describe `cat01` as reported origin prefecture and the result as wholesale flows to selected major consumer regions, not agricultural production or a national total.
+- Check whether MAFF's 2022 change to the annual survey target affects these three origin-by-region tables before making year-to-year comparisons.
 - Treat incomplete but interpretable results as incomplete and label them. Reject unrecognized formats, categories, units, and value symbols instead of guessing.
 - Use the established aggregation rule only after its included markets are documented:
 

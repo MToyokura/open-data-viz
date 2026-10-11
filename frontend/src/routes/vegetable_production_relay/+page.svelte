@@ -7,12 +7,15 @@
   let aggregation = $derived(relayData.aggregation);
   let dataError = $derived(relayData.error?.message ?? "");
   let years = $derived(aggregation?.years ?? []);
-  let isPublishable = $derived(aggregation?.publishable === true);
   let geojson = $derived(relayData.geojson);
   let mapError = $derived(relayData.mapError?.message ?? "");
-  let months = $derived([
-    ...new Set(years.flatMap((item) => item.months.map((month) => month.month))),
-  ].sort());
+  let months = $derived(
+    [
+      ...new Set(
+        years.flatMap((item) => item.months.map((month) => month.month)),
+      ),
+    ].sort(),
+  );
   let selectedMonth = $state("2023-01");
   let selectedPrefecture = $state("北海道");
   let scale = $state(5);
@@ -49,8 +52,13 @@
     );
   }
   function valueLabel(row: PrefectureMonth | undefined) {
-    if (!row || row.reported_cells === 0) return "値なし";
-    return `${formatValue(row.reported_value_sum)} ${row.source_unit ?? "単位不明"}`;
+    if (!row) return "値なし";
+    if (row.reported_cells === 0) {
+      return row.below_display_unit_cells > 0
+        ? `数値の報告なし（表示単位未満 ${row.below_display_unit_cells} 区分）`
+        : "数値の報告なし";
+    }
+    return `${formatValue(row.reported_value_sum)} ${row.source_unit}`;
   }
   const displayMonth = (month: string) => {
     const [year, number] = month.split("-");
@@ -75,139 +83,147 @@
       <p class="error" role="alert">{dataError}</p>
     {:else if relayData.isLoading}
       <p class="map-loading" role="status">データを読み込んでいます…</p>
-    {:else if !isPublishable}
-      <aside class="review-notice" aria-label="公開前の検証状況" role="note">
-        <strong>検証中のデータ</strong>
+    {:else if aggregation?.status === "incomplete"}
+      <aside class="data-notice" aria-label="データの欠測状況" role="note">
+        <strong>一部に不完全な値があります</strong>
         <p>
-          この可視化は確認用の試験表示です。集計値および統計上の意味について独立検証が完了しておらず、公開統計として利用できません。
+          表示単位未満、該当なし、不詳または調査なしの値は数値合計に含めず、地域ごとの詳細に状態を表示します。
         </p>
       </aside>
     {/if}
     {#if aggregation}
-
-    <section class="controls" aria-label="表示設定">
-      <label class="vegetable-control"
-        >野菜
-        <select value="daikon" disabled
-          ><option value="daikon">だいこん</option></select
-        >
-      </label>
-      <div class="month-control">
-        <span class="control-label">年月</span>
-        <button
-          class="step-button"
-          aria-label="前月"
-          onclick={() => changeMonth(monthIndex - 1)}
-          disabled={monthIndex <= 0}>‹</button
-        >
-        <input
-          aria-label="年月"
-          type="range"
-          min="0"
-          max={Math.max(0, months.length - 1)}
-          value={Math.max(0, monthIndex)}
-          oninput={(event) => changeMonth(Number(event.currentTarget.value))}
-          disabled={months.length < 2}
-        />
-        <button
-          class="step-button"
-          aria-label="次月"
-          onclick={() => changeMonth(monthIndex + 1)}
-          disabled={monthIndex < 0 || monthIndex >= months.length - 1}>›</button
-        >
-        <strong>{displayMonth(selectedMonth)}</strong>
-      </div>
-      <div class="scale-control">
-        <span class="control-label">円の大きさ</span>
-        <button
-          class="step-button"
-          aria-label="円を小さく"
-          onclick={() => adjustScale(-0.5)}
-          disabled={scale <= 1}>−</button
-        >
-        <input
-          aria-label="円のスケール"
-          type="number"
-          min="1"
-          max="20"
-          step="0.5"
-          bind:value={scale}
-          onblur={() => (scale = Math.min(20, Math.max(1, Number(scale) || 5)))}
-        />
-        <button
-          class="step-button"
-          aria-label="円を大きく"
-          onclick={() => adjustScale(0.5)}
-          disabled={scale >= 20}>＋</button
-        >
-        <small>基準 5</small>
-      </div>
-    </section>
-
-    <div class="map-heading">
-      <div>
-        <h2>{displayMonth(selectedMonth)}の出荷元</h2>
-        <p>円の面積は報告値の合計に比例します</p>
-      </div>
-    </div>
-    {#if mapError}
-      <p class="error" role="alert">{mapError}</p>
-    {:else if !geojson}
-      <p class="map-loading" role="status">地図を読み込んでいます…</p>
-    {:else}
-      <RelayMap
-        {geojson}
-        {observations}
-        sourceUnit={yearData?.source_unit ?? null}
-        {scale}
-        onSelect={selectPrefecture}
-      />
-    {/if}
-
-    <section class="selection-panel" aria-label="選択した出荷元の詳細">
-      <div class="selection-heading">
-        <div>
-          <p class="eyebrow">{displayMonth(selectedMonth)} · 報告値合計</p>
-          <h2>{selectedPrefecture}</h2>
+      <section class="controls" aria-label="表示設定">
+        <label class="vegetable-control"
+          >野菜
+          <select value="daikon" disabled
+            ><option value="daikon">だいこん</option></select
+          >
+        </label>
+        <div class="month-control">
+          <span class="control-label">年月</span>
+          <button
+            class="step-button"
+            aria-label="前月"
+            onclick={() => changeMonth(monthIndex - 1)}
+            disabled={monthIndex <= 0}>‹</button
+          >
+          <input
+            aria-label="年月"
+            type="range"
+            min="0"
+            max={Math.max(0, months.length - 1)}
+            value={Math.max(0, monthIndex)}
+            oninput={(event) => changeMonth(Number(event.currentTarget.value))}
+            disabled={months.length < 2}
+          />
+          <button
+            class="step-button"
+            aria-label="次月"
+            onclick={() => changeMonth(monthIndex + 1)}
+            disabled={monthIndex < 0 || monthIndex >= months.length - 1}
+            >›</button
+          >
+          <strong>{displayMonth(selectedMonth)}</strong>
         </div>
-        <strong class="total">{valueLabel(selectedObservation)}</strong>
-      </div>
-      {#if selectedObservation}
-        <p class="detail-note">
-          主要消費地域9区分のうち {selectedObservation.reported_cells} 区分の報告値を合計。欠測と意味未確定の0は加算していません。
-        </p>
-        <ul class="contributions">
-          {#each selectedObservation.contributions as cell (cell.consumer_region_code)}
-            <li>
-              <span class="region-name">{cell.consumer_region_name}</span>
-              <strong
-                >{#if cell.value_kind === "reported"}{formatValue(
-                    cell.raw_value,
-                  )}{:else if cell.value_kind === "zero_symbol_unresolved"}0 <small
-                    >意味未確定</small
-                  >{:else}— <small>欠測</small>{/if}</strong
-              >
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="detail-note">この出荷元のデータはありません。</p>
-      {/if}
-    </section>
+        <div class="scale-control">
+          <span class="control-label">円の大きさ</span>
+          <button
+            class="step-button"
+            aria-label="円を小さく"
+            onclick={() => adjustScale(-0.5)}
+            disabled={scale <= 1}>−</button
+          >
+          <input
+            aria-label="円のスケール"
+            type="number"
+            min="1"
+            max="20"
+            step="0.5"
+            bind:value={scale}
+            onblur={() =>
+              (scale = Math.min(20, Math.max(1, Number(scale) || 5)))}
+          />
+          <button
+            class="step-button"
+            aria-label="円を大きく"
+            onclick={() => adjustScale(0.5)}
+            disabled={scale >= 20}>＋</button
+          >
+          <small>基準 5</small>
+        </div>
+      </section>
 
-    <section class="notes">
-      <h2>備考</h2>
-      <p>
-        都道府県をマウスでホバー、またはタップすると報告値を確認できます。円の大きさは操作盤で変更できます。
-      </p>
-      <p>
-        数値は元データの出荷元区分と主要消費地域9区分の組み合わせを集計したものです。「出荷元」は元データ上の都道府県区分を指し、生産地とは限りません。
-      </p>
-      <p>
-        統計表: e-Stat {yearData?.table_id} · 単位: {yearData?.source_unit ??
-          "元資料に記録なし"} · 地図: 国土交通省 国土数値情報 N03
-      </p>
-    </section>
+      <div class="map-heading">
+        <div>
+          <h2>{displayMonth(selectedMonth)}の出荷元</h2>
+          <p>円の面積は報告値の合計に比例します</p>
+        </div>
+      </div>
+      {#if mapError}
+        <p class="error" role="alert">{mapError}</p>
+      {:else if !geojson}
+        <p class="map-loading" role="status">地図を読み込んでいます…</p>
+      {:else}
+        <RelayMap
+          {geojson}
+          {observations}
+          sourceUnit={yearData?.source_unit ?? null}
+          {scale}
+          onSelect={selectPrefecture}
+        />
+      {/if}
+
+      <section class="selection-panel" aria-label="選択した出荷元の詳細">
+        <div class="selection-heading">
+          <div>
+            <p class="eyebrow">{displayMonth(selectedMonth)} · 報告値合計</p>
+            <h2>{selectedPrefecture}</h2>
+          </div>
+          <strong class="total">{valueLabel(selectedObservation)}</strong>
+        </div>
+        {#if selectedObservation}
+          <p class="detail-note">
+            主要消費地域9区分の数値を合計しています。表示単位未満 {selectedObservation.below_display_unit_cells}
+            区分、該当なし {selectedObservation.no_fact_cells} 区分、不詳・調査なし
+            {selectedObservation.unknown_or_uncollected_cells} 区分は含みません。
+          </p>
+          <ul class="contributions">
+            {#each selectedObservation.contributions as cell (cell.consumer_region_code)}
+              <li>
+                <span class="region-name">{cell.consumer_region_name}</span>
+                <strong
+                  >{#if cell.value_kind === "reported"}{formatValue(
+                      cell.raw_value,
+                    )}{:else if cell.value_kind === "below_display_unit"}0 <small
+                      >表示単位未満</small
+                    >{:else if cell.value_kind === "unknown_or_uncollected"}… <small
+                      >不詳・調査なし</small
+                    >{:else}— <small>該当なし</small>{/if}</strong
+                >
+              </li>
+            {/each}
+          </ul>
+        {:else}
+          <p class="detail-note">この出荷元のデータはありません。</p>
+        {/if}
+      </section>
+
+      <section class="notes">
+        <h2>備考</h2>
+        <p>
+          都道府県をマウスでホバー、またはタップすると報告値を確認できます。円の大きさは操作盤で変更できます。
+        </p>
+        <p>
+          数値は報告された産地都道府県ごとに、主要消費地域9区分への卸売数量を合計したものです。農業生産量や全国計ではありません。
+        </p>
+        <p>
+          令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
+        </p>
+        <p>
+          統計表: e-Stat {yearData?.table_id} · 単位: {yearData?.source_unit} · 地図:
+          国土交通省 国土数値情報 N03
+        </p>
+      </section>
     {/if}
   </main>
 </div>
@@ -263,13 +279,13 @@
   .scale-control input {
     width: 4rem;
   }
-  .review-notice {
+  .data-notice {
     margin-bottom: 1rem;
     padding: 0.75rem 1rem;
     border-left: 4px solid #999;
     background: #f5f5f5;
   }
-  .review-notice p {
+  .data-notice p {
     margin-bottom: 0;
   }
   .selection-panel {

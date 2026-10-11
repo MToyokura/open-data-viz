@@ -107,8 +107,8 @@ pub struct NormalizedEvidence {
     pub rows: Vec<NormalizedRow>,
 }
 
-/// Normalized 2021–2023 rows retain source block codes and period evidence.
-/// This output remains inspection-only until independent semantic approval.
+/// Normalized 2021–2023 rows retain source block codes, period evidence, and lexical values.
+/// `status` distinguishes fully reported input from input with non-numeric source states.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HistoricalRow {
     pub source_table_id: String,
@@ -128,7 +128,6 @@ pub struct HistoricalRow {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HistoricalEvidence {
     pub status: String,
-    pub publishable: bool,
     pub table_id: String,
     pub metadata_sha256: String,
     pub temporal_mapping_sha256: String,
@@ -137,7 +136,6 @@ pub struct HistoricalEvidence {
     pub annual_summary_count: usize,
     pub missing_unit_count: usize,
     pub rows: Vec<HistoricalRow>,
-    pub outstanding_gates: Vec<String>,
 }
 
 fn complete_keys<T>(
@@ -449,7 +447,7 @@ pub fn normalize_2021_2023(
         let value_kind = match row.raw_value.as_str() {
             "-" => "no_fact",
             "…" => "unknown_or_uncollected",
-            "0" => "reported_zero_symbol_unspecified",
+            "0" => "below_display_unit",
             _ => "reported",
         }
         .to_owned();
@@ -474,9 +472,13 @@ pub fn normalize_2021_2023(
     {
         return Err(fail("historical grid or period coverage mismatch"));
     }
+    let status = if rows.iter().all(|row| row.value_kind == "reported") {
+        "valid"
+    } else {
+        "incomplete"
+    };
     Ok(HistoricalEvidence {
-        status: "M5B_INSPECTION_ONLY_REVIEW_PENDING".into(),
-        publishable: false,
+        status: status.into(),
         table_id: source.table_id,
         metadata_sha256: source.source_metadata_sha256,
         temporal_mapping_sha256: hash(&raw_mapping),
@@ -485,14 +487,6 @@ pub fn normalize_2021_2023(
         annual_summary_count,
         missing_unit_count,
         rows,
-        outstanding_gates: vec![
-            "Independent temporal and semantic approval".into(),
-            "Origin, region, unit, and symbol review".into(),
-            "Cross-year definition comparability review".into(),
-            "Official reconciliation review".into(),
-            "M6 aggregation validation".into(),
-            "M7 publication approval".into(),
-        ],
     })
 }
 

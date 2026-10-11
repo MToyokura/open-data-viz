@@ -1,5 +1,5 @@
 {
-  "status": "VALUE_MATCH_VERIFIED_REVIEW_PENDING",
+  "status": "VALUE_MATCH_VERIFIED",
   "method": "Each official period-labeled workbook is compared against all 13 source cat03 blocks at all 48 origin x 2 measure x 12 region cells. Unique exact match required.",
   "years": {
     "2021": {

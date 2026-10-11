@@ -1,12 +1,14 @@
 # Vegetable relay API inspections
 
-## Current status (2026-10-11)
+## Current interpretation (2026-10-11)
 
-The next milestone is **2021–2023 semantic review and aggregation verification**. Only daikon monthly flows for those three years are in display scope. Historical expansion and 2024-only validation/demo work are out of scope.
+The display scope is monthly daikon wholesale quantities for 2021–2023. Table IDs are `0002008540`, `0002120386`, and `0002114330`. Their temporal mapping is verified: 39 official period workbooks each uniquely match all 1,152 cells in the corresponding annual/month block. See [`2021_2023_temporal_evidence.md`](2021_2023_temporal_evidence.md), [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json), and [`verify_temporal_mapping.py`](verify_temporal_mapping.py).
 
-The **2021–2023 temporal mapping is now evidenced** for tables `0002008540`, `0002120386` and `0002114330`: official e-Stat spreadsheets labelled `計` and January–December each uniquely match one `cat03` block across all 1,152 cells. Block 1 (`1001`–`1012`) is the annual `計`; blocks 2–13 (`1013`–`1156`) are January–December in order. See [`2021_2023_temporal_evidence.md`](2021_2023_temporal_evidence.md), [`2021_2023_temporal_mapping.json`](2021_2023_temporal_mapping.json) and [`verify_temporal_mapping.py`](verify_temporal_mapping.py).
+The practical interpretation and remaining year-scope question are recorded in [`SOURCE_INTERPRETATION.md`](SOURCE_INTERPRETATION.md). In brief, quantity is measured in tonnes (`t`), `0` means below the displayed unit, `－` means no fact, and `…` means unknown or uncollected. The aggregation includes nine top-level major consumer regions and excludes their three nested subregions. The values describe wholesale flows by reported origin prefecture, not agricultural production totals. MAFF states that in 2022 the annual handling survey target was revised to wholesalers in central wholesale markets only; the effect on these exact tables has not been confirmed, so use caution when comparing years.
 
-Independent reviewer approval and the remaining origin, region, unit, symbol, completeness and cross-year checks are pending. **Monthly normalization and publication remain blocked.** The handoff below records what was known before the dated spreadsheet comparison; its unresolved-month statements are historical.
+These are application data with explicit incomplete states. Independent reviewer signoff is not required. The historical M3/M4 handoff below records the earlier investigation state; statements there about unresolved month mapping and mandatory reviewer approval have been superseded by the dated workbook evidence and current practical plan.
+
+For the current normalization and aggregation workflow, follow [`M5A_NORMALIZATION.md`](M5A_NORMALIZATION.md) and the commands in [`data_preparation/README.md`](../../README.md). Older investigation and handoff sections below are retained as historical notes.
 
 ## M4: complete raw observation capture (JSON source format)
 

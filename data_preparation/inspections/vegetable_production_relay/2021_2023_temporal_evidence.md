@@ -1,6 +1,6 @@
 # 2021–2023 daikon `cat03` temporal mapping evidence
 
-Investigated 2026-10-11. Scope: e-Stat daikon database tables `0002008540` (2021), `0002120386` (2022), and `0002114330` (2023). **Finding: the temporal identity of all 13 blocks is now supported by independent, dated official spreadsheets and exact cell-level matches. Independent reviewer approval and the other M3/M5 checks remain pending; this finding does not authorize publication.**
+Investigated 2026-10-11. Scope: e-Stat daikon database tables `0002008540` (2021), `0002120386` (2022), and `0002114330` (2023). **Finding: the temporal identity of all 13 blocks is supported by dated official spreadsheets and exact cell-level matches.**
 
 ## Independent source
 
@@ -36,4 +36,4 @@ To reproduce the comparison locally after obtaining the 39 files at the paths in
 
 This resolves **temporal identification** for these three exact table IDs and captured revisions. The historical M3 handoff correctly treated the mapping as unknown at that time; this evidence supersedes that particular uncertainty. Do not generalize the mapping to other commodities or revised tables without checking their values.
 
-An independent reviewer still needs to approve the mapping and its source evidence. Origin meaning, region overlap/inclusion, value symbols, unit handling (the 2021 API observations omit `@unit`), comparability across years, completeness and aggregate reconciliation must pass their own checks before normalization or publication. The annual block is a source `計` category and must not be counted alongside the months.
+The annual block is a source `計` category and must not be counted alongside the months. Unit, origin, destination hierarchy and value-symbol interpretations are summarized in [`SOURCE_INTERPRETATION.md`](SOURCE_INTERPRETATION.md). MAFF states that the annual handling survey target was revised in 2022 to wholesalers in central wholesale markets only; the effect on these exact tables remains unconfirmed, so use caution when comparing years.

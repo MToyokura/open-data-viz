@@ -34,7 +34,7 @@ cargo run -- commodity-prices
 
 照合の根拠、表 ID、元ファイルのチェックサム、再検証方法は [野菜データの調査記録](inspections/vegetable_production_relay/README.md) と [2021～2023 年の月対応の根拠](inspections/vegetable_production_relay/2021_2023_temporal_evidence.md) にあります。表示対象は 2021～2023 年に限定します。
 
-月対応は公式表の全セル照合で確認できましたが、独立レビューは未完了です。また、出荷元・消費地域の意味、2021年の単位、欠測値、年をまたぐ比較可能性、集計値の独立照合の検証が残っています。Rust の `vegetable_production_relay::aggregation` は M5-B 出力を集計し、各地域の元値・行番号を残す確認用データを生成します。出力先ディレクトリには品目ごとのファイル（現在は `daikon.json`）を作成します。生成物とフロントエンドの表示はレビュー待ちであり、公開統計として利用できません。
+月対応と単位は公式ワークブックで確認済みです。解釈の根拠と残る年次比較の確認事項は [野菜データの解釈メモ](inspections/vegetable_production_relay/SOURCE_INTERPRETATION.md) にあります。Rust の `vegetable_production_relay::aggregation` は正規化データを集計し、主要消費地域9区分の数量を産地都道府県・月ごとに出力します。表示単位未満、該当なし、不詳・調査なしの値を数値合計に含めず、状態別の件数を保持します。出力先ディレクトリには品目ごとのファイル（現在は `daikon.json`）を作成します。
 
 まず 2021～2023 年ごとに [M5-B 正規化手順](inspections/vegetable_production_relay/M5A_NORMALIZATION.md) を実行し、その3つの新しい正規化出力を `data_preparation/` から集計コマンドへ渡します。正規化先ディレクトリを先に作成し、集計結果の出力先にはディレクトリを指定してください。同じ品目の JSON がすでにある場合は上書きせずエラーになります。
 
@@ -59,7 +59,7 @@ cargo run -- vegetable-relay-aggregate-2021-2023 \
   inspections/vegetable_production_relay/2021_2023_temporal_mapping.json
 ```
 
-集計コマンドは既定で `output/vegetable_production_relay/daikon.json` に出力します。必要なら最後に出力先ディレクトリを指定できます。アプリは `VITE_STORAGE_BASE_URL/vegetable_production_relay/daikon.json` からこの確認用データを読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、欠測・意味未確定のセルを合計に含めず、各集計の9地域分の出典位置を確認できます。
+集計コマンドは既定で `output/vegetable_production_relay/daikon.json` に出力します。必要なら最後に出力先ディレクトリを指定できます。アプリは `VITE_STORAGE_BASE_URL/vegetable_production_relay/daikon.json` からデータを読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、不完全なセルの状態を示します。令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。この表への影響は未確認のため、年をまたぐ比較にはご注意ください。
 
 ### 都道府県データ
 

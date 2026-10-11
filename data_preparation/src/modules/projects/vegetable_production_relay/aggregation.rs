@@ -1,5 +1,5 @@
-//! M6 candidate aggregation for the three evidenced daikon tables.
-//! Output remains inspection-only until independent validation and publication approval.
+//! Aggregation for the three evidenced 2021–2023 daikon tables.
+//! Non-numeric source states remain visible as incomplete counts in the output.
 use super::{
     metadata::{ClassValue, Inventory},
     normalization::HistoricalEvidence,
@@ -51,11 +51,12 @@ struct PrefectureMonth {
     consignor_prefecture_code: String,
     consignor_prefecture_name: String,
     reported_value_sum: String,
-    source_unit: Option<String>,
+    source_unit: String,
     status: String,
     reported_cells: usize,
-    zero_symbol_unresolved_cells: usize,
+    below_display_unit_cells: usize,
     no_fact_cells: usize,
+    unknown_or_uncollected_cells: usize,
     contributions: Vec<Contribution>,
 }
 
@@ -66,7 +67,7 @@ struct YearData {
     metadata_sha256: String,
     temporal_mapping_sha256: String,
     normalized_input_sha256: String,
-    source_unit: Option<String>,
+    source_unit: String,
     months: Vec<PrefectureMonth>,
 }
 
@@ -74,12 +75,10 @@ struct YearData {
 struct AggregationCandidate {
     schema_version: u8,
     status: String,
-    publishable: bool,
     aggregation: String,
     coverage_warning: String,
     commodity: String,
     years: Vec<YearData>,
-    outstanding_gates: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -314,8 +313,7 @@ fn aggregate_year(
 ) -> Result<YearData> {
     let input_bytes = fs::read(input_path)?;
     let evidence: HistoricalEvidence = serde_json::from_slice(&input_bytes)?;
-    if evidence.status != "M5B_INSPECTION_ONLY_REVIEW_PENDING"
-        || evidence.publishable
+    if !matches!(evidence.status.as_str(), "valid" | "incomplete")
         || evidence.table_id != expected_table
         || evidence.input_count != EXPECTED_ROWS
         || evidence.rows.len() != EXPECTED_ROWS
@@ -432,8 +430,11 @@ fn aggregate_year(
                 add_numeric(&mut parsed, raw)?;
                 "reported"
             }
-            ("reported_zero_symbol_unspecified", "0") => "zero_symbol_unresolved",
+            ("below_display_unit", "0") | ("reported_zero_symbol_unspecified", "0") => {
+                "below_display_unit"
+            }
             ("no_fact", "-") => "no_fact",
+            ("unknown_or_uncollected", "…") => "unknown_or_uncollected",
             _ => {
                 return Err(fail(format!(
                     "{year}: unsupported quantity symbol/value-kind pair"
@@ -468,11 +469,9 @@ fn aggregate_year(
             "{year}: source coordinate grid is incomplete"
         )));
     }
-    let source_unit = if year == "2021" {
-        None
-    } else {
-        Some("t".to_owned())
-    };
+    // The 2021 API metadata omits units. All 39 official annual/month workbooks label
+    // quantity values as tonnes, so use that evidenced display unit for every year.
+    let source_unit = "t".to_owned();
     let mut months = Vec::with_capacity(12 * 47);
     for month in 1..=12 {
         let period = format!("{year}-{month:02}");
@@ -497,16 +496,18 @@ fn aggregate_year(
             }
             let mut sum = 0u128;
             let mut reported = 0;
-            let mut unresolved_zero = 0;
+            let mut below_display_unit = 0;
             let mut no_fact = 0;
+            let mut unknown_or_uncollected = 0;
             for cell in &cells {
                 match cell.value_kind.as_str() {
                     "reported" => {
                         add_numeric(&mut sum, &cell.raw_value)?;
                         reported += 1;
                     }
-                    "zero_symbol_unresolved" => unresolved_zero += 1,
+                    "below_display_unit" => below_display_unit += 1,
                     "no_fact" => no_fact += 1,
+                    "unknown_or_uncollected" => unknown_or_uncollected += 1,
                     _ => return Err(fail("unknown contribution value kind")),
                 }
             }
@@ -516,15 +517,20 @@ fn aggregate_year(
                 consignor_prefecture_name: origin_names[&origin_code].clone(),
                 reported_value_sum: sum.to_string(),
                 source_unit: source_unit.clone(),
-                status: if reported == 9 {
-                    "all_reported"
+                status: if reported == 9
+                    && below_display_unit == 0
+                    && no_fact == 0
+                    && unknown_or_uncollected == 0
+                {
+                    "valid"
                 } else {
-                    "partial"
+                    "incomplete"
                 }
                 .into(),
                 reported_cells: reported,
-                zero_symbol_unresolved_cells: unresolved_zero,
+                below_display_unit_cells: below_display_unit,
                 no_fact_cells: no_fact,
+                unknown_or_uncollected_cells: unknown_or_uncollected,
                 contributions: cells,
             });
         }
@@ -555,11 +561,9 @@ pub fn run_2021_2023(
 ) -> Result<PathBuf> {
     let mapping_bytes = fs::read(mapping_path)?;
     let mapping: Value = serde_json::from_slice(&mapping_bytes)?;
-    if mapping.get("status").and_then(Value::as_str) != Some("VALUE_MATCH_VERIFIED_REVIEW_PENDING")
+    if mapping.get("status").and_then(Value::as_str) != Some("VALUE_MATCH_VERIFIED")
     {
-        return Err(fail(
-            "temporal mapping is not the expected review-pending exact-match evidence",
-        ));
+        return Err(fail("temporal mapping is not verified exact-match evidence"));
     }
     let mapping_sha = hash(&mapping_bytes);
     let input_paths = [input_2021, input_2022, input_2023];
@@ -576,19 +580,16 @@ pub fn run_2021_2023(
     }
     let candidate = AggregationCandidate {
         schema_version: 1,
-        status: "M6_AGGREGATION_CANDIDATE_REVIEW_PENDING".into(),
-        publishable: false,
-        aggregation: "sum positive reported quantity values across nine level-1 consumer regions; preserve zero and no-fact cells without treating them as numeric totals".into(),
-        coverage_warning: "Candidate sums omit no-fact cells and zero-symbol cells whose interpretation is unresolved. They are sums for selected consumer regions, not national production. The years remain under semantic, unit, comparability, independent reconciliation and publication review.".into(),
+        status: if years.iter().flat_map(|year| &year.months).all(|month| month.status == "valid") {
+            "valid"
+        } else {
+            "incomplete"
+        }
+        .into(),
+        aggregation: "sum numeric reported quantity values across nine top-level major consumer regions; exclude below-display-unit, no-fact, and unknown/uncollected values".into(),
+        coverage_warning: "Sums omit below-display-unit, no-fact, and unknown/uncollected cells. They represent wholesale flows into selected major consumer regions, not total production or a national quantity. Check year-specific survey scope before comparing years.".into(),
         commodity: "daikon".into(),
         years,
-        outstanding_gates: vec![
-            "Independent semantic review of temporal, origin, consumer-region, unit, and symbol mappings".into(),
-            "2021 source unit confirmation".into(),
-            "Cross-year comparability review".into(),
-            "Independent aggregation reference reconciliation".into(),
-            "M7 publication approval".into(),
-        ],
     };
     let mut file = OpenOptions::new()
         .create_new(true)

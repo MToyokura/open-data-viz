@@ -4,7 +4,10 @@
   type PrefectureObservation = {
     reported_value_sum: string;
     reported_cells: number;
+    below_display_unit_cells: number;
     no_fact_cells: number;
+    unknown_or_uncollected_cells: number;
+    status: "valid" | "incomplete";
   };
   type GeoCollection = {
     features: Array<{ properties?: { N03_001?: string }; geometry: unknown }>;
@@ -87,6 +90,23 @@
 
   function formatQuantity(value: string, unit: string | null): string {
     return `${value} ${unit ?? "単位未確認"}`;
+  }
+
+  function observationLabel(observation: PrefectureObservation | undefined) {
+    if (!observation) return "値なし";
+    if (observation.reported_cells > 0) {
+      const quantity = formatQuantity(
+        observation.reported_value_sum,
+        sourceUnit,
+      );
+      return observation.status === "incomplete"
+        ? `${quantity}（一部未集計）`
+        : quantity;
+    }
+    if (observation.below_display_unit_cells > 0) return "表示単位未満";
+    if (observation.unknown_or_uncollected_cells > 0) return "不詳・調査なし";
+    if (observation.no_fact_cells > 0) return "該当なし";
+    return "値なし";
   }
 
   function ringCentroid(
@@ -258,12 +278,7 @@
         String(feature?.properties?.N03_001 ?? "").trim(),
       );
       const observation = currentObservations[name];
-      const label = observation?.reported_cells
-        ? `${name}: ${formatQuantity(
-            observation.reported_value_sum,
-            sourceUnit,
-          )}`
-        : `${name}: 値なし`;
+      const label = `${name}: ${observationLabel(observation)}`;
       layer.getTooltip()?.setContent(label);
     });
 
@@ -278,12 +293,7 @@
 
       if (marker) {
         marker.setLatLng(location);
-        marker.setTooltipContent(
-          `${name}: ${formatQuantity(
-            observation.reported_value_sum,
-            sourceUnit,
-          )}`,
-        );
+        marker.setTooltipContent(`${name}: ${observationLabel(observation)}`);
       } else {
         marker = leaflet.circleMarker(location, {
           radius: 0,
@@ -293,12 +303,7 @@
           fillOpacity: 0,
         });
         marker
-          .bindTooltip(
-            `${name}: ${formatQuantity(
-              observation.reported_value_sum,
-              sourceUnit,
-            )}`,
-          )
+          .bindTooltip(`${name}: ${observationLabel(observation)}`)
           .on("click", () => onSelect(name))
           .addTo(circles);
         markers.set(name, marker);

@@ -22,10 +22,12 @@ npm run preview
 
 ## Vegetable relay preview
 
-`/vegetable_production_relay` fetches an inspection-only daikon aggregation for
+`/vegetable_production_relay` fetches a daikon aggregation for
 2021–2023 from `${VITE_STORAGE_BASE_URL}/vegetable_production_relay/daikon.json`.
 Generate the file in `data_preparation/output/vegetable_production_relay/` with
 the Rust aggregation command. The local storage server serves that output directory.
-The data remains marked review-pending and nonpublishable; the page calls out the
-unresolved unit for 2021, partial sums, and outstanding semantic and independent
-aggregation reviews.
+The page labels tonnes for each year and distinguishes below-display-unit, no-fact,
+and unknown/uncollected values. Its partial sums include numeric reports from the
+nine top-level major consumer regions only. See
+`data_preparation/inspections/vegetable_production_relay/SOURCE_INTERPRETATION.md`
+for source meanings and the remaining cross-year scope question.

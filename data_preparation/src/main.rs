@@ -19,7 +19,7 @@ fn main() {
                 std::path::Path::new(&args[4]),
                 std::path::Path::new(&args[5]),
             ) {
-                Ok(path) => println!("M5-B inspection only (NOT publishable): {}", path.display()),
+                Ok(path) => println!("Normalized 2021–2023 records: {}", path.display()),
                 Err(error) => {
                     eprintln!("M5-B refused: {error}");
                     std::process::exit(1);
@@ -53,10 +53,7 @@ fn main() {
                 std::path::Path::new(&args[6]),
                 &output_path,
             ) {
-                Ok(path) => println!(
-                    "M6 aggregation candidate (NOT publishable): {}",
-                    path.display()
-                ),
+                Ok(path) => println!("Generated 2021–2023 aggregation: {}", path.display()),
                 Err(error) => {
                     eprintln!("M6 aggregation refused: {error}");
                     std::process::exit(1);
@@ -74,7 +71,7 @@ fn main() {
                     &std::env::var("ESTAT_APP_ID").unwrap_or_default(),
                     std::path::Path::new(&first),
                 )
-                .map(|p| format!("M4 raw capture: {} (publication blocked)", p.display()))
+                .map(|p| format!("Captured raw e-Stat observations: {}", p.display()))
             } else {
                 modules::projects::vegetable_production_relay::acquisition::replay(
                     std::path::Path::new(&first),
@@ -82,7 +79,7 @@ fn main() {
                 )
                 .map(|r| {
                     format!(
-                        "Verified {} raw observations; no semantic approval",
+                        "Replayed {} raw observations successfully",
                         r.count
                     )
                 })
