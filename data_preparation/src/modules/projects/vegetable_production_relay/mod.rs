@@ -1,7 +1,9 @@
 pub mod acquisition;
 pub mod aggregation;
 pub mod assessment;
+pub mod cli;
 pub mod discovery;
+pub mod generation;
 pub mod inspection;
 pub mod metadata;
 pub mod normalization;

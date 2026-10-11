@@ -7,6 +7,7 @@ in fresh inspection directories.
 
 import hashlib
 import json
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -17,7 +18,12 @@ RUNS = ROOT / "runs"
 INVENTORY = ROOT / "product_inventory_2021_2023.json"
 MAPPINGS = ROOT / "product_temporal_mappings"
 DATA_DIR = Path(__file__).resolve().parents[2] / "output" / "vegetable_production_relay"
-EXECUTABLE = Path(__file__).resolve().parents[2] / "target" / "debug" / "open_data_viz_2"
+EXECUTABLE = Path(
+    os.environ.get(
+        "OPEN_DATA_VIZ_EXECUTABLE",
+        Path(__file__).resolve().parents[2] / "target" / "debug" / "open_data_viz_2",
+    )
+)
 YEARS = ["2021", "2022", "2023"]
 
 
