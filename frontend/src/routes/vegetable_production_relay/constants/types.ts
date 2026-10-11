@@ -1,8 +1,7 @@
+// here
 export type Contribution = {
   consumer_region_code: string;
   consumer_region_name: string;
-  source_position: number;
-  source_cat03_code: string;
   value_kind:
     "reported" | "below_display_unit" | "no_fact" | "unknown_or_uncollected";
   raw_value: string;
@@ -19,7 +18,6 @@ export type PrefectureMonth = {
   below_display_unit_cells: number;
   no_fact_cells: number;
   unknown_or_uncollected_cells: number;
-  contributions: Contribution[];
 };
 
 export type YearData = {
@@ -30,12 +28,19 @@ export type YearData = {
 };
 
 export type AggregationData = {
-  status: "valid" | "incomplete" | "invalid";
-  coverage_warning: string;
+  schema_version: 2;
+  status: "valid" | "incomplete";
   commodity: string;
   commodity_label: string;
   mapping_warnings: string[];
   years: YearData[];
+};
+
+export type PrefectureDetail = {
+  schema_version: 2;
+  commodity: string;
+  consignor_prefecture_code: string;
+  months: Array<{ month: string; contributions: Contribution[] }>;
 };
 
 export type RelayProduct = {

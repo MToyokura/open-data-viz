@@ -1,14 +1,9 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
 
-  type PrefectureObservation = {
-    reported_value_sum: string;
-    reported_cells: number;
-    below_display_unit_cells: number;
-    no_fact_cells: number;
-    unknown_or_uncollected_cells: number;
-    status: "valid" | "incomplete";
-  };
+  import type { PrefectureMonth } from "./constants/types";
+  // here
+  type PrefectureObservation = PrefectureMonth;
   type GeoCollection = {
     features: Array<{ properties?: { N03_001?: string }; geometry: unknown }>;
   };
