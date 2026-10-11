@@ -1,5 +1,17 @@
 # Vegetable relay API inspections
 
+## M4: complete raw observation capture (JSON source format)
+
+From `data_preparation/`, with a **replay-verified** M3 metadata capture:
+
+```sh
+export ESTAT_APP_ID='your e-Stat application ID'
+cargo run -- vegetable-relay-acquire inspections/vegetable_production_relay/runs/metadata-<run-id>
+cargo run -- vegetable-relay-acquisition-replay inspections/vegetable_production_relay/runs/observations-<run-id> inspections/vegetable_production_relay/runs/metadata-<run-id>
+```
+
+Captures every paginated `getStatsData` JSON response as exact bytes with SHA-256, page positions, returned totals, timing, and sanitized ledger metadata. The ledger is written only after all pages pass basic validation. Offline replay binds the capture to the metadata SHA-256, rejects missing, duplicated or inconsistent pages, and preserves lexical values (including `-`), source attribute codes and units. `source_observations.json` is a **raw evidence export only**, never a normalized or publishable dataset. No month/total inference is made for 2021–2023, and no cross-family code join is performed. The M4 plan's `getSimpleStatsData` CSV encoding/schema remains to be separately verified; this implementation uses the JSON API already exercised in M3. All run files remain Git-ignored.
+
 From `data_preparation/`, run:
 
 ```sh

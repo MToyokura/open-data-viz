@@ -5,6 +5,38 @@ use modules::projects::commodity_prices::process_commodity_prices::process_commo
 
 fn main() {
     match std::env::args().nth(1).as_deref() {
+        Some("vegetable-relay-acquire") | Some("vegetable-relay-acquisition-replay") => {
+            let command = std::env::args().nth(1).unwrap();
+            let first = std::env::args().nth(2).unwrap_or_default();
+            let second = std::env::args().nth(3).unwrap_or_default();
+            let result = if command == "vegetable-relay-acquire" {
+                modules::projects::vegetable_production_relay::acquisition::acquire(
+                    &std::env::var("ESTAT_APP_ID").unwrap_or_default(),
+                    std::path::Path::new(&first),
+                )
+                .map(|p| format!("M4 raw capture: {} (publication blocked)", p.display()))
+            } else {
+                modules::projects::vegetable_production_relay::acquisition::replay(
+                    std::path::Path::new(&first),
+                    std::path::Path::new(&second),
+                )
+                .map(|r| {
+                    format!(
+                        "Verified {} raw observations; no semantic approval",
+                        r.count
+                    )
+                })
+            };
+            match result {
+                Ok(msg) => println!("{msg}"),
+                Err(e) => {
+                    eprintln!("{e}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+
         Some("vegetable-relay-inspect") => {
             let id = match std::env::var("ESTAT_APP_ID") {
                 Ok(id) => id,
