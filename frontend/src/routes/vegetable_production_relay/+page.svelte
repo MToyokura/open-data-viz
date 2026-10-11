@@ -22,7 +22,7 @@
     ].sort(),
   );
   let selectedMonth = $state("2021-01");
-  let selectedPrefecture = $state("北海道");
+  let selectedPrefecture = $state("");
   let scale = $state(5);
 
   let yearData = $derived(
@@ -211,7 +211,7 @@
         <div class="selection-heading">
           <div>
             <p class="eyebrow">{displayMonth(selectedMonth)} · 報告値合計</p>
-            <h2>{selectedPrefecture}</h2>
+            <h2>{selectedPrefecture || "産地を選択"}</h2>
             <strong class="total">{valueLabel(selectedObservation)}</strong>
           </div>
         </div>
@@ -251,8 +251,12 @@
               {/each}
             </ul>
           {/if}
-        {:else}
+        {:else if selectedPrefecture}
           <p class="detail-note">この出荷元のデータはありません。</p>
+        {:else}
+          <p class="detail-note">
+            地図で都道府県を選ぶと、報告値と消費地域別の内訳を表示します。
+          </p>
         {/if}
       </section>
 
