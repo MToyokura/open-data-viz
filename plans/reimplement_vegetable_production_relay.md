@@ -1,6 +1,6 @@
 # Vegetable Production Relay — Evidence-Driven Reimplementation Plan
 
-**Status:** Active; milestones M1–M5 have produced inspection and normalization artifacts
+**Status:** Active; an M6 aggregation candidate and Svelte preview are implemented for the evidenced 2021–2023 tables; independent review and publication remain blocked
 **Scope:** Rust data preparation, inspection, validation, publication, and eventual SvelteKit visualization  
 **Proposed location:** `plans/reimplement_vegetable_production_relay.md`
 
@@ -125,6 +125,10 @@ Each `inspect` run gets a unique ID (for example, UTC timestamp plus a collision
 The CLI shape is not fixed yet; implement these concepts before stabilizing flags or commands. Inspection runs are local generated artifacts and should normally be gitignored. Commit small, reviewed, sanitized fixtures and durable findings. Avoid credentials in filenames, logs, URLs, and error strings.
 
 ## 5. Milestones and go/no-go gates
+
+### Current scoped slice (2026-10-11)
+
+The broad year expansion described by M6-A is deferred. Current implementation work is limited to the 2021–2023 daikon tables whose monthly blocks have exact matches to official period-labelled workbooks. The Rust module `data_preparation/src/modules/projects/vegetable_production_relay/aggregation.rs` creates M6 candidate sums and per-market lineage; the Svelte page displays those values while retaining unresolved cells and review status. This is not an M6 validation pass: the unit/semantic review, independent aggregation reference calculation, and M7 publication gate remain outstanding. Do not add other years to this view until their individual source coverage and semantics are established.
 
 ### M1 — Minimal API capture and replay
 

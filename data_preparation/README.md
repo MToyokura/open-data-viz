@@ -34,7 +34,32 @@ cargo run -- commodity-prices
 
 照合の根拠、表 ID、元ファイルのチェックサム、再検証方法は [野菜データの調査記録](inspections/vegetable_production_relay/README.md) と [2021～2023 年の月対応の根拠](inspections/vegetable_production_relay/2021_2023_temporal_evidence.md) にあります。2024 年の分類と観測範囲は [2024 年の検証記録](inspections/vegetable_production_relay/2024_daikon_validation.md) を参照してください。
 
-この月対応は独立したレビューが未完了です。また、産地・消費地域の意味、単位、欠測値、年をまたぐ比較可能性、集計値の整合性の検証も残っています。正規化・集計・公開用の新しいデータパイプラインは未実装であり、これらの生データをそのまま公開用データとして扱うことはできません。
+月対応は公式表の全セル照合で確認できましたが、独立レビューは未完了です。また、出荷元・消費地域の意味、2021年の単位、欠測値、年をまたぐ比較可能性、集計値の独立照合の検証が残っています。Rust の `vegetable_production_relay::aggregation` は M5-B 出力を集計し、各地域の元値・行番号を残す確認用データを生成します。出力先ディレクトリには品目ごとのファイル（現在は `daikon.json`）を作成します。生成物とフロントエンドの表示はレビュー待ちであり、公開統計として利用できません。
+
+まず 2021～2023 年ごとに [M5-B 正規化手順](inspections/vegetable_production_relay/M5A_NORMALIZATION.md) を実行し、その3つの新しい正規化出力を `data_preparation/` から集計コマンドへ渡します。正規化先ディレクトリを先に作成し、集計結果の出力先にはディレクトリを指定してください。同じ品目の JSON がすでにある場合は上書きせずエラーになります。
+
+```sh
+cargo run -- vegetable-relay-normalize-2021-2023 \
+  <observations-run-dir-2021> <metadata-run-dir-2021> \
+  inspections/vegetable_production_relay/2021_2023_temporal_mapping.json \
+  <new-m5b-output-dir-2021>
+cargo run -- vegetable-relay-normalize-2021-2023 \
+  <observations-run-dir-2022> <metadata-run-dir-2022> \
+  inspections/vegetable_production_relay/2021_2023_temporal_mapping.json \
+  <new-m5b-output-dir-2022>
+cargo run -- vegetable-relay-normalize-2021-2023 \
+  <observations-run-dir-2023> <metadata-run-dir-2023> \
+  inspections/vegetable_production_relay/2021_2023_temporal_mapping.json \
+  <new-m5b-output-dir-2023>
+cargo run -- vegetable-relay-aggregate-2021-2023 \
+  <new-m5b-output-dir-2021>/m5b_inspection_only.json \
+  <new-m5b-output-dir-2022>/m5b_inspection_only.json \
+  <new-m5b-output-dir-2023>/m5b_inspection_only.json \
+  inspections/vegetable_production_relay/runs \
+  inspections/vegetable_production_relay/2021_2023_temporal_mapping.json
+```
+
+集計コマンドは既定で `output/vegetable_production_relay/daikon.json` に出力します。必要なら最後に出力先ディレクトリを指定できます。アプリは `VITE_STORAGE_BASE_URL/vegetable_production_relay/daikon.json` からこの確認用データを読み込みます。ローカル開発では、リポジトリルートの `npm run serve` が `data_preparation/output/` を配信します。年ごとの単位を表示し、欠測・意味未確定のセルを合計に含めず、各集計の9地域分の出典位置を確認できます。
 
 ### 都道府県データ
 

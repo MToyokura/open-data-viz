@@ -51,6 +51,43 @@ fn main() {
             return;
         }
 
+        Some("vegetable-relay-aggregate-2021-2023") => {
+            let args: Vec<String> = std::env::args().collect();
+            if !(7..=8).contains(&args.len()) {
+                eprintln!(
+                    "Usage: cargo run -- vegetable-relay-aggregate-2021-2023 <2021-m5b.json> <2022-m5b.json> <2023-m5b.json> <metadata-runs-dir> <temporal-mapping.json> [output-dir]"
+                );
+                std::process::exit(2);
+            }
+            let output_dir_arg = args.get(7).map(String::as_str).unwrap_or(
+                modules::projects::vegetable_production_relay::OUTPUT_DIR,
+            );
+            let output_dir = std::path::Path::new(output_dir_arg);
+            if let Err(error) = std::fs::create_dir_all(output_dir) {
+                eprintln!("Could not create output directory: {error}");
+                std::process::exit(1);
+            }
+            let output_path = output_dir.join("daikon.json");
+            match modules::projects::vegetable_production_relay::aggregation::run_2021_2023(
+                std::path::Path::new(&args[2]),
+                std::path::Path::new(&args[3]),
+                std::path::Path::new(&args[4]),
+                std::path::Path::new(&args[5]),
+                std::path::Path::new(&args[6]),
+                &output_path,
+            ) {
+                Ok(path) => println!(
+                    "M6 aggregation candidate (NOT publishable): {}",
+                    path.display()
+                ),
+                Err(error) => {
+                    eprintln!("M6 aggregation refused: {error}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+
         Some("vegetable-relay-acquire") | Some("vegetable-relay-acquisition-replay") => {
             let command = std::env::args().nth(1).unwrap();
             let first = std::env::args().nth(2).unwrap_or_default();
@@ -294,5 +331,8 @@ fn main() {
 }
 
 fn print_usage() {
-    println!("Usage: cargo run -- [commodity-prices|prefectures-update]");
+    println!("Usage: cargo run -- <command> [arguments]");
+    println!(
+        "Commands include commodity-prices, prefectures-update, vegetable-relay-normalize-2021-2023, and vegetable-relay-aggregate-2021-2023."
+    );
 }

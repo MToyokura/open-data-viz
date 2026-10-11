@@ -109,7 +109,7 @@ pub struct NormalizedEvidence {
 
 /// Normalized 2021–2023 rows retain source block codes and period evidence.
 /// This output remains inspection-only until independent semantic approval.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct HistoricalRow {
     pub source_table_id: String,
     pub source_position: usize,
@@ -125,7 +125,7 @@ pub struct HistoricalRow {
     pub source_unit: Option<String>,
     pub value_kind: String,
 }
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct HistoricalEvidence {
     pub status: String,
     pub publishable: bool,

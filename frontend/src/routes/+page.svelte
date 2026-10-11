@@ -15,6 +15,11 @@
       <a href={`${VITE_ROOT_PATH}/commodity_prices`}>主要品目の都市別小売価格</a
       >
     </li>
+    <li>
+      <a href={`${VITE_ROOT_PATH}/vegetable_production_relay`}
+        >野菜の産地別卸売数量リレー</a
+      >
+    </li>
   </ul>
 </div>
 <div>
