@@ -28,6 +28,14 @@
   let map: import("leaflet").Map | undefined;
   let boundary: import("leaflet").GeoJSON | undefined;
   let circles: import("leaflet").LayerGroup | undefined;
+  let mapColors:
+    | {
+        boundary: string;
+        boundaryFill: string;
+        marker: string;
+        markerFill: string;
+      }
+    | undefined;
   const markers = new Map<string, import("leaflet").CircleMarker>();
   const markerAnimations = new Map<string, number>();
   const markerTargets = new Map<string, { radius: number; opacity: number }>();
@@ -35,8 +43,14 @@
   const centroidLocations = new Map<string, [number, number]>();
   let geometryVersion = $state(0);
 
-  function mapColor(token: string): string {
-    return getComputedStyle(host).getPropertyValue(token).trim();
+  function readMapColors() {
+    const styles = getComputedStyle(host);
+    return {
+      boundary: styles.getPropertyValue("--map-boundary-color").trim(),
+      boundaryFill: styles.getPropertyValue("--map-boundary-fill-color").trim(),
+      marker: styles.getPropertyValue("--map-marker-color").trim(),
+      markerFill: styles.getPropertyValue("--map-marker-fill-color").trim(),
+    };
   }
 
   function animateMarker(
@@ -171,11 +185,13 @@
         '<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html" target="_blank" rel="noreferrer">国土交通省「国土数値情報 行政区域データ（N03）」2026年版</a>',
       );
       map.setView([37, 137], 5);
+      mapColors = readMapColors();
       mapReady = true;
     })();
     return () => {
       cancelled = true;
       mapReady = false;
+      mapColors = undefined;
       for (const frame of markerAnimations.values()) {
         cancelAnimationFrame(frame);
       }
@@ -190,15 +206,16 @@
   // Static geometry: rebuild boundaries and centroid coordinates only when
   // the map is initialized or a different GeoJSON object is supplied.
   $effect(() => {
-    if (!mapReady || !leaflet || !map || !geojson) return;
+    if (!mapReady || !leaflet || !map || !geojson || !mapColors) return;
 
+    const colors = mapColors;
     boundary?.remove();
     boundary = leaflet
       .geoJSON(geojson as never, {
         style: () => ({
-          color: mapColor("--map-boundary-color"),
+          color: colors.boundary,
           weight: 1,
-          fillColor: mapColor("--map-boundary-fill-color"),
+          fillColor: colors.boundaryFill,
           fillOpacity: 1,
         }),
         onEachFeature: (feature, layer) => {
@@ -266,7 +283,16 @@
   // Dynamic data: refresh labels, positions, and marker animations without
   // touching boundary polygons or recalculating geographic centroids.
   $effect(() => {
-    if (!mapReady || !leaflet || !map || !circles || !geometryVersion) return;
+    if (
+      !mapReady ||
+      !leaflet ||
+      !map ||
+      !circles ||
+      !geometryVersion ||
+      !mapColors
+    )
+      return;
+    const colors = mapColors;
     const currentObservations = observations;
     const currentScale = scale;
 
@@ -299,9 +325,9 @@
       } else {
         marker = leaflet.circleMarker(location, {
           radius: 0,
-          color: mapColor("--map-marker-color"),
+          color: colors.marker,
           weight: 1,
-          fillColor: mapColor("--map-marker-fill-color"),
+          fillColor: colors.markerFill,
           fillOpacity: 0,
         });
         marker

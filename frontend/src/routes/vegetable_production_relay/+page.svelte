@@ -424,6 +424,7 @@
   .scale-control input {
     box-sizing: border-box;
     width: var(--scale-value-width);
+    padding-inline: var(--space-1);
   }
   @media (max-width: 360px) {
     .page-shell {
