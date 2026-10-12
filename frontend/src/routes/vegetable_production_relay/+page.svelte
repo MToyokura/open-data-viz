@@ -137,32 +137,6 @@
             {/each}
           </select>
         </label>
-        <div class="month-control">
-          <span class="control-label">年月</span>
-          <button
-            class="step-button"
-            aria-label="前月"
-            onclick={() => changeMonth(monthIndex - 1)}
-            disabled={monthIndex <= 0}>‹</button
-          >
-          <input
-            aria-label="年月"
-            type="range"
-            min="0"
-            max={Math.max(0, months.length - 1)}
-            value={Math.max(0, monthIndex)}
-            oninput={(event) => changeMonth(Number(event.currentTarget.value))}
-            disabled={months.length < 2}
-          />
-          <button
-            class="step-button"
-            aria-label="次月"
-            onclick={() => changeMonth(monthIndex + 1)}
-            disabled={monthIndex < 0 || monthIndex >= months.length - 1}
-            >›</button
-          >
-          <strong>{displayMonth(selectedMonth)}</strong>
-        </div>
         <div class="scale-control">
           <span class="control-label">円の大きさ</span>
           <button
@@ -194,6 +168,31 @@
           </h2>
           <p>円の面積は報告値の合計に比例します</p>
         </div>
+      </div>
+      <div class="month-control">
+        <span class="control-label">年月</span>
+        <button
+          class="step-button"
+          aria-label="前月"
+          onclick={() => changeMonth(monthIndex - 1)}
+          disabled={monthIndex <= 0}>‹</button
+        >
+        <input
+          aria-label="年月"
+          type="range"
+          min="0"
+          max={Math.max(0, months.length - 1)}
+          value={Math.max(0, monthIndex)}
+          oninput={(event) => changeMonth(Number(event.currentTarget.value))}
+          disabled={months.length < 2}
+        />
+        <button
+          class="step-button"
+          aria-label="次月"
+          onclick={() => changeMonth(monthIndex + 1)}
+          disabled={monthIndex < 0 || monthIndex >= months.length - 1}>›</button
+        >
+        <strong>{displayMonth(selectedMonth)}</strong>
       </div>
       {#if mapError}
         <p class="error" role="alert">{mapError}</p>
@@ -347,11 +346,12 @@
     margin-bottom: 1rem;
   }
   .controls {
-    flex-direction: column;
-    align-items: stretch;
+    width: fit-content;
+    max-width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
     padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
     background: white;
   }
   .controls label {
@@ -359,7 +359,7 @@
     gap: 0.25rem;
   }
   .vegetable-control {
-    align-self: flex-start;
+    align-self: center;
   }
   .month-control,
   .scale-control {
@@ -401,6 +401,7 @@
     white-space: nowrap;
   }
   .scale-control {
+    width: auto;
     grid-template-columns: 2.5rem 4rem 2.5rem;
     grid-template-areas:
       "label label label"
@@ -506,8 +507,14 @@
   }
   @media (max-width: 700px) {
     .controls {
+      width: auto;
+      max-width: none;
       align-items: stretch;
       flex-direction: column;
+      gap: 0.75rem;
+    }
+    .scale-control {
+      width: 100%;
     }
     .contributions {
       grid-template-columns: repeat(3, minmax(0, 1fr));
