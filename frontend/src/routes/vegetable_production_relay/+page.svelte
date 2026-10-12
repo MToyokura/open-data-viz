@@ -170,7 +170,6 @@
         </div>
       </div>
       <div class="month-control">
-        <span class="control-label">年月</span>
         <button
           class="step-button"
           aria-label="前月"
@@ -369,14 +368,12 @@
     gap: 0.5rem;
   }
   .month-control {
-    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem max-content;
+    margin-bottom: 0.75rem;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
     min-width: 0;
     grid-template-areas:
-      "label date date date"
-      "previous range next .";
-  }
-  .month-control > .control-label {
-    grid-area: label;
+      "date date date"
+      "previous range next";
   }
   .month-control > button[aria-label="前月"] {
     grid-area: previous;
@@ -397,7 +394,7 @@
   }
   .month-control > strong {
     grid-area: date;
-    text-align: right;
+    text-align: left;
     white-space: nowrap;
   }
   .scale-control {
@@ -435,7 +432,7 @@
       width: 2.25rem;
     }
     .month-control {
-      grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem max-content;
+      grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem;
     }
     .scale-control {
       grid-template-columns: 2.25rem 3.25rem 2.25rem;
