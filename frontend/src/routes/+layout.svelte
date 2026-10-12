@@ -14,7 +14,7 @@
   />
 </svelte:head>
 
-<nav>
+<nav class="site-nav">
   <a href={`${VITE_ROOT_PATH}/`}>Home</a>
 </nav>
 
@@ -22,7 +22,7 @@
   {@render children()}
 </div>
 
-<div class="footer">
+<footer class="site-footer">
   <a
     class="cc-icons"
     href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
@@ -32,20 +32,24 @@
     <CcIcon size="2rem" />
     <CcZeroIcon size="2rem" />
   </a>
-</div>
+</footer>
 
 <style>
-  .footer {
+  .site-nav {
+    padding: var(--space-3) var(--page-content-padding);
+  }
+
+  .site-footer {
     display: flex;
     justify-content: end;
-    margin: 2rem 1rem 1rem;
+    margin: var(--space-8) var(--space-4) var(--space-4);
   }
 
   .cc-icons {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0.2rem;
+    gap: var(--space-1);
     text-decoration: none;
     color: inherit;
     opacity: 0.5;

@@ -1,5 +1,5 @@
 <script>
-  const { size = "64px", color = "#000000" } = $props();
+  const { size = "64px", color = "currentColor" } = $props();
 </script>
 
 <svg
@@ -16,7 +16,7 @@
   xml:space="preserve"
 >
   <g>
-    <circle fill="#FFFFFF" cx="31.325" cy="32.873" r="30.096" />
+    <circle fill="var(--surface-color)" cx="31.325" cy="32.873" r="30.096" />
     <path
       fill={color}
       id="text2809_1_"

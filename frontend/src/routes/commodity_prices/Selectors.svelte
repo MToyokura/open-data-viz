@@ -18,12 +18,12 @@
   } = $props();
 </script>
 
-<div style="display: flex; gap: 1rem; flex-direction: column;">
-  <div style="display: flex">
+<div class="selector-group">
+  <div class="checkbox-control">
     <input type="checkbox" id="autoAddEnabled" bind:checked={autoAddEnabled} />
     <label for="autoAddEnabled">自動で追加する</label>
   </div>
-  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+  <div class="selector-controls">
     <select bind:value={selectedCat02Code}>
       <option value={""}>（品目を選択）</option>
       {#each cat02Lookup as cat02 (cat02.cat02_code)}
@@ -47,6 +47,27 @@
 </div>
 
 <style>
+  .selector-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .checkbox-control,
+  .selector-controls {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  .checkbox-control {
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .selector-controls {
+    flex-wrap: wrap;
+  }
+
   select {
     max-width: 16em;
   }

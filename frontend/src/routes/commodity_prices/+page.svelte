@@ -87,7 +87,7 @@
           {fetchAndAddData}
         />
         {#if dataNotFound}
-          <p style="color: #cc0000;">データが見つかりませんでした</p>
+          <p class="data-not-found">データが見つかりませんでした</p>
         {/if}
         {#if commodityPrices.length > 0}
           <section class="added-items" aria-label="追加済みのデータ">
@@ -121,13 +121,17 @@
 </div>
 
 <style>
+  .data-not-found {
+    color: var(--danger-color);
+  }
+
   .added-items {
     max-width: 32rem;
-    margin-top: 1rem;
+    margin-top: var(--space-4);
   }
 
   .added-items h2 {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--space-2);
     font-size: 1rem;
   }
 
@@ -138,8 +142,8 @@
     margin: 0;
     padding: 0;
     overflow-y: auto;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    border: var(--border-default);
+    border-radius: var(--radius-md);
     list-style: none;
   }
 
@@ -147,9 +151,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid #ddd;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    border-bottom: var(--border-default);
   }
 
   .added-items li:last-child {
@@ -161,15 +165,15 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    padding: 0.25rem;
+    padding: var(--space-1);
     border: 0;
-    border-radius: 50%;
+    border-radius: var(--radius-round);
     background: transparent;
     cursor: pointer;
   }
 
   .delete-button:hover {
-    background: #eee;
+    background: var(--surface-hover-color);
   }
 
   .delete-button img {
@@ -180,6 +184,6 @@
 
   .reset-button {
     display: block;
-    margin-top: 1rem;
+    margin-top: var(--space-4);
   }
 </style>

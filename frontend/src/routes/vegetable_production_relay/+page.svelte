@@ -109,7 +109,7 @@
   <title>野菜の産地リレー | Open Data Viz</title>
 </svelte:head>
 
-<div class="relay-page page-shell">
+<div class="page-shell">
   <main class="page-content">
     <header class="page-heading">
       <div>
@@ -123,7 +123,7 @@
       <p class="map-loading" role="status">データを読み込んでいます…</p>
     {/if}
     {#if aggregation}
-      <section class="controls" aria-label="表示設定">
+      <section class="controls ui-panel ui-panel--subtle" aria-label="表示設定">
         <label class="vegetable-control">
           野菜
           <select
@@ -140,7 +140,7 @@
         <div class="scale-control">
           <span class="control-label">円の大きさ</span>
           <button
-            class="step-button"
+            class="step-button scale-smaller"
             aria-label="円を小さく"
             onclick={() => adjustScale(-1)}
             disabled={scale <= 1}>−</button
@@ -154,7 +154,7 @@
             onblur={() => (scale = Math.max(1, Number(scale) || 5))}
           />
           <button
-            class="step-button"
+            class="step-button scale-larger"
             aria-label="円を大きく"
             onclick={() => adjustScale(1)}>＋</button
           >
@@ -171,7 +171,7 @@
       </div>
       <div class="month-control">
         <button
-          class="step-button"
+          class="step-button month-previous"
           aria-label="前月"
           onclick={() => changeMonth(monthIndex - 1)}
           disabled={monthIndex <= 0}>‹</button
@@ -186,7 +186,7 @@
           disabled={months.length < 2}
         />
         <button
-          class="step-button"
+          class="step-button month-next"
           aria-label="次月"
           onclick={() => changeMonth(monthIndex + 1)}
           disabled={monthIndex < 0 || monthIndex >= months.length - 1}>›</button
@@ -207,7 +207,10 @@
         />
       {/if}
 
-      <section class="selection-panel" aria-label="選択した出荷元の詳細">
+      <section
+        class="selection-panel ui-panel"
+        aria-label="選択した出荷元の詳細"
+      >
         <div class="selection-heading">
           <div>
             <p class="eyebrow">{displayMonth(selectedMonth)} · 報告値合計</p>
@@ -279,9 +282,9 @@
         </p>
       </section>
 
-      <section class="reference">
+      <section class="reference ui-panel ui-panel--subtle">
         <h2>出典情報等</h2>
-        <table class="reference-table">
+        <table class="reference-table ui-table">
           <tbody>
             <tr>
               <th>統計表ID</th>
@@ -327,35 +330,33 @@
 </div>
 
 <style>
-  .relay-page {
-    min-height: 100vh;
-    background: #fff;
-    color: #28312c;
+  .page-shell {
+    --control-size: var(--control-height);
+    --scale-value-width: 4rem;
   }
   .page-heading,
   .controls,
   .map-heading {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--space-3);
   }
   .page-heading,
   .map-heading {
     justify-content: space-between;
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-4);
   }
   .controls {
     width: fit-content;
     max-width: 100%;
     flex-direction: row;
     align-items: center;
-    gap: 1.5rem;
-    padding: 0.75rem;
-    background: white;
+    gap: var(--space-6);
+    padding: var(--space-3);
   }
   .controls label {
     display: grid;
-    gap: 0.25rem;
+    gap: var(--space-1);
   }
   .vegetable-control {
     align-self: center;
@@ -365,29 +366,31 @@
     display: grid;
     align-items: center;
     width: 100%;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
   .month-control {
-    margin-bottom: 0.75rem;
-    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+    margin-bottom: var(--space-3);
+    grid-template-columns: var(--control-size) minmax(0, 1fr) var(
+        --control-size
+      );
     min-width: 0;
     grid-template-areas:
       "date date date"
       "previous range next";
   }
-  .month-control > button[aria-label="前月"] {
+  .month-control > .month-previous {
     grid-area: previous;
   }
   .month-control input[type="range"] {
     grid-area: range;
     min-width: 0;
   }
-  .month-control > button[aria-label="次月"] {
+  .month-control > .month-next {
     grid-area: next;
   }
   .step-button {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: var(--control-size);
+    height: var(--control-height);
     padding: 0;
     font-size: 1.25rem;
     line-height: 1;
@@ -399,7 +402,9 @@
   }
   .scale-control {
     width: auto;
-    grid-template-columns: 2.5rem 4rem 2.5rem;
+    grid-template-columns: var(--control-size) var(--scale-value-width) var(
+        --control-size
+      );
     grid-template-areas:
       "label label label"
       "smaller value larger";
@@ -407,97 +412,66 @@
   .scale-control > .control-label {
     grid-area: label;
   }
-  .scale-control > button[aria-label="円を小さく"] {
+  .scale-control > .scale-smaller {
     grid-area: smaller;
   }
   .scale-control > input {
     grid-area: value;
   }
-  .scale-control > button[aria-label="円を大きく"] {
+  .scale-control > .scale-larger {
     grid-area: larger;
   }
   .scale-control input {
     box-sizing: border-box;
-    width: 4rem;
+    width: var(--scale-value-width);
   }
   @media (max-width: 360px) {
+    .page-shell {
+      --control-size: 2.25rem;
+      --scale-value-width: 3.25rem;
+    }
     .controls {
-      gap: 0.25rem;
+      gap: var(--space-1);
     }
     .month-control,
     .scale-control {
-      gap: 0.25rem;
-    }
-    .step-button {
-      width: 2.25rem;
-    }
-    .month-control {
-      grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem;
-    }
-    .scale-control {
-      grid-template-columns: 2.25rem 3.25rem 2.25rem;
-    }
-    .scale-control input {
-      width: 3.25rem;
+      gap: var(--space-1);
     }
   }
   .selection-panel {
-    margin-top: 1rem;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: white;
+    margin-top: var(--space-4);
   }
   .total {
     display: block;
-    margin-top: 0.25rem;
+    margin-top: var(--space-1);
   }
   .contributions {
     display: grid;
     grid-template-columns: repeat(9, minmax(0, 1fr));
-    gap: 0.5rem;
+    gap: var(--space-2);
     margin: 0;
     padding: 0;
     list-style: none;
   }
   .contributions li {
-    padding: 0.5rem;
-    border: 1px solid #eee;
+    padding: var(--space-2);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-color);
   }
   .notes {
-    margin: 2rem auto 1rem;
+    margin: var(--space-8) auto var(--space-4);
     line-height: 1.6;
   }
   .reference {
-    margin-top: 2rem;
-    padding: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #f9f9f9;
+    margin-top: var(--space-8);
   }
   .reference h2 {
     margin-top: 0;
-    margin-bottom: 1em;
+    margin-bottom: var(--space-4);
   }
   .reference-table {
-    width: 100%;
-    margin-top: 1em;
-    border-collapse: collapse;
-  }
-  .reference-table th,
-  .reference-table td {
-    padding: 8px;
-    border: 1px solid #bdbdbd;
-    background-color: #fff;
-    text-align: left;
-  }
-  .reference-table th {
-    background-color: #e7e7e7;
-    font-weight: bold;
-    vertical-align: top;
-  }
-  .reference-table td {
-    vertical-align: top;
+    margin-top: var(--space-4);
   }
   .reference-table a {
     word-break: break-all;
@@ -508,7 +482,7 @@
       max-width: none;
       align-items: stretch;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: var(--space-3);
     }
     .scale-control {
       width: 100%;

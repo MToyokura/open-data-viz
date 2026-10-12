@@ -35,6 +35,10 @@
   const centroidLocations = new Map<string, [number, number]>();
   let geometryVersion = $state(0);
 
+  function mapColor(token: string): string {
+    return getComputedStyle(host).getPropertyValue(token).trim();
+  }
+
   function animateMarker(
     name: string,
     marker: import("leaflet").CircleMarker,
@@ -192,9 +196,9 @@
     boundary = leaflet
       .geoJSON(geojson as never, {
         style: () => ({
-          color: "#4b5563",
+          color: mapColor("--map-boundary-color"),
           weight: 1,
-          fillColor: "#f1f3f5",
+          fillColor: mapColor("--map-boundary-fill-color"),
           fillOpacity: 1,
         }),
         onEachFeature: (feature, layer) => {
@@ -295,9 +299,9 @@
       } else {
         marker = leaflet.circleMarker(location, {
           radius: 0,
-          color: "#7f2704",
+          color: mapColor("--map-marker-color"),
           weight: 1,
-          fillColor: "#d55e00",
+          fillColor: mapColor("--map-marker-fill-color"),
           fillOpacity: 0,
         });
         marker
@@ -332,9 +336,9 @@
   .map {
     height: min(68vh, 680px);
     min-height: 400px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #f5f5f2;
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--map-surface-color);
   }
   @media (max-width: 600px) {
     .map {

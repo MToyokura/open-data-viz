@@ -49,17 +49,17 @@
     width: auto;
     height: 60vh;
     min-height: 320px;
-    margin: 2rem 0;
-    padding: 2rem 0;
-    border: 2px solid #ccc;
-    border-radius: 8px;
+    margin: var(--space-8) 0;
+    padding: var(--space-8) 0;
+    border: var(--border-default);
+    border-radius: var(--radius-md);
   }
 
   @media (max-width: 48rem) {
     #chart-container {
       height: 55vh;
-      margin: 2rem 0;
-      padding: 1rem 0;
+      margin: var(--space-8) 0;
+      padding: var(--space-4) 0;
     }
   }
 </style>
