@@ -18,6 +18,7 @@
       [42, 137],
     ] as [LatLng, LatLng, LatLng],
   } as const;
+  const TOOLTIP_OPTIONS = { direction: "top", sticky: true } as const;
 
   let {
     geojson,
@@ -204,7 +205,7 @@
             String(feature.properties?.N03_001 ?? "").trim(),
           );
           // The observation effect supplies the actual label.
-          layer.bindTooltip(`${name}: 値なし`);
+          layer.bindTooltip(`${name}: 値なし`, TOOLTIP_OPTIONS);
           layer.on("click", () => onSelect(name));
         },
       })
@@ -300,7 +301,10 @@
           fillOpacity: 0,
         });
         marker
-          .bindTooltip(`${name}: ${observationLabel(observation, sourceUnit)}`)
+          .bindTooltip(
+            `${name}: ${observationLabel(observation, sourceUnit)}`,
+            TOOLTIP_OPTIONS,
+          )
           .on("click", () => onSelect(name))
           .addTo(circles);
         markers.set(name, marker);
