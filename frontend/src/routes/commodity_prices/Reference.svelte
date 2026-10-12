@@ -1,6 +1,6 @@
-<div class="reference">
+<div class="reference ui-panel ui-panel--subtle">
   <h2>出典情報等</h2>
-  <table class="reference-table">
+  <table class="reference-table ui-table">
     <tbody>
       <tr>
         <th>統計表ID</th>
@@ -52,40 +52,16 @@
 
 <style>
   .reference {
-    margin-top: 2rem;
-    padding: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #f9f9f9;
+    margin-top: var(--space-8);
   }
 
   .reference h2 {
     margin-top: 0;
-    margin-bottom: 1em;
+    margin-bottom: var(--space-4);
   }
 
   .reference-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 1em;
-  }
-
-  .reference-table th,
-  .reference-table td {
-    background-color: #fff;
-    border: 1px solid #bdbdbd;
-    padding: 8px;
-    text-align: left;
-  }
-
-  .reference-table th {
-    background-color: #e7e7e7;
-    font-weight: bold;
-    vertical-align: top;
-  }
-
-  .reference-table td {
-    vertical-align: top;
+    margin-top: var(--space-4);
   }
 
   .reference-table a {

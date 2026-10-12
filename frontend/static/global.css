@@ -1,18 +1,61 @@
+/* Design tokens: change these values to update the UI consistently. */
+:root {
+  /* Layout */
+  --page-content-max-width: 80rem;
+  --page-content-padding: 1.5rem;
+  --page-content-padding-small: 1rem;
+
+  /* Color */
+  --text-color: #1f1f1f;
+  --surface-color: #fff;
+  --surface-muted-color: #f5f5f5;
+  --surface-hover-color: #eaeaea;
+  --border-color: #d6d6d6;
+  --danger-color: #b42318;
+  --focus-color: #222;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Borders and shape */
+  --border-default: 1px solid var(--border-color);
+  --radius-md: 0.375rem; /* 6px: controls, panels, list boxes, cards */
+  --radius-round: 50%; /* Icon-only round buttons */
+
+  /* Controls */
+  --control-height: 2.5rem;
+
+  /* Data visualization */
+  --map-surface-color: #f7f8f9;
+  --map-boundary-color: #4b5563;
+  --map-boundary-fill-color: #f1f3f5;
+  --map-marker-color: #7f2704;
+  --map-marker-fill-color: #d55e00;
+}
+
 html {
   display: flex;
-  min-height: 100%; /* Force <html> to fill the whole page */
+  min-height: 100%;
 }
 
 body {
-  flex-grow: 1; /* Force <body> to fill the whole page */
-  display: flex; /* Make <body> of type flex */
-  flex-direction: column; /* Make <body> vertical */
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  margin: 0;
+  color: var(--text-color);
+  background: var(--surface-color);
 }
 
 #svelte-main {
-  flex-grow: 1; /* Force the main content div to fill the space */
-  display: flex; /* Make the main content div a flex container */
-  flex-direction: column; /* Make the main content vertical */
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
 }
 
 .page-shell {
@@ -20,13 +63,100 @@ body {
 }
 
 .page-content {
-  max-width: 1280px;
+  max-width: var(--page-content-max-width);
   margin: auto;
-  padding: 1.5rem;
+  padding: var(--page-content-padding);
+}
+
+/* Shared UI primitives: scoped Svelte styles should handle layout, not redefine shape. */
+.ui-panel {
+  padding: var(--space-4);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-color);
+}
+
+.ui-panel--subtle {
+  background: var(--surface-muted-color);
+}
+
+.ui-table {
+  width: 100%;
+  border: var(--border-default);
+  border-spacing: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.ui-table th,
+.ui-table td {
+  padding: var(--space-2);
+  border-right: var(--border-default);
+  border-bottom: var(--border-default);
+  background: var(--surface-color);
+  text-align: left;
+  vertical-align: top;
+}
+
+.ui-table tr > :last-child {
+  border-right: 0;
+}
+
+.ui-table tr:last-child > * {
+  border-bottom: 0;
+}
+
+.ui-table th {
+  background: var(--surface-muted-color);
+  font-weight: bold;
+}
+
+:where(button, input, select, textarea) {
+  font: inherit;
+}
+
+:where(
+  button,
+  select,
+  textarea,
+  input[type="text"],
+  input[type="search"],
+  input[type="number"]
+) {
+  box-sizing: border-box;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-color);
+  background: var(--surface-color);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+button {
+  cursor: pointer;
+}
+
+input[type="checkbox"],
+input[type="range"] {
+  accent-color: var(--focus-color);
+}
+
+button:not(:disabled):hover {
+  background: var(--surface-hover-color);
+}
+
+:where(button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+:where(button, input, select, textarea):disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 700px) {
   .page-content {
-    padding: 1rem;
+    padding: var(--page-content-padding-small);
   }
 }
