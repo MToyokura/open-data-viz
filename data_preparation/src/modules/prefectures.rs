@@ -114,13 +114,13 @@ pub fn update_prefectures() -> Result<()> {
         .arg(&source_path)
         .args([
             "-simplify",
-            "0.5%",
+            "0.25%",
             "keep-shapes",
             "stats",
             "-dissolve",
             "N03_001",
             "-filter-islands",
-            "min-area=25km2",
+            "min-area=50km2",
             "-o",
             "force",
             "format=geojson",

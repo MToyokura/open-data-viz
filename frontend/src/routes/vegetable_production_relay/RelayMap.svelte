@@ -1,12 +1,24 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
 
-  import type { PrefectureMonth } from "./constants/types";
-  // here
-  type PrefectureObservation = PrefectureMonth;
-  type GeoCollection = {
-    features: Array<{ properties?: { N03_001?: string }; geometry: unknown }>;
-  };
+  import type { GeoCollection, PrefectureMonth } from "./constants/types";
+  import {
+    calculateCentroids,
+    observationLabel,
+    prefectureKey,
+    translateCoordinates,
+    type LatLng,
+  } from "./utils/relayMap";
+
+  const OKINAWA_INSET = {
+    center: [41, 131] as LatLng,
+    separator: [
+      [38, 126],
+      [38, 132],
+      [42, 137],
+    ] as [LatLng, LatLng, LatLng],
+  } as const;
+  const TOOLTIP_OPTIONS = { direction: "top", sticky: true } as const;
 
   let {
     geojson,
@@ -16,7 +28,7 @@
     onSelect,
   }: {
     geojson: GeoCollection;
-    observations: Record<string, PrefectureObservation>;
+    observations: Record<string, PrefectureMonth>;
     sourceUnit: string | null;
     scale: number;
     onSelect: (name: string) => void;
@@ -28,6 +40,7 @@
   let map: import("leaflet").Map | undefined;
   let boundary: import("leaflet").GeoJSON | undefined;
   let circles: import("leaflet").LayerGroup | undefined;
+  let insetSeparator: import("leaflet").Polyline | undefined;
   let mapColors:
     | {
         boundary: string;
@@ -97,75 +110,6 @@
     markerAnimations.set(name, requestAnimationFrame(step));
   }
 
-  function prefectureKey(name: string): string {
-    return name === "北海道" ? name : name.replace(/[都府県]$/, "");
-  }
-
-  function formatQuantity(value: string, unit: string | null): string {
-    return `${value} ${unit ?? "単位未確認"}`;
-  }
-
-  function observationLabel(observation: PrefectureObservation | undefined) {
-    if (!observation) return "値なし";
-    if (observation.reported_cells > 0) {
-      const quantity = formatQuantity(
-        observation.reported_value_sum,
-        sourceUnit,
-      );
-      return observation.status === "incomplete"
-        ? `${quantity}（一部未集計）`
-        : quantity;
-    }
-    if (observation.below_display_unit_cells > 0) return "表示単位未満";
-    if (observation.unknown_or_uncollected_cells > 0) return "不詳・調査なし";
-    if (observation.no_fact_cells > 0) return "該当なし";
-    return "値なし";
-  }
-
-  function ringCentroid(
-    ring: unknown,
-  ): { x: number; y: number; area: number } | null {
-    if (!Array.isArray(ring) || ring.length < 4) return null;
-    let twiceArea = 0;
-    let x = 0;
-    let y = 0;
-    for (let index = 0; index < ring.length - 1; index += 1) {
-      const first = ring[index];
-      const second = ring[index + 1];
-      if (!Array.isArray(first) || !Array.isArray(second)) continue;
-      const cross =
-        Number(first[0]) * Number(second[1]) -
-        Number(second[0]) * Number(first[1]);
-      twiceArea += cross;
-      x += (Number(first[0]) + Number(second[0])) * cross;
-      y += (Number(first[1]) + Number(second[1])) * cross;
-    }
-    if (!Number.isFinite(twiceArea) || Math.abs(twiceArea) < 1e-12) return null;
-    return {
-      x: x / (3 * twiceArea),
-      y: y / (3 * twiceArea),
-      area: Math.abs(twiceArea / 2),
-    };
-  }
-
-  function polygonCentroid(
-    polygon: unknown,
-  ): { x: number; y: number; area: number } | null {
-    if (!Array.isArray(polygon)) return null;
-    let weight = 0;
-    let x = 0;
-    let y = 0;
-    polygon.forEach((ring, index) => {
-      const centroid = ringCentroid(ring);
-      if (!centroid) return;
-      const area = index === 0 ? centroid.area : -centroid.area;
-      weight += area;
-      x += centroid.x * area;
-      y += centroid.y * area;
-    });
-    return weight > 0 ? { x: x / weight, y: y / weight, area: weight } : null;
-  }
-
   onMount(() => {
     let cancelled = false;
     void (async () => {
@@ -209,9 +153,47 @@
     if (!mapReady || !leaflet || !map || !geojson || !mapColors) return;
 
     const colors = mapColors;
+    const originalLocations = calculateCentroids(geojson.features);
+    const okinawa = originalLocations.get("沖縄");
+    const offset = okinawa
+      ? {
+          latitude: OKINAWA_INSET.center[0] - okinawa[0],
+          longitude: OKINAWA_INSET.center[1] - okinawa[1],
+        }
+      : null;
+    const displayGeojson: GeoCollection = offset
+      ? {
+          ...geojson,
+          features: geojson.features.map((feature) => {
+            const name = prefectureKey(
+              String(feature.properties?.N03_001 ?? "").trim(),
+            );
+            if (name !== "沖縄") return feature;
+
+            const geometry = feature.geometry as {
+              type: string;
+              coordinates: unknown;
+            };
+            if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon")
+              return feature;
+
+            return {
+              ...feature,
+              geometry: {
+                ...geometry,
+                coordinates: translateCoordinates(
+                  geometry.coordinates,
+                  offset.longitude,
+                  offset.latitude,
+                ),
+              },
+            };
+          }),
+        }
+      : geojson;
     boundary?.remove();
     boundary = leaflet
-      .geoJSON(geojson as never, {
+      .geoJSON(displayGeojson as never, {
         style: () => ({
           color: colors.boundary,
           weight: 1,
@@ -223,55 +205,41 @@
             String(feature.properties?.N03_001 ?? "").trim(),
           );
           // The observation effect supplies the actual label.
-          layer.bindTooltip(`${name}: 値なし`);
+          layer.bindTooltip(`${name}: 値なし`, TOOLTIP_OPTIONS);
           layer.on("click", () => onSelect(name));
         },
       })
       .addTo(map);
 
-    circles ??= leaflet.layerGroup().addTo(map);
-    const centroids = new Map<string, { area: number; x: number; y: number }>();
-    for (const feature of geojson.features) {
-      const name = prefectureKey(
-        String(feature.properties?.N03_001 ?? "").trim(),
-      );
-      if (!name) continue;
-      const geometry = feature.geometry as {
-        type: string;
-        coordinates: unknown;
-      };
-      const polygons: unknown[] =
-        geometry.type === "Polygon"
-          ? [geometry.coordinates]
-          : geometry.type === "MultiPolygon" &&
-              Array.isArray(geometry.coordinates)
-            ? geometry.coordinates
-            : [];
-      const aggregate = centroids.get(name) ?? { area: 0, x: 0, y: 0 };
-      for (const polygon of polygons) {
-        const centroid = polygonCentroid(polygon);
-        if (!centroid) continue;
-        aggregate.area += centroid.area;
-        aggregate.x += centroid.x * centroid.area;
-        aggregate.y += centroid.y * centroid.area;
-      }
-      centroids.set(name, aggregate);
+    insetSeparator?.remove();
+    insetSeparator = undefined;
+    if (offset) {
+      insetSeparator = leaflet
+        .polyline(OKINAWA_INSET.separator, {
+          color: colors.boundary,
+          weight: 2,
+          opacity: 0.8,
+          interactive: false,
+        })
+        .addTo(map);
     }
 
+    circles ??= leaflet.layerGroup().addTo(map);
     centroidLocations.clear();
-    for (const [name, centroid] of centroids) {
-      if (centroid.area > 0) {
-        centroidLocations.set(name, [
-          centroid.y / centroid.area,
-          centroid.x / centroid.area,
-        ]);
-      }
+    for (const [name, location] of originalLocations) {
+      centroidLocations.set(
+        name,
+        name === "沖縄" && offset
+          ? [location[0] + offset.latitude, location[1] + offset.longitude]
+          : location,
+      );
     }
 
     // Existing markers must stay above the replacement boundary layer.
     for (const marker of markers.values()) marker.bringToFront();
 
     const bounds = boundary.getBounds();
+    if (insetSeparator) bounds.extend(insetSeparator.getBounds());
     if (bounds.isValid()) map.fitBounds(bounds, { padding: [12, 12] });
 
     // Signal that the marker effect should consume the new locations.
@@ -306,7 +274,7 @@
         String(feature?.properties?.N03_001 ?? "").trim(),
       );
       const observation = currentObservations[name];
-      const label = `${name}: ${observationLabel(observation)}`;
+      const label = `${name}: ${observationLabel(observation, sourceUnit)}`;
       layer.getTooltip()?.setContent(label);
     });
 
@@ -321,7 +289,9 @@
 
       if (marker) {
         marker.setLatLng(location);
-        marker.setTooltipContent(`${name}: ${observationLabel(observation)}`);
+        marker.setTooltipContent(
+          `${name}: ${observationLabel(observation, sourceUnit)}`,
+        );
       } else {
         marker = leaflet.circleMarker(location, {
           radius: 0,
@@ -331,7 +301,10 @@
           fillOpacity: 0,
         });
         marker
-          .bindTooltip(`${name}: ${observationLabel(observation)}`)
+          .bindTooltip(
+            `${name}: ${observationLabel(observation, sourceUnit)}`,
+            TOOLTIP_OPTIONS,
+          )
           .on("click", () => onSelect(name))
           .addTo(circles);
         markers.set(name, marker);
