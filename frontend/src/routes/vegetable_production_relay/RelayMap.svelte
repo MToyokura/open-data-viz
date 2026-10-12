@@ -11,9 +11,9 @@
   } from "./utils/relayMap";
 
   const OKINAWA_INSET = {
-    center: [42, 129] as LatLng,
+    center: [41, 131] as LatLng,
     separator: [
-      [38, 125],
+      [38, 126],
       [38, 132],
       [42, 137],
     ] as [LatLng, LatLng, LatLng],
