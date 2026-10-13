@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { PrefectureMonth } from "./constants/types";
+  import VegetableSankey from "./VegetableSankey.svelte";
+  import { aggregateSankey } from "./utils/aggregateSankey";
   import RelayMap from "./RelayMap.svelte";
   import { useRelayData } from "./utils/useRelayData.svelte";
 
@@ -37,6 +39,11 @@
     Object.fromEntries(
       prefectures.map((item) => [item.consignor_prefecture_name, item]),
     ),
+  );
+  let sankeyData = $derived(
+    relayData.sankeyDetails.length === 47
+      ? aggregateSankey(relayData.sankeyDetails, selectedMonth, prefectures)
+      : undefined,
   );
   let selectedObservation = $derived(observations[selectedPrefecture]);
   let excludedCategoryCounts = $derived(
@@ -267,6 +274,48 @@
         {/if}
       </section>
 
+      <section
+        class="sankey-panel ui-panel"
+        aria-label="産地と消費地域の Sankey 図"
+      >
+        {#if !relayData.sankeyOpen}
+          <button
+            type="button"
+            onclick={() => relayData.openSankey()}
+            aria-expanded="false"
+            aria-controls="relay-sankey">Sankey を表示</button
+          >
+        {:else}
+          <h2>
+            {selectedProductLabel} · {displayMonth(
+              selectedMonth,
+            )}の産地都道府県別の卸売数量
+          </h2>
+          <button
+            type="button"
+            onclick={() => relayData.closeSankey()}
+            aria-expanded="true"
+            aria-controls="relay-sankey">Sankey を閉じる</button
+          >
+          <div id="relay-sankey" aria-busy={relayData.isSankeyLoading}>
+            {#if relayData.isSankeyLoading}
+              <p role="status">
+                産地内訳を読み込んでいます…（{relayData.sankeyCompleted} / 47 都道府県）
+              </p>
+            {:else if relayData.sankeyFailures.length}
+              <p class="error" role="alert">
+                データを取得できませんでした（{relayData.sankeyFailures.length} 都道府県）。再度お試しください。
+              </p>
+              <button type="button" onclick={() => relayData.openSankey()}
+                >失敗したデータを再取得</button
+              >
+            {:else if sankeyData}
+              <VegetableSankey data={sankeyData} />
+            {/if}
+          </div>
+        {/if}
+      </section>
+
       <section class="notes">
         <h2>備考</h2>
         <p>
@@ -438,6 +487,9 @@
     .scale-control {
       gap: var(--space-1);
     }
+  }
+  .sankey-panel {
+    margin-top: var(--space-4);
   }
   .selection-panel {
     margin-top: var(--space-4);

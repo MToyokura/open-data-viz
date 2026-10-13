@@ -56,3 +56,18 @@ export type RelayProductIndex = {
 export type GeoCollection = {
   features: Array<{ properties?: { N03_001?: string }; geometry: unknown }>;
 };
+
+export type RelaySankeyNode = {
+  id: string;
+  name: string;
+  side: "source" | "target";
+  color: string;
+  order: number;
+};
+export type RelaySankeyLink = { source: string; target: string; value: number };
+export type RelaySankeyData = {
+  nodes: RelaySankeyNode[];
+  links: RelaySankeyLink[];
+  total: number;
+  missing: Record<Exclude<Contribution["value_kind"], "reported">, number>;
+};

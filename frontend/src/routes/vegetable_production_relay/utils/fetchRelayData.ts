@@ -1,3 +1,4 @@
+import { CONSUMER_REGIONS } from "./aggregateSankey";
 import {
   PREFECTURE_GEOJSON_DATA_PATH,
   VEGETABLE_PRODUCT_INDEX_PATH,
@@ -82,7 +83,29 @@ export function fetchRelayPrefectureDetail(
       new Set(result.months.map((row) => row.month)).size !== 36 ||
       result.months.some(
         (row) =>
-          !Array.isArray(row.contributions) || row.contributions.length !== 9,
+          !/^\d{4}-\d{2}$/.test(row.month) ||
+          !Array.isArray(row.contributions) ||
+          row.contributions.length !== 9 ||
+          new Set(row.contributions.map((cell) => cell.consumer_region_code))
+            .size !== 9 ||
+          row.contributions.some(
+            (cell) =>
+              !CONSUMER_REGIONS.some(
+                ([code]) => code === cell.consumer_region_code,
+              ) ||
+              typeof cell.consumer_region_name !== "string" ||
+              typeof cell.raw_value !== "string" ||
+              ![
+                "reported",
+                "below_display_unit",
+                "no_fact",
+                "unknown_or_uncollected",
+              ].includes(cell.value_kind) ||
+              (cell.value_kind === "reported" &&
+                (!cell.raw_value.trim() ||
+                  !Number.isFinite(Number(cell.raw_value)) ||
+                  Number(cell.raw_value) < 0)),
+          ),
       )
     ) {
       throw new Error("産地内訳データの形式が正しくありません");
