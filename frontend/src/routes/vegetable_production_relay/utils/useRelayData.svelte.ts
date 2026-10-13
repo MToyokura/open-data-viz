@@ -1,4 +1,6 @@
 import { onMount } from "svelte";
+import { SvelteMap } from "svelte/reactivity";
+import { PREFECTURE_CODES } from "./aggregateSankey";
 import type {
   AggregationData,
   GeoCollection,
@@ -22,7 +24,7 @@ export function useRelayData() {
   let detail = $state.raw<PrefectureDetail | undefined>(undefined);
   let detailError = $state<Error | undefined>(undefined);
   let isDetailLoading = $state(false);
-  const detailCache = new Map<string, PrefectureDetail>();
+  const detailCache = new SvelteMap<string, PrefectureDetail>();
   let detailRequestId = 0;
   let detailController: AbortController | undefined;
   let products = $state.raw<RelayProduct[]>([]);
@@ -35,10 +37,115 @@ export function useRelayData() {
   let productController: AbortController | undefined;
   let disposed = false;
 
+  let sankeyOpen = $state(false);
+  let isSankeyLoading = $state(false);
+  let sankeyDetails = $state.raw<PrefectureDetail[]>([]);
+  let sankeyFailures = $state.raw<string[]>([]);
+  let sankeyCompleted = $state(0);
+  let sankeyCache = new SvelteMap<string, PrefectureDetail>();
+  let sankeyController: AbortController | undefined;
+  // Share pending detail requests, including map requests, to avoid duplicate fetches.
+  const pendingDetails = new SvelteMap<string, Promise<PrefectureDetail>>();
+  let activeDetails = 0;
+  const detailQueue: Array<() => void> = [];
+  async function fetchLimitedDetail(
+    key: string,
+    code: string,
+    signal: AbortSignal,
+  ) {
+    if (activeDetails >= 10)
+      await new Promise<void>((resolve) => detailQueue.push(resolve));
+    else activeDetails++;
+    try {
+      signal.throwIfAborted();
+      return await fetchRelayPrefectureDetail(key, code, signal);
+    } finally {
+      const next = detailQueue.shift();
+      if (next) next();
+      else activeDetails--;
+    }
+  }
+  function getDetail(
+    key: string,
+    code: string,
+    signal: AbortSignal,
+  ): Promise<PrefectureDetail> {
+    const cacheKey = `${key}:${code}`;
+    const cached =
+      detailCache.get(cacheKey) ??
+      (key === selectedProduct ? sankeyCache.get(code) : undefined);
+    if (cached) return Promise.resolve(cached);
+    const pending = pendingDetails.get(cacheKey);
+    if (pending)
+      return pending
+        .then((result) =>
+          signal.aborted
+            ? Promise.reject(new DOMException("Aborted", "AbortError"))
+            : result,
+        )
+        .catch((reason) => {
+          if (signal.aborted) throw reason;
+          return getDetail(key, code, signal);
+        });
+    const request = fetchLimitedDetail(key, code, signal).finally(() => {
+      if (pendingDetails.get(cacheKey) === request)
+        pendingDetails.delete(cacheKey);
+    });
+    pendingDetails.set(cacheKey, request);
+    return request;
+  }
+  async function openSankey() {
+    if (disposed || !aggregation) return;
+    sankeyOpen = true;
+    if (isSankeyLoading) return;
+    if (sankeyDetails.length === 47) return;
+    const key = selectedProduct;
+    const controller = new AbortController();
+    sankeyController = controller;
+    isSankeyLoading = true;
+    sankeyFailures = [];
+    const failures: string[] = [];
+    const current = () =>
+      !disposed && !controller.signal.aborted && key === selectedProduct;
+    const remaining = PREFECTURE_CODES.filter((code) => {
+      const cached = detailCache.get(`${key}:${code}`) ?? sankeyCache.get(code);
+      if (cached) sankeyCache.set(code, cached);
+      return !cached;
+    });
+    sankeyCompleted = sankeyCache.size;
+    for (let start = 0; start < remaining.length; start += 10) {
+      if (!current()) return;
+      await Promise.all(
+        remaining.slice(start, start + 10).map(async (code) => {
+          try {
+            const result = await getDetail(key, code, controller.signal);
+            if (current()) {
+              sankeyCache.set(code, result);
+              sankeyCompleted = sankeyCache.size;
+            }
+          } catch {
+            if (current()) failures.push(code);
+          }
+        }),
+      );
+    }
+    if (!current()) return;
+    sankeyFailures = failures;
+    sankeyDetails = sankeyCache.size === 47 ? [...sankeyCache.values()] : [];
+    isSankeyLoading = false;
+  }
+
   async function selectProduct(key: string) {
     // here
     if (disposed || !products.some((product) => product.key === key)) return;
 
+    sankeyController?.abort();
+    sankeyCache = new SvelteMap();
+    sankeyOpen = false;
+    sankeyDetails = [];
+    sankeyFailures = [];
+    sankeyCompleted = 0;
+    isSankeyLoading = false;
     productController?.abort();
     detailController?.abort();
     detailRequestId += 1;
@@ -91,11 +198,7 @@ export function useRelayData() {
     detailController = controller;
     isDetailLoading = true;
     try {
-      const result = await fetchRelayPrefectureDetail(
-        key,
-        code,
-        controller.signal,
-      );
+      const result = await getDetail(key, code, controller.signal);
       if (
         !disposed &&
         currentRequest === detailRequestId &&
@@ -171,6 +274,7 @@ export function useRelayData() {
     return () => {
       disposed = true;
       initialController.abort();
+      sankeyController?.abort();
       productController?.abort();
       detailController?.abort();
       detailRequestId += 1;
@@ -179,6 +283,25 @@ export function useRelayData() {
   });
 
   return {
+    openSankey,
+    closeSankey() {
+      sankeyOpen = false;
+    },
+    get sankeyOpen() {
+      return sankeyOpen;
+    },
+    get sankeyDetails() {
+      return sankeyDetails;
+    },
+    get sankeyFailures() {
+      return sankeyFailures;
+    },
+    get sankeyCompleted() {
+      return sankeyCompleted;
+    },
+    get isSankeyLoading() {
+      return isSankeyLoading;
+    },
     get aggregation() {
       return aggregation;
     },
