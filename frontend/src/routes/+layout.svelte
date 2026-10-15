@@ -1,9 +1,13 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import CcIcon from "#lib/CcIcon.svelte";
   import CcZeroIcon from "#lib/CcZeroIcon.svelte";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
 
   let { children } = $props();
+  const isRelay = $derived(
+    page.url.pathname.includes("/vegetable_production_relay"),
+  );
 </script>
 
 <svelte:head>
@@ -14,25 +18,29 @@
   />
 </svelte:head>
 
-<nav class="site-nav">
-  <a href={`${VITE_ROOT_PATH}/`}>Home</a>
-</nav>
+{#if !isRelay}
+  <nav class="site-nav">
+    <a href={`${VITE_ROOT_PATH}/`}>Home</a>
+  </nav>
+{/if}
 
 <div id="svelte-main">
   {@render children()}
 </div>
 
-<footer class="site-footer">
-  <a
-    class="cc-icons"
-    href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
-    target="_blank"
-    rel="noreferrer"
-  >
-    <CcIcon size="2rem" />
-    <CcZeroIcon size="2rem" />
-  </a>
-</footer>
+{#if !isRelay}
+  <footer class="site-footer">
+    <a
+      class="cc-icons"
+      href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
+      target="_blank"
+      rel="noreferrer"
+    >
+      <CcIcon size="2rem" />
+      <CcZeroIcon size="2rem" />
+    </a>
+  </footer>
+{/if}
 
 <style>
   .site-nav {
