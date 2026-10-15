@@ -1,4 +1,7 @@
 <script lang="ts">
+  import CcIcon from "#lib/CcIcon.svelte";
+  import CcZeroIcon from "#lib/CcZeroIcon.svelte";
+  import { VITE_ROOT_PATH } from "#lib/paths.js";
   import type { PrefectureMonth } from "./constants/types";
   import VegetableSankey from "./VegetableSankey.svelte";
   import { aggregateSankey } from "./utils/aggregateSankey";
@@ -122,267 +125,403 @@
       <div>
         <h1>野菜の産地リレー</h1>
       </div>
+      <a class="home-link" href={`${VITE_ROOT_PATH}/`}>Home</a>
     </header>
 
-    {#if dataError}
+    {#if aggregation}
+      <div class="workspace">
+        <section class="map-column" aria-label="出荷数量マップ">
+          {#if dataError}
+            <p class="error" role="alert">{dataError}</p>
+          {:else if relayData.isLoading}
+            <p class="map-loading" role="status">データを読み込んでいます…</p>
+          {/if}
+          <div class="map-view">
+            <div class="map-heading">
+              <div>
+                <h2>
+                  {selectedProductLabel} · {displayMonth(
+                    selectedMonth,
+                  )}の出荷数量
+                </h2>
+                <p>円の面積は報告値の合計に比例します</p>
+              </div>
+            </div>
+            {#if mapError}
+              <p class="error" role="alert">{mapError}</p>
+            {:else if !geojson}
+              <p class="map-loading" role="status">地図を読み込んでいます…</p>
+            {:else}
+              <RelayMap
+                {geojson}
+                {observations}
+                sourceUnit={yearData?.source_unit ?? null}
+                {scale}
+                onSelect={selectPrefecture}
+                --relay-map-height="100%"
+                --relay-map-min-height="0"
+                --relay-map-radius="0"
+              />
+            {/if}
+          </div>
+        </section>
+        <section class="details-column" aria-label="詳細情報">
+          <section
+            class="controls ui-panel ui-panel--subtle"
+            aria-label="表示設定"
+          >
+            <label class="vegetable-control">
+              野菜
+              <select
+                value={relayData.selectedProduct}
+                onchange={(event) =>
+                  relayData.selectProduct(event.currentTarget.value)}
+                disabled={relayData.products.length < 2 || relayData.isLoading}
+              >
+                {#each relayData.products as product (product.key)}
+                  <option value={product.key}>{product.label}</option>
+                {/each}
+              </select>
+            </label>
+            <div class="scale-control">
+              <span class="control-label">円の大きさ</span>
+              <button
+                class="step-button scale-smaller"
+                aria-label="円を小さく"
+                onclick={() => adjustScale(-1)}
+                disabled={scale <= 1}>−</button
+              >
+              <input
+                aria-label="円のスケール"
+                type="number"
+                min="1"
+                step="1"
+                bind:value={scale}
+                onblur={() => (scale = Math.max(1, Number(scale) || 5))}
+              />
+              <button
+                class="step-button scale-larger"
+                aria-label="円を大きく"
+                onclick={() => adjustScale(1)}>＋</button
+              >
+            </div>
+            <div class="month-control">
+              <button
+                class="step-button month-previous"
+                aria-label="前月"
+                onclick={() => changeMonth(monthIndex - 1)}
+                disabled={monthIndex <= 0}>‹</button
+              >
+              <input
+                aria-label="年月"
+                type="range"
+                min="0"
+                max={Math.max(0, months.length - 1)}
+                value={Math.max(0, monthIndex)}
+                oninput={(event) =>
+                  changeMonth(Number(event.currentTarget.value))}
+                disabled={months.length < 2}
+              />
+              <button
+                class="step-button month-next"
+                aria-label="次月"
+                onclick={() => changeMonth(monthIndex + 1)}
+                disabled={monthIndex < 0 || monthIndex >= months.length - 1}
+                >›</button
+              >
+              <strong>{displayMonth(selectedMonth)}</strong>
+            </div>
+          </section>
+
+          <section
+            class="selection-panel ui-panel"
+            aria-label="選択した出荷元の詳細"
+          >
+            <div class="selection-heading">
+              <div>
+                <p class="eyebrow">
+                  {displayMonth(selectedMonth)} · 報告値合計
+                </p>
+                <h2>{selectedPrefecture || "産地を選択"}</h2>
+                <strong class="total">{valueLabel(selectedObservation)}</strong>
+              </div>
+            </div>
+            <!-- here -->
+            {#if selectedObservation}
+              <p class="detail-note">
+                合計しているのは、主要消費地域9区分のうち数値が報告された区分です。
+                {#if excludedCategoryCounts.length > 0}
+                  合計対象外の区分数：
+                  {#each excludedCategoryCounts as category, index (category.label)}
+                    {#if index > 0}、{/if}{category.label}（{category.count}区分）
+                  {/each}。
+                {/if}
+              </p>
+              <!-- here -->
+              {#if relayData.isDetailLoading}
+                <p role="status" class="detail-note">内訳を読み込んでいます…</p>
+              {:else if relayData.detailError}
+                <p class="error" role="alert">
+                  {relayData.detailError.message}
+                </p>
+                <button type="button" onclick={retryDetail}
+                  >内訳を再読み込み</button
+                >
+              {:else if !detailRows}
+                <p class="detail-note">
+                  地図で都道府県を選ぶと、消費地域別の内訳を表示します。
+                </p>
+              {:else}
+                <ul class="contributions">
+                  {#each detailRows as cell (cell.consumer_region_code)}
+                    <li>
+                      <span class="region-name"
+                        >{cell.consumer_region_name}</span
+                      >
+                      <strong
+                        >{#if cell.value_kind === "reported"}{formatValue(
+                            cell.raw_value,
+                          )}{:else if cell.value_kind === "below_display_unit"}0 <small
+                            >表示単位未満</small
+                          >{:else if cell.value_kind === "unknown_or_uncollected"}…
+                          <small>不詳・調査なし</small>{:else}— <small
+                            >該当なし</small
+                          >{/if}</strong
+                      >
+                    </li>
+                  {/each}
+                </ul>
+              {/if}
+            {:else if selectedPrefecture}
+              <p class="detail-note">この出荷元のデータはありません。</p>
+            {:else}
+              <p class="detail-note">
+                地図で都道府県を選ぶと、報告値と消費地域別の内訳を表示します。
+              </p>
+            {/if}
+          </section>
+
+          <section
+            class="sankey-panel ui-panel"
+            aria-label="産地と消費地域の Sankey 図"
+          >
+            {#if !relayData.sankeyOpen}
+              <button
+                type="button"
+                onclick={() => relayData.openSankey()}
+                aria-expanded="false"
+                aria-controls="relay-sankey">Sankey を表示</button
+              >
+            {:else}
+              <h2>
+                {selectedProductLabel} · {displayMonth(
+                  selectedMonth,
+                )}の産地都道府県別の卸売数量
+              </h2>
+              <button
+                type="button"
+                onclick={() => relayData.closeSankey()}
+                aria-expanded="true"
+                aria-controls="relay-sankey">Sankey を閉じる</button
+              >
+              <div id="relay-sankey" aria-busy={relayData.isSankeyLoading}>
+                {#if relayData.isSankeyLoading}
+                  <p role="status">
+                    産地内訳を読み込んでいます…（{relayData.sankeyCompleted} / 47
+                    都道府県）
+                  </p>
+                {:else if relayData.sankeyFailures.length}
+                  <p class="error" role="alert">
+                    データを取得できませんでした（{relayData.sankeyFailures
+                      .length} 都道府県）。再度お試しください。
+                  </p>
+                  <button type="button" onclick={() => relayData.openSankey()}
+                    >失敗したデータを再取得</button
+                  >
+                {:else if sankeyData}
+                  <VegetableSankey data={sankeyData} />
+                {/if}
+              </div>
+            {/if}
+          </section>
+
+          <section class="notes">
+            <h2>備考</h2>
+            <p>
+              都道府県または円をクリック・タップすると、詳細パネルにその産地の報告値と内訳を表示します。
+              地図上のスクロールで拡大・縮小できます。円の大きさは＋／−ボタンで調整できます。
+            </p>
+            <p>
+              報告値合計は、産地都道府県ごとに、主要消費地域9区分のうち数値が報告された区分だけを合計したものです。
+              表示単位未満、該当なし、不詳・調査なしの区分は含めていません。農業生産量や全国計を示す値ではありません。
+            </p>
+            <p>
+              令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
+            </p>
+          </section>
+
+          <section class="reference ui-panel ui-panel--subtle">
+            <h2>出典情報等</h2>
+            <table class="reference-table ui-table">
+              <tbody>
+                <tr>
+                  <th>統計表ID</th>
+                  <td>
+                    {#if yearData}
+                      <div>{yearData.table_id}</div>
+                      <div>
+                        <a
+                          href={`https://www.e-stat.go.jp/dbview?sid=${yearData.table_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          >https://www.e-stat.go.jp/dbview?sid={yearData.table_id}</a
+                        >
+                      </div>
+                    {/if}
+                  </td>
+                </tr>
+                <tr>
+                  <th>地図データ</th>
+                  <td>
+                    <div>
+                      国土交通省「国土数値情報 行政区域データ（N03）」2026年版（<a
+                        href="https://creativecommons.org/licenses/by/4.0/deed.ja"
+                        target="_blank"
+                        rel="noopener noreferrer">CC BY 4.0</a
+                      >）
+                    </div>
+                    <div>
+                      <a
+                        href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html</a
+                      >
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <a
+              class="cc-icons"
+              href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="CC0"
+            >
+              <CcIcon size="2rem" />
+              <CcZeroIcon size="2rem" />
+            </a>
+          </section>
+        </section>
+      </div>
+    {:else if dataError}
       <p class="error" role="alert">{dataError}</p>
     {:else if relayData.isLoading}
       <p class="map-loading" role="status">データを読み込んでいます…</p>
-    {/if}
-    {#if aggregation}
-      <section class="controls ui-panel ui-panel--subtle" aria-label="表示設定">
-        <label class="vegetable-control">
-          野菜
-          <select
-            value={relayData.selectedProduct}
-            onchange={(event) =>
-              relayData.selectProduct(event.currentTarget.value)}
-            disabled={relayData.products.length < 2 || relayData.isLoading}
-          >
-            {#each relayData.products as product (product.key)}
-              <option value={product.key}>{product.label}</option>
-            {/each}
-          </select>
-        </label>
-        <div class="scale-control">
-          <span class="control-label">円の大きさ</span>
-          <button
-            class="step-button scale-smaller"
-            aria-label="円を小さく"
-            onclick={() => adjustScale(-1)}
-            disabled={scale <= 1}>−</button
-          >
-          <input
-            aria-label="円のスケール"
-            type="number"
-            min="1"
-            step="1"
-            bind:value={scale}
-            onblur={() => (scale = Math.max(1, Number(scale) || 5))}
-          />
-          <button
-            class="step-button scale-larger"
-            aria-label="円を大きく"
-            onclick={() => adjustScale(1)}>＋</button
-          >
-        </div>
-      </section>
-
-      <div class="map-heading">
-        <div>
-          <h2>
-            {selectedProductLabel} · {displayMonth(selectedMonth)}の出荷数量
-          </h2>
-          <p>円の面積は報告値の合計に比例します</p>
-        </div>
-      </div>
-      <div class="month-control">
-        <button
-          class="step-button month-previous"
-          aria-label="前月"
-          onclick={() => changeMonth(monthIndex - 1)}
-          disabled={monthIndex <= 0}>‹</button
-        >
-        <input
-          aria-label="年月"
-          type="range"
-          min="0"
-          max={Math.max(0, months.length - 1)}
-          value={Math.max(0, monthIndex)}
-          oninput={(event) => changeMonth(Number(event.currentTarget.value))}
-          disabled={months.length < 2}
-        />
-        <button
-          class="step-button month-next"
-          aria-label="次月"
-          onclick={() => changeMonth(monthIndex + 1)}
-          disabled={monthIndex < 0 || monthIndex >= months.length - 1}>›</button
-        >
-        <strong>{displayMonth(selectedMonth)}</strong>
-      </div>
-      {#if mapError}
-        <p class="error" role="alert">{mapError}</p>
-      {:else if !geojson}
-        <p class="map-loading" role="status">地図を読み込んでいます…</p>
-      {:else}
-        <RelayMap
-          {geojson}
-          {observations}
-          sourceUnit={yearData?.source_unit ?? null}
-          {scale}
-          onSelect={selectPrefecture}
-        />
-      {/if}
-
-      <section
-        class="selection-panel ui-panel"
-        aria-label="選択した出荷元の詳細"
-      >
-        <div class="selection-heading">
-          <div>
-            <p class="eyebrow">{displayMonth(selectedMonth)} · 報告値合計</p>
-            <h2>{selectedPrefecture || "産地を選択"}</h2>
-            <strong class="total">{valueLabel(selectedObservation)}</strong>
-          </div>
-        </div>
-        <!-- here -->
-        {#if selectedObservation}
-          <p class="detail-note">
-            合計しているのは、主要消費地域9区分のうち数値が報告された区分です。
-            {#if excludedCategoryCounts.length > 0}
-              合計対象外の区分数：
-              {#each excludedCategoryCounts as category, index (category.label)}
-                {#if index > 0}、{/if}{category.label}（{category.count}区分）
-              {/each}。
-            {/if}
-          </p>
-          <!-- here -->
-          {#if relayData.isDetailLoading}
-            <p role="status" class="detail-note">内訳を読み込んでいます…</p>
-          {:else if relayData.detailError}
-            <p class="error" role="alert">{relayData.detailError.message}</p>
-            <button type="button" onclick={retryDetail}>内訳を再読み込み</button
-            >
-          {:else if !detailRows}
-            <p class="detail-note">
-              地図で都道府県を選ぶと、消費地域別の内訳を表示します。
-            </p>
-          {:else}
-            <ul class="contributions">
-              {#each detailRows as cell (cell.consumer_region_code)}
-                <li>
-                  <span class="region-name">{cell.consumer_region_name}</span>
-                  <strong
-                    >{#if cell.value_kind === "reported"}{formatValue(
-                        cell.raw_value,
-                      )}{:else if cell.value_kind === "below_display_unit"}0 <small
-                        >表示単位未満</small
-                      >{:else if cell.value_kind === "unknown_or_uncollected"}… <small
-                        >不詳・調査なし</small
-                      >{:else}— <small>該当なし</small>{/if}</strong
-                  >
-                </li>
-              {/each}
-            </ul>
-          {/if}
-        {:else if selectedPrefecture}
-          <p class="detail-note">この出荷元のデータはありません。</p>
-        {:else}
-          <p class="detail-note">
-            地図で都道府県を選ぶと、報告値と消費地域別の内訳を表示します。
-          </p>
-        {/if}
-      </section>
-
-      <section
-        class="sankey-panel ui-panel"
-        aria-label="産地と消費地域の Sankey 図"
-      >
-        {#if !relayData.sankeyOpen}
-          <button
-            type="button"
-            onclick={() => relayData.openSankey()}
-            aria-expanded="false"
-            aria-controls="relay-sankey">Sankey を表示</button
-          >
-        {:else}
-          <h2>
-            {selectedProductLabel} · {displayMonth(
-              selectedMonth,
-            )}の産地都道府県別の卸売数量
-          </h2>
-          <button
-            type="button"
-            onclick={() => relayData.closeSankey()}
-            aria-expanded="true"
-            aria-controls="relay-sankey">Sankey を閉じる</button
-          >
-          <div id="relay-sankey" aria-busy={relayData.isSankeyLoading}>
-            {#if relayData.isSankeyLoading}
-              <p role="status">
-                産地内訳を読み込んでいます…（{relayData.sankeyCompleted} / 47 都道府県）
-              </p>
-            {:else if relayData.sankeyFailures.length}
-              <p class="error" role="alert">
-                データを取得できませんでした（{relayData.sankeyFailures.length} 都道府県）。再度お試しください。
-              </p>
-              <button type="button" onclick={() => relayData.openSankey()}
-                >失敗したデータを再取得</button
-              >
-            {:else if sankeyData}
-              <VegetableSankey data={sankeyData} />
-            {/if}
-          </div>
-        {/if}
-      </section>
-
-      <section class="notes">
-        <h2>備考</h2>
-        <p>
-          都道府県または円をクリック・タップすると、地図下にその産地の報告値と内訳を表示します。
-          地図上のスクロールで拡大・縮小できます。円の大きさは＋／−ボタンで調整できます。
-        </p>
-        <p>
-          報告値合計は、産地都道府県ごとに、主要消費地域9区分のうち数値が報告された区分だけを合計したものです。
-          表示単位未満、該当なし、不詳・調査なしの区分は含めていません。農業生産量や全国計を示す値ではありません。
-        </p>
-        <p>
-          令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
-        </p>
-      </section>
-
-      <section class="reference ui-panel ui-panel--subtle">
-        <h2>出典情報等</h2>
-        <table class="reference-table ui-table">
-          <tbody>
-            <tr>
-              <th>統計表ID</th>
-              <td>
-                {#if yearData}
-                  <div>{yearData.table_id}</div>
-                  <div>
-                    <a
-                      href={`https://www.e-stat.go.jp/dbview?sid=${yearData.table_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      >https://www.e-stat.go.jp/dbview?sid={yearData.table_id}</a
-                    >
-                  </div>
-                {/if}
-              </td>
-            </tr>
-            <tr>
-              <th>地図データ</th>
-              <td>
-                <div>
-                  国土交通省「国土数値情報 行政区域データ（N03）」2026年版（<a
-                    href="https://creativecommons.org/licenses/by/4.0/deed.ja"
-                    target="_blank"
-                    rel="noopener noreferrer">CC BY 4.0</a
-                  >）
-                </div>
-                <div>
-                  <a
-                    href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html</a
-                  >
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
     {/if}
   </main>
 </div>
 
 <style>
+  .cc-icons {
+    display: flex;
+    justify-content: end;
+    gap: var(--space-1);
+    margin-top: var(--space-4);
+    color: inherit;
+    opacity: 0.5;
+  }
+  .cc-icons:hover {
+    opacity: 1;
+  }
   .page-shell {
+    font-family: system-ui, sans-serif;
     --control-size: var(--control-height);
     --scale-value-width: 4rem;
+    height: 100dvh;
+    min-height: 0;
   }
+  .page-content {
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .workspace {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(24rem, 1fr);
+    gap: 0;
+    overflow: hidden;
+  }
+  .map-column,
+  .details-column {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .map-column {
+    position: relative;
+    overflow: hidden;
+  }
+  .map-view {
+    height: 100%;
+    position: relative;
+  }
+  .details-column {
+    border-left: var(--border-default);
+  }
+  .page-heading {
+    padding: var(--space-4) var(--space-6);
+    border-bottom: var(--border-default);
+  }
+  .page-heading h1 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .home-link {
+    font-size: 0.8rem;
+    color: inherit;
+  }
+  .map-heading {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+    right: var(--space-4);
+    z-index: 500;
+    width: fit-content;
+    max-width: calc(100% - 2rem);
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface-color);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    pointer-events: none;
+  }
+  .map-heading h2 {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+  .map-heading p {
+    margin: var(--space-1) 0 0;
+    font-size: 0.75rem;
+    color: #667085;
+  }
+  .details-column > section {
+    margin: 0;
+    padding: var(--space-4) var(--space-6);
+    border: 0;
+    border-bottom: var(--border-default);
+    border-radius: 0;
+  }
+  .details-column h2 {
+    font-size: 1rem;
+  }
+
   .page-heading,
   .controls,
   .map-heading {
@@ -393,11 +532,13 @@
   .page-heading,
   .map-heading {
     justify-content: space-between;
-    margin-bottom: var(--space-4);
+    margin-bottom: 0;
   }
   .controls {
-    width: fit-content;
+    background: #f8f9fa;
+    width: auto;
     max-width: 100%;
+    flex-wrap: wrap;
     flex-direction: row;
     align-items: center;
     gap: var(--space-6);
@@ -500,7 +641,7 @@
   }
   .contributions {
     display: grid;
-    grid-template-columns: repeat(9, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-2);
     margin: 0;
     padding: 0;
@@ -529,7 +670,38 @@
   .reference-table a {
     word-break: break-all;
   }
-  @media (max-width: 700px) {
+  @media (max-width: 800px) {
+    .page-shell {
+      height: auto;
+    }
+    .page-content {
+      height: auto;
+      min-height: 0;
+      display: block;
+    }
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+    }
+    .map-column {
+      height: 56dvh;
+      min-height: 340px;
+    }
+    .details-column {
+      overflow: visible;
+      border-left: 0;
+    }
+    .page-heading {
+      padding: var(--space-3) var(--space-4);
+    }
+    .page-heading h1 {
+      font-size: 1.1rem;
+    }
+    .details-column > section {
+      padding: var(--space-4);
+    }
+
     .controls {
       width: auto;
       max-width: none;

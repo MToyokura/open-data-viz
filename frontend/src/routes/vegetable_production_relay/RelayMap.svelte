@@ -112,18 +112,21 @@
 
   onMount(() => {
     let cancelled = false;
+    const resizeObserver = new ResizeObserver(() => map?.invalidateSize());
+    resizeObserver.observe(host);
     void (async () => {
       const L = await import("leaflet");
       await import("leaflet/dist/leaflet.css");
       if (cancelled || !host.isConnected) return;
       leaflet = L;
       map = L.map(host, {
-        zoomControl: true,
+        zoomControl: false,
         attributionControl: true,
         zoomSnap: 0.5,
         scrollWheelZoom: true,
         wheelPxPerZoomLevel: 240,
       });
+      L.control.zoom({ position: "bottomright" }).addTo(map);
       map.attributionControl.setPrefix("Leaflet");
       map.attributionControl.addAttribution(
         '<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html" target="_blank" rel="noreferrer">国土交通省「国土数値情報 行政区域データ（N03）」2026年版</a>',
@@ -134,6 +137,7 @@
     })();
     return () => {
       cancelled = true;
+      resizeObserver.disconnect();
       mapReady = false;
       mapColors = undefined;
       for (const frame of markerAnimations.values()) {
@@ -333,16 +337,17 @@
 
 <style>
   .map {
-    height: min(68vh, 680px);
-    min-height: 400px;
+    box-sizing: border-box;
+    height: var(--relay-map-height, min(68vh, 680px));
+    min-height: var(--relay-map-min-height, 400px);
     border: var(--border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--relay-map-radius, var(--radius-md));
     background: var(--map-surface-color);
   }
   @media (max-width: 600px) {
     .map {
-      height: 55vh;
-      min-height: 360px;
+      height: var(--relay-map-height, 55vh);
+      min-height: var(--relay-map-min-height, 360px);
     }
   }
 </style>
