@@ -1,9 +1,11 @@
 import { describe, expect, test } from "vitest";
-import type { CommodityPrices } from "../../constants/types";
-import type { EChartsOption } from "echarts";
-import { transformData } from "../transformData";
+import { transformData } from "../transformData.js";
 
-function returnMockedData(): CommodityPrices[] {
+/** @typedef {import("../../constants/types.js").CommodityPrices} CommodityPrices */
+/** @typedef {import("echarts").EChartsOption} EChartsOption */
+
+/** @returns {CommodityPrices[]} */
+function returnMockedData() {
   return [
     {
       cat02_code: "01001",
@@ -36,15 +38,18 @@ function returnMockedData(): CommodityPrices[] {
   ];
 }
 
-function getLabels(option: EChartsOption): string[] {
-  return (option.xAxis as unknown as { data: string[] }).data;
+/** @param {EChartsOption} option */
+function getLabels(option) {
+  return /** @type {{ data: string[] }} */ (
+    /** @type {unknown} */ (option.xAxis)
+  ).data;
 }
 
-function getSeries(option: EChartsOption) {
-  return option.series as unknown as {
-    name: string;
-    data: (number | null)[];
-  }[];
+/** @param {EChartsOption} option */
+function getSeries(option) {
+  return /** @type {{ name: string, data: (number | null)[] }[]} */ (
+    /** @type {unknown} */ (option.series)
+  );
 }
 
 describe("transformData", () => {
@@ -149,9 +154,7 @@ describe("transformData", () => {
 
     // Check that the date format is YYYY-MM
     expect(
-      ((getLabels(result) ?? []) as string[]).every((label) =>
-        /^\d{4}-\d{2}$/.test(label),
-      ),
+      (getLabels(result) ?? []).every((label) => /^\d{4}-\d{2}$/.test(label)),
     ).toBe(true);
 
     // Check specific examples

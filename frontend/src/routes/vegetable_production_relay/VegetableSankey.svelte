@@ -1,25 +1,28 @@
-<script lang="ts">
+<script>
   import { format } from "d3";
-  import { sankey, sankeyLinkHorizontal, type SankeyNode } from "d3-sankey";
-  import type { RelaySankeyData, RelaySankeyNode } from "./constants/types";
-  let { data }: { data: RelaySankeyData } = $props();
+  import { sankey, sankeyLinkHorizontal } from "d3-sankey";
+  /** @typedef {import("./constants/types.js").RelaySankeyData} RelaySankeyData */
+  /** @typedef {import("./constants/types.js").RelaySankeyNode} RelaySankeyNode */
+  /** @typedef {import("./constants/types.js").RelaySankeyLink} RelaySankeyLink */
+  /** @typedef {import("d3-sankey").SankeyNode<RelaySankeyNode, {value: number}>} SankeyNode */
+  /** @type {{data: RelaySankeyData}} */
+  let { data } = $props();
   let containerWidth = $state(800);
   let width = $derived(Math.max(640, containerWidth));
   const height = 1600;
   const quantity = format(",.6~f");
-  let tooltip = $state.raw<
-    { label: string; x: number; y: number; data: RelaySankeyData } | undefined
-  >();
+  /** @type {{label: string, x: number, y: number, data: RelaySankeyData} | undefined} */
+  let tooltip = $state.raw();
   let tooltipWidth = $state(320);
   let tooltipHeight = $state(90);
   const tooltipId = $props.id();
   let visibleTooltip = $derived(tooltip?.data === data ? tooltip : undefined);
 
-  function showTooltip(
-    event: PointerEvent | MouseEvent | FocusEvent | KeyboardEvent,
-    label: string,
-  ) {
-    const bounds = (event.currentTarget as SVGElement).getBoundingClientRect();
+  /** @param {PointerEvent | MouseEvent | FocusEvent | KeyboardEvent} event @param {string} label */
+  function showTooltip(event, label) {
+    const bounds = /** @type {SVGElement} */ (
+      event.currentTarget
+    ).getBoundingClientRect();
     const pointer =
       "clientX" in event && (event.clientX !== 0 || event.clientY !== 0);
     const x = pointer ? event.clientX : bounds.left + bounds.width / 2;
@@ -39,7 +42,8 @@
   function hideTooltip() {
     tooltip = undefined;
   }
-  function tooltipKeydown(event: KeyboardEvent, label: string) {
+  /** @param {KeyboardEvent} event @param {string} label */
+  function tooltipKeydown(event, label) {
     if (event.key === "Escape") hideTooltip();
     else if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -48,7 +52,11 @@
   }
   let graph = $derived.by(() => {
     if (!data.links.length) return undefined;
-    return sankey<RelaySankeyNode, { value: number }>()
+    const layout =
+      /** @type {import("d3-sankey").SankeyLayout<{nodes: RelaySankeyNode[], links: RelaySankeyLink[]}, RelaySankeyNode, {value: number}>} */ (
+        /** @type {unknown} */ (sankey())
+      );
+    return layout
       .nodeId((node) => node.id)
       .nodeAlign((node) => (node.side === "source" ? 0 : 1))
       .nodeSort((a, b) => a.order - b.order)
@@ -62,9 +70,14 @@
       links: data.links.map((link) => ({ ...link })),
     });
   });
-  const path = sankeyLinkHorizontal<RelaySankeyNode, { value: number }>();
-  function nodeLabel(node: SankeyNode<RelaySankeyNode, { value: number }>) {
+  const path = sankeyLinkHorizontal();
+  /** @param {SankeyNode} node */
+  function nodeLabel(node) {
     return `${node.side === "source" ? "産地" : "消費地域"}：${node.name}、産地都道府県別の卸売数量 ${quantity(node.value ?? 0)} t`;
+  }
+  /** @param {unknown} node */
+  function asSankeyNode(node) {
+    return /** @type {SankeyNode} */ (node);
   }
 </script>
 
@@ -113,13 +126,9 @@
       >
         <text x="110" y="18">産地都道府県</text>
         <text x={width - 110} y="18" text-anchor="end">主要消費地域</text>
-        {#each graph.links as link (`${(link.source as RelaySankeyNode).id}:${(link.target as RelaySankeyNode).id}`)}
-          {const source = $derived(
-            link.source as SankeyNode<RelaySankeyNode, { value: number }>,
-          )}
-          {const target = $derived(
-            link.target as SankeyNode<RelaySankeyNode, { value: number }>,
-          )}
+        {#each graph.links as link (`${asSankeyNode(link.source).id}:${asSankeyNode(link.target).id}`)}
+          {const source = $derived(asSankeyNode(link.source))}
+          {const target = $derived(asSankeyNode(link.target))}
           {const label = $derived(
             `産地：${source.name} → 消費地域：${target.name}、産地都道府県別の卸売数量 ${quantity(link.value)} t`,
           )}

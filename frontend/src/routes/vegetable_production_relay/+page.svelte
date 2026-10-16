@@ -1,12 +1,12 @@
-<script lang="ts">
+<script>
   import CcIcon from "#lib/CcIcon.svelte";
   import CcZeroIcon from "#lib/CcZeroIcon.svelte";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
-  import type { PrefectureMonth } from "./constants/types";
+  /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import VegetableSankey from "./VegetableSankey.svelte";
-  import { aggregateSankey } from "./utils/aggregateSankey";
+  import { aggregateSankey } from "./utils/aggregateSankey.js";
   import RelayMap from "./RelayMap.svelte";
-  import { useRelayData } from "./utils/useRelayData.svelte";
+  import { useRelayData } from "./utils/useRelayData.svelte.js";
 
   const relayData = useRelayData();
   let aggregation = $derived(relayData.aggregation);
@@ -78,10 +78,12 @@
       ?.contributions;
   });
 
-  function changeMonth(index: number) {
+  /** @param {number} index */
+  function changeMonth(index) {
     if (index >= 0 && index < months.length) selectedMonth = months[index];
   }
-  function selectPrefecture(name: string) {
+  /** @param {string} name */
+  function selectPrefecture(name) {
     selectedPrefecture = name;
     const code = observations[name]?.consignor_prefecture_code;
     if (code) void relayData.selectPrefectureDetail(code);
@@ -91,16 +93,19 @@
     const code = selectedObservation?.consignor_prefecture_code;
     if (code) void relayData.selectPrefectureDetail(code);
   }
-  function adjustScale(amount: number) {
+  /** @param {number} amount */
+  function adjustScale(amount) {
     scale = Math.max(1, Number((scale + amount).toFixed(1)));
   }
   const quantityFormatter = new Intl.NumberFormat("ja-JP", {
     maximumFractionDigits: 2,
   });
-  function formatValue(value: string) {
+  /** @param {string} value */
+  function formatValue(value) {
     return quantityFormatter.format(Number(value));
   }
-  function valueLabel(row: PrefectureMonth | undefined) {
+  /** @param {PrefectureMonth | undefined} row */
+  function valueLabel(row) {
     if (!row) return "値なし";
     if (row.reported_cells === 0) {
       return row.below_display_unit_cells > 0
@@ -109,7 +114,8 @@
     }
     return `${formatValue(row.reported_value_sum)} ${row.source_unit}`;
   }
-  const displayMonth = (month: string) => {
+  /** @param {string} month */
+  const displayMonth = (month) => {
     const [year, number] = month.split("-");
     return `${year}年 ${Number(number)}月`;
   };

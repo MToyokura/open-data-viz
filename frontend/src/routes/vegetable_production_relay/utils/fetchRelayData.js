@@ -1,21 +1,17 @@
-import { CONSUMER_REGIONS } from "./aggregateSankey";
+import { CONSUMER_REGIONS } from "./aggregateSankey.js";
 import {
   PREFECTURE_GEOJSON_DATA_PATH,
   VEGETABLE_PRODUCT_INDEX_PATH,
   VEGETABLE_PRODUCTION_RELAY_DATA_PATH,
-} from "../constants/constants";
-import type {
-  AggregationData,
-  GeoCollection,
-  PrefectureDetail,
-  RelayProductIndex,
-} from "../constants/types";
+} from "../constants/constants.js";
 
-async function fetchJson<T>(
-  path: string,
-  label: string,
-  signal?: AbortSignal,
-): Promise<T> {
+/** @typedef {import("../constants/types.js").AggregationData} AggregationData */
+/** @typedef {import("../constants/types.js").GeoCollection} GeoCollection */
+/** @typedef {import("../constants/types.js").PrefectureDetail} PrefectureDetail */
+/** @typedef {import("../constants/types.js").RelayProductIndex} RelayProductIndex */
+
+/** @template T @param {string} path @param {string} label @param {AbortSignal} [signal] @returns {Promise<T>} */
+async function fetchJson(path, label, signal) {
   const response = await fetch(path, { signal });
 
   if (!response.ok) {
@@ -25,29 +21,26 @@ async function fetchJson<T>(
   return response.json();
 }
 
-export function fetchRelayProductIndex(
-  signal?: AbortSignal,
-): Promise<RelayProductIndex> {
-  return fetchJson<RelayProductIndex>(
-    VEGETABLE_PRODUCT_INDEX_PATH,
-    "品目一覧",
-    signal,
+/** @param {AbortSignal} [signal] @returns {Promise<RelayProductIndex>} */
+export function fetchRelayProductIndex(signal) {
+  return /** @type {Promise<RelayProductIndex>} */ (
+    fetchJson(VEGETABLE_PRODUCT_INDEX_PATH, "品目一覧", signal)
   );
 }
 
-export function fetchRelayAggregation(
-  key: string,
-  signal?: AbortSignal,
-): Promise<AggregationData> {
-  // here
+/** @param {string} key @param {AbortSignal} [signal] @returns {Promise<AggregationData>} */
+export function fetchRelayAggregation(key, signal) {
   if (!/^[a-z0-9_-]+$/.test(key)) {
     return Promise.reject(new Error("品目の指定が正しくありません"));
   }
-  return fetchJson<AggregationData>(
-    `${VEGETABLE_PRODUCTION_RELAY_DATA_PATH}/${key}.summary.json`,
-    "データ",
-    signal,
-  ).then((result) => {
+  const request = /** @type {Promise<AggregationData>} */ (
+    fetchJson(
+      `${VEGETABLE_PRODUCTION_RELAY_DATA_PATH}/${key}.summary.json`,
+      "データ",
+      signal,
+    )
+  );
+  return request.then((result) => {
     if (result.schema_version !== 2 || result.commodity !== key) {
       throw new Error("品目データの形式が正しくありません");
     }
@@ -55,12 +48,8 @@ export function fetchRelayAggregation(
   });
 }
 
-// here
-export function fetchRelayPrefectureDetail(
-  key: string,
-  code: string,
-  signal?: AbortSignal,
-): Promise<PrefectureDetail> {
+/** @param {string} key @param {string} code @param {AbortSignal} [signal] @returns {Promise<PrefectureDetail>} */
+export function fetchRelayPrefectureDetail(key, code, signal) {
   if (
     !/^[a-z0-9_-]+$/.test(key) ||
     !/^10(?:0[2-9]|[1-3][0-9]|4[0-8])$/.test(code)
@@ -69,11 +58,14 @@ export function fetchRelayPrefectureDetail(
       new Error("品目または都道府県の指定が正しくありません"),
     );
   }
-  return fetchJson<PrefectureDetail>(
-    `${VEGETABLE_PRODUCTION_RELAY_DATA_PATH}/${key}/details/${code}.json`,
-    "産地内訳",
-    signal,
-  ).then((result) => {
+  const request = /** @type {Promise<PrefectureDetail>} */ (
+    fetchJson(
+      `${VEGETABLE_PRODUCTION_RELAY_DATA_PATH}/${key}/details/${code}.json`,
+      "産地内訳",
+      signal,
+    )
+  );
+  return request.then((result) => {
     if (
       result.schema_version !== 2 ||
       result.commodity !== key ||
@@ -91,7 +83,7 @@ export function fetchRelayPrefectureDetail(
           row.contributions.some(
             (cell) =>
               !CONSUMER_REGIONS.some(
-                ([code]) => code === cell.consumer_region_code,
+                ([regionCode]) => regionCode === cell.consumer_region_code,
               ) ||
               typeof cell.consumer_region_name !== "string" ||
               typeof cell.raw_value !== "string" ||
@@ -114,12 +106,9 @@ export function fetchRelayPrefectureDetail(
   });
 }
 
-export function fetchPrefectureGeojson(
-  signal?: AbortSignal,
-): Promise<GeoCollection> {
-  return fetchJson<GeoCollection>(
-    PREFECTURE_GEOJSON_DATA_PATH,
-    "地図データ",
-    signal,
+/** @param {AbortSignal} [signal] @returns {Promise<GeoCollection>} */
+export function fetchPrefectureGeojson(signal) {
+  return /** @type {Promise<GeoCollection>} */ (
+    fetchJson(PREFECTURE_GEOJSON_DATA_PATH, "地図データ", signal)
   );
 }

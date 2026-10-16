@@ -1,9 +1,7 @@
-<script lang="ts">
+<script>
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import Spinner from "#lib/Spinner.svelte";
-  import type { EChartsOption } from "echarts";
   import { untrack } from "svelte";
-  import type { CommodityPrices } from "./constants/types";
   import LineChart from "./LineChart.svelte";
   import Reference from "./Reference.svelte";
   import Selectors from "./Selectors.svelte";
@@ -12,16 +10,18 @@
   import { useAreaLookup } from "./utils/useAreaLookup.svelte";
   import { useCat02Lookup } from "./utils/useCat02Lookup.svelte";
 
+  /** @typedef {import("./constants/types.js").CommodityPrices} CommodityPrices */
+
   const cat02LookupResult = useCat02Lookup();
   const areaLookupResult = useAreaLookup();
 
-  let selectedCat02Code = $state<string>("");
-  let selectedAreaCode = $state<string>("");
-  let commodityPrices = $state<CommodityPrices[]>([]);
-  let autoAddEnabled = $state<boolean>(true);
-  let dataNotFound = $state<boolean>(false);
+  let selectedCat02Code = $state("");
+  let selectedAreaCode = $state("");
+  let commodityPrices = $state(/** @type {CommodityPrices[]} */ ([]));
+  let autoAddEnabled = $state(true);
+  let dataNotFound = $state(false);
 
-  let chartData = $derived<EChartsOption | null>(
+  let chartData = $derived(
     commodityPrices.length > 0 ? transformData(commodityPrices) : null,
   );
 
@@ -60,7 +60,8 @@
     dataNotFound = false;
   }
 
-  function handleRemove(dataToRemove: CommodityPrices) {
+  /** @param {CommodityPrices} dataToRemove */
+  function handleRemove(dataToRemove) {
     commodityPrices = commodityPrices.filter((item) => item !== dataToRemove);
   }
 </script>

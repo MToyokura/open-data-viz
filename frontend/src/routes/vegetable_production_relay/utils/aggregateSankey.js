@@ -1,8 +1,6 @@
-import type {
-  PrefectureDetail,
-  PrefectureMonth,
-  RelaySankeyData,
-} from "../constants/types";
+/** @typedef {import("../constants/types.js").PrefectureDetail} PrefectureDetail */
+/** @typedef {import("../constants/types.js").PrefectureMonth} PrefectureMonth */
+/** @typedef {import("../constants/types.js").RelaySankeyData} RelaySankeyData */
 
 export const CONSUMER_REGIONS = [
   ["1001", "北海道"],
@@ -14,14 +12,11 @@ export const CONSUMER_REGIONS = [
   ["1009", "中国"],
   ["1010", "四国"],
   ["1011", "九州"],
-] as const;
+];
+
 // 定義順が地域・都道府県の表示順です。沖縄は九州に含めます。
 const AGRICULTURAL_REGIONS = [
-  {
-    name: "北海道",
-    color: "#2563a0",
-    prefectures: [["1002", "北海道"]],
-  },
+  { name: "北海道", color: "#2563a0", prefectures: [["1002", "北海道"]] },
   {
     name: "東北",
     color: "#647a26",
@@ -116,9 +111,9 @@ const AGRICULTURAL_REGIONS = [
       ["1048", "沖縄"],
     ],
   },
-] as const;
+];
 
-const PREFECTURE_STYLES = new Map<string, { color: string; order: number }>(
+const PREFECTURE_STYLES = new Map(
   AGRICULTURAL_REGIONS.flatMap((region) =>
     region.prefectures.map(([code]) => ({ code, color: region.color })),
   ).map(({ code, color }, order) => [code, { color, order }]),
@@ -126,12 +121,10 @@ const PREFECTURE_STYLES = new Map<string, { color: string; order: number }>(
 
 export const PREFECTURE_CODES = [...PREFECTURE_STYLES.keys()];
 
-export function aggregateSankey(
-  details: PrefectureDetail[],
-  month: string,
-  prefectures: PrefectureMonth[],
-): RelaySankeyData {
-  const result: RelaySankeyData = {
+/** @param {PrefectureDetail[]} details @param {string} month @param {PrefectureMonth[]} prefectures @returns {RelaySankeyData} */
+export function aggregateSankey(details, month, prefectures) {
+  /** @type {RelaySankeyData} */
+  const result = {
     nodes: prefectures
       .slice()
       .sort(
@@ -161,7 +154,7 @@ export function aggregateSankey(
     ...CONSUMER_REGIONS.map(([code, name], order) => ({
       id: `r:${code}`,
       name,
-      side: "target" as const,
+      side: /** @type {"target"} */ ("target"),
       color: "#64748b",
       order,
     })),

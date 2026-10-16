@@ -1,9 +1,11 @@
 import { onMount } from "svelte";
-import { CAT02_LOOKUP_DATA_PATH } from "../constants/constants";
-import type { Cat02Lookup } from "../constants/types";
+import { CAT02_LOOKUP_DATA_PATH } from "../constants/constants.js";
+
+/** @typedef {import("../constants/types.js").Cat02Lookup} Cat02Lookup */
 
 // Fetch cat02_lookup.json
-export async function fetchCat02Lookup(): Promise<Cat02Lookup> {
+/** @returns {Promise<Cat02Lookup>} */
+export async function fetchCat02Lookup() {
   try {
     const response = await fetch(CAT02_LOOKUP_DATA_PATH);
 
@@ -11,7 +13,8 @@ export async function fetchCat02Lookup(): Promise<Cat02Lookup> {
       throw new Error(`Network response was not ok: ${response.statusText}`);
     }
 
-    const data: Cat02Lookup = await response.json();
+    /** @type {Cat02Lookup} */
+    const data = await response.json();
     return data;
   } catch (error) {
     console.error("Error fetching cat02 lookup data:", error);
@@ -20,15 +23,15 @@ export async function fetchCat02Lookup(): Promise<Cat02Lookup> {
 }
 
 export function useCat02Lookup() {
-  let cat02Lookup: Cat02Lookup | undefined = $state(undefined);
-  let isLoading: boolean = $state(true);
-  let error: Error | undefined = $state(undefined);
+  let cat02Lookup = $state(/** @type {Cat02Lookup | undefined} */ (undefined));
+  let isLoading = $state(true);
+  let error = $state(/** @type {Error | undefined} */ (undefined));
 
   onMount(async () => {
     try {
       cat02Lookup = await fetchCat02Lookup();
     } catch (e) {
-      error = e as Error;
+      error = e instanceof Error ? e : new Error(String(e));
     } finally {
       isLoading = false;
     }

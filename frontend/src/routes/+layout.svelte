@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { page } from "$app/state";
   import CcIcon from "#lib/CcIcon.svelte";
   import CcZeroIcon from "#lib/CcZeroIcon.svelte";

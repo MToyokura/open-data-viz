@@ -1,22 +1,23 @@
-import type { GeoCollection, PrefectureMonth } from "../constants/types";
+/** @typedef {import("../constants/types.js").GeoCollection} GeoCollection */
+/** @typedef {import("../constants/types.js").PrefectureMonth} PrefectureMonth */
 
-export type LatLng = [latitude: number, longitude: number];
+/** @typedef {[latitude: number, longitude: number]} LatLng */
 
 /** 北海道の名称は維持し、それ以外の都道府県名から末尾の行政区分を取り除きます。 */
-export function prefectureKey(name: string): string {
+/** @param {string} name */
+export function prefectureKey(name) {
   return name === "北海道" ? name : name.replace(/[都府県]$/, "");
 }
 
 /** 数値と単位を、単位が不明な場合の表示も含めて整形します。 */
-function formatQuantity(value: string, unit: string | null): string {
+/** @param {string} value @param {string | null} unit */
+function formatQuantity(value, unit) {
   return `${value} ${unit ?? "単位未確認"}`;
 }
 
 /** 月次観測値の状態に応じた地図表示用ラベルを作成します。 */
-export function observationLabel(
-  observation: PrefectureMonth | undefined,
-  sourceUnit: string | null,
-): string {
+/** @param {PrefectureMonth | undefined} observation @param {string | null} sourceUnit */
+export function observationLabel(observation, sourceUnit) {
   if (!observation) return "値なし";
   if (observation.reported_cells > 0) {
     const quantity = formatQuantity(observation.reported_value_sum, sourceUnit);
@@ -30,10 +31,8 @@ export function observationLabel(
   return "値なし";
 }
 
-/** 座標リングの面積と重心を計算します。 */
-function ringCentroid(
-  ring: unknown,
-): { x: number; y: number; area: number } | null {
+/** @param {unknown} ring @returns {{x: number, y: number, area: number} | null} */
+function ringCentroid(ring) {
   if (!Array.isArray(ring) || ring.length < 4) return null;
   let twiceArea = 0;
   let x = 0;
@@ -57,10 +56,8 @@ function ringCentroid(
   };
 }
 
-/** 外周と内側のリングを考慮してポリゴンの重心を計算します。 */
-function polygonCentroid(
-  polygon: unknown,
-): { x: number; y: number; area: number } | null {
+/** @param {unknown} polygon @returns {{x: number, y: number, area: number} | null} */
+function polygonCentroid(polygon) {
   if (!Array.isArray(polygon)) return null;
   let weight = 0;
   let x = 0;
@@ -77,10 +74,9 @@ function polygonCentroid(
 }
 
 /** 地物を都道府県ごとにまとめ、面積で重み付けした重心を返します。 */
-export function calculateCentroids(
-  features: GeoCollection["features"],
-): Map<string, LatLng> {
-  const totals = new Map<string, { area: number; x: number; y: number }>();
+/** @param {GeoCollection["features"]} features @returns {Map<string, LatLng>} */
+export function calculateCentroids(features) {
+  const totals = new Map();
 
   for (const feature of features) {
     const name = prefectureKey(
@@ -88,11 +84,9 @@ export function calculateCentroids(
     );
     if (!name) continue;
 
-    const geometry = feature.geometry as {
-      type: string;
-      coordinates: unknown;
-    };
-    const polygons: unknown[] =
+    /** @type {{type: string, coordinates: unknown}} */
+    const geometry = /** @type {any} */ (feature.geometry);
+    const polygons =
       geometry.type === "Polygon"
         ? [geometry.coordinates]
         : geometry.type === "MultiPolygon" &&
@@ -112,7 +106,8 @@ export function calculateCentroids(
     totals.set(name, total);
   }
 
-  const locations = new Map<string, LatLng>();
+  /** @type {Map<string, LatLng>} */
+  const locations = new Map();
   for (const [name, { area, x, y }] of totals) {
     if (area <= 0) continue;
     locations.set(name, [y / area, x / area]);
@@ -121,11 +116,12 @@ export function calculateCentroids(
 }
 
 /** 入れ子になった座標列の経度・緯度に指定したオフセットを加えます。 */
+/** @param {unknown} coordinates @param {number} longitudeOffset @param {number} latitudeOffset @returns {unknown} */
 export function translateCoordinates(
-  coordinates: unknown,
-  longitudeOffset: number,
-  latitudeOffset: number,
-): unknown {
+  coordinates,
+  longitudeOffset,
+  latitudeOffset,
+) {
   if (!Array.isArray(coordinates)) return coordinates;
   if (
     typeof coordinates[0] === "number" &&
