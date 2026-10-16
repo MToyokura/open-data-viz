@@ -145,10 +145,8 @@
 <div class="page-shell">
   <main class="page-content">
     <header class="page-heading">
-      <div>
-        <h1>野菜の産地リレー</h1>
-      </div>
       <a class="home-link" href={`${VITE_ROOT_PATH}/`}>Home</a>
+      <h1>野菜の産地リレー</h1>
     </header>
 
     {#if aggregation}
@@ -501,14 +499,28 @@
     border-left: var(--border-default);
   }
   .page-heading {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     padding: var(--space-4) var(--space-6);
     border-bottom: var(--border-default);
   }
   .page-heading h1 {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
     margin: 0;
     font-size: 1.25rem;
   }
+  .page-heading::after {
+    content: "";
+    grid-column: 3;
+    grid-row: 1;
+  }
   .home-link {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
     font-size: 0.8rem;
     color: inherit;
   }
@@ -546,14 +558,12 @@
     font-size: 1rem;
   }
 
-  .page-heading,
   .controls,
   .map-heading {
     display: flex;
     align-items: center;
     gap: var(--space-3);
   }
-  .page-heading,
   .map-heading {
     justify-content: space-between;
     margin-bottom: 0;
