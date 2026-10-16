@@ -18,7 +18,7 @@ export default defineConfig({
           ? ""
           : /** @type {`/${string}` | undefined} */ (nodeProcess.env.BASE_PATH),
       },
-
+      compilerOptions: { runes: true },
     }),
   ],
   test: {
