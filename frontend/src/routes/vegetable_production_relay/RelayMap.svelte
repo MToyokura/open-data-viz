@@ -5,10 +5,9 @@
   /** @typedef {import("./constants/types.js").GeoCollection} GeoCollection */
   /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import {
-    calculateCentroids,
+    createOkinawaInsetGeojson,
     observationLabel,
     prefectureKey,
-    translateCoordinates,
   } from "./utils/relayMap.js";
 
   /** @typedef {import("./utils/relayMap.js").LatLng} LatLng */
@@ -29,8 +28,9 @@
   /** @type {import("leaflet").TooltipOptions} */
   const TOOLTIP_OPTIONS = { direction: "top", sticky: true };
 
-  /** @type {{geojson: GeoCollection, observations: Record<string, PrefectureMonth>, sourceUnit: string | null, scale: number, onSelect: (name: string) => void}} */
-  let { geojson, observations, sourceUnit, scale, onSelect } = $props();
+  /** @type {{geojson: GeoCollection, observationsByPrefecture: Record<string, PrefectureMonth>, sourceUnit: string | null, scale: number, onSelect: (name: string) => void}} */
+  let { geojson, observationsByPrefecture, sourceUnit, scale, onSelect } =
+    $props();
 
   /** @type {HTMLDivElement} */
   let host;
@@ -156,42 +156,11 @@
     if (!mapReady || !leaflet || !map || !geojson || !mapColors) return;
 
     const colors = mapColors;
-    const originalLocations = calculateCentroids(geojson.features);
-    const okinawa = originalLocations.get("沖縄");
-    const offset = okinawa
-      ? {
-          latitude: OKINAWA_INSET.center[0] - okinawa[0],
-          longitude: OKINAWA_INSET.center[1] - okinawa[1],
-        }
-      : null;
-    const displayGeojson = offset
-      ? {
-          ...geojson,
-          features: geojson.features.map((feature) => {
-            const name = prefectureKey(
-              String(feature.properties?.N03_001 ?? "").trim(),
-            );
-            if (name !== "沖縄") return feature;
-
-            /** @type {{type: string, coordinates: unknown}} */
-            const geometry = /** @type {any} */ (feature.geometry);
-            if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon")
-              return feature;
-
-            return {
-              ...feature,
-              geometry: {
-                ...geometry,
-                coordinates: translateCoordinates(
-                  geometry.coordinates,
-                  offset.longitude,
-                  offset.latitude,
-                ),
-              },
-            };
-          }),
-        }
-      : geojson;
+    const {
+      geojson: displayGeojson,
+      locations,
+      offset,
+    } = createOkinawaInsetGeojson(geojson, OKINAWA_INSET.center);
     boundary?.remove();
     boundary = leaflet
       .geoJSON(/** @type {any} */ (displayGeojson), {
@@ -227,7 +196,7 @@
 
     circles ??= leaflet.layerGroup().addTo(map);
     centroidLocations.clear();
-    for (const [name, location] of originalLocations) {
+    for (const [name, location] of locations) {
       centroidLocations.set(
         name,
         name === "沖縄" && offset
@@ -262,7 +231,7 @@
     )
       return;
     const colors = mapColors;
-    const currentObservations = observations;
+    const currentObservations = observationsByPrefecture;
     const currentScale = scale;
 
     boundary?.eachLayer((layer) => {

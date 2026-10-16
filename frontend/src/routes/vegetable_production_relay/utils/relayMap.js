@@ -115,6 +115,55 @@ export function calculateCentroids(features) {
   return locations;
 }
 
+/**
+ * Moves Okinawa's map geometry to its inset position and returns the offset.
+ * @param {GeoCollection} geojson
+ * @param {LatLng} targetCenter
+ * @returns {{geojson: GeoCollection, locations: Map<string, LatLng>, offset: {latitude: number, longitude: number} | null}}
+ */
+export function createOkinawaInsetGeojson(geojson, targetCenter) {
+  const originalLocations = calculateCentroids(geojson.features);
+  const okinawaLocation = originalLocations.get("沖縄");
+  const offset = okinawaLocation
+    ? {
+        latitude: targetCenter[0] - okinawaLocation[0],
+        longitude: targetCenter[1] - okinawaLocation[1],
+      }
+    : null;
+
+  if (!offset) return { geojson, locations: originalLocations, offset };
+
+  const displayGeojson = {
+    ...geojson,
+    features: geojson.features.map((feature) => {
+      const name = prefectureKey(
+        String(feature.properties?.N03_001 ?? "").trim(),
+      );
+      if (name !== "沖縄") return feature;
+
+      /** @type {{type: string, coordinates: unknown}} */
+      const geometry = /** @type {any} */ (feature.geometry);
+      if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon") {
+        return feature;
+      }
+
+      return {
+        ...feature,
+        geometry: {
+          ...geometry,
+          coordinates: translateCoordinates(
+            geometry.coordinates,
+            offset.longitude,
+            offset.latitude,
+          ),
+        },
+      };
+    }),
+  };
+
+  return { geojson: displayGeojson, locations: originalLocations, offset };
+}
+
 /** 入れ子になった座標列の経度・緯度に指定したオフセットを加えます。 */
 /** @param {unknown} coordinates @param {number} longitudeOffset @param {number} latitudeOffset @returns {unknown} */
 export function translateCoordinates(

@@ -154,19 +154,20 @@
           </path>
         {/each}
         {#each graph.nodes as node (node.id)}
+          {@const label = nodeLabel(node)}
           <g
             tabindex="0"
             role="button"
-            aria-label={nodeLabel(node)}
-            aria-describedby={visibleTooltip?.label === nodeLabel(node)
+            aria-label={label}
+            aria-describedby={visibleTooltip?.label === label
               ? tooltipId
               : undefined}
-            onclick={(event) => showTooltip(event, nodeLabel(node))}
-            onkeydown={(event) => tooltipKeydown(event, nodeLabel(node))}
-            onpointerenter={(event) => showTooltip(event, nodeLabel(node))}
-            onpointermove={(event) => showTooltip(event, nodeLabel(node))}
+            onclick={(event) => showTooltip(event, label)}
+            onkeydown={(event) => tooltipKeydown(event, label)}
+            onpointerenter={(event) => showTooltip(event, label)}
+            onpointermove={(event) => showTooltip(event, label)}
             onpointerleave={hideTooltip}
-            onfocus={(event) => showTooltip(event, nodeLabel(node))}
+            onfocus={(event) => showTooltip(event, label)}
             onblur={hideTooltip}
           >
             <rect

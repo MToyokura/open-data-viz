@@ -34,21 +34,26 @@
     years.find((item) => item.year === Number(selectedMonth.slice(0, 4))),
   );
   let monthIndex = $derived(months.indexOf(selectedMonth));
-  let prefectures = $derived(
+  let monthObservations = $derived(
     yearData?.months.filter((item) => item.month === selectedMonth) ?? [],
   );
-  // here
-  let observations = $derived(
+  let observationsByPrefecture = $derived(
     Object.fromEntries(
-      prefectures.map((item) => [item.consignor_prefecture_name, item]),
+      monthObservations.map((item) => [item.consignor_prefecture_name, item]),
     ),
   );
   let sankeyData = $derived(
     relayData.sankeyDetails.length === 47
-      ? aggregateSankey(relayData.sankeyDetails, selectedMonth, prefectures)
+      ? aggregateSankey(
+          relayData.sankeyDetails,
+          selectedMonth,
+          monthObservations,
+        )
       : undefined,
   );
-  let selectedObservation = $derived(observations[selectedPrefecture]);
+  let selectedObservation = $derived(
+    observationsByPrefecture[selectedPrefecture],
+  );
   let excludedCategoryCounts = $derived(
     selectedObservation
       ? [
@@ -64,8 +69,7 @@
         ].filter((category) => category.count > 0)
       : [],
   );
-  // here
-  let detailRows = $derived.by(() => {
+  let detailContributions = $derived.by(() => {
     const currentDetail = relayData.detail;
     if (
       !currentDetail ||
@@ -85,7 +89,7 @@
   /** @param {string} name */
   function selectPrefecture(name) {
     selectedPrefecture = name;
-    const code = observations[name]?.consignor_prefecture_code;
+    const code = observationsByPrefecture[name]?.consignor_prefecture_code;
     if (code) void relayData.selectPrefectureDetail(code);
   }
 
@@ -113,6 +117,19 @@
         : "数値の報告なし";
     }
     return `${formatValue(row.reported_value_sum)} ${row.source_unit}`;
+  }
+  /** @param {import("./constants/types.js").Contribution} cell */
+  function contributionDisplay(cell) {
+    if (cell.value_kind === "reported") {
+      return { value: formatValue(cell.raw_value), note: "" };
+    }
+    if (cell.value_kind === "below_display_unit") {
+      return { value: "0", note: "表示単位未満" };
+    }
+    if (cell.value_kind === "unknown_or_uncollected") {
+      return { value: "…", note: "不詳・調査なし" };
+    }
+    return { value: "—", note: "該当なし" };
   }
   /** @param {string} month */
   const displayMonth = (month) => {
@@ -160,7 +177,7 @@
             {:else}
               <RelayMap
                 {geojson}
-                {observations}
+                {observationsByPrefecture}
                 sourceUnit={yearData?.source_unit ?? null}
                 {scale}
                 onSelect={selectPrefecture}
@@ -252,7 +269,6 @@
                 <strong class="total">{valueLabel(selectedObservation)}</strong>
               </div>
             </div>
-            <!-- here -->
             {#if selectedObservation}
               <p class="detail-note">
                 合計しているのは、主要消費地域9区分のうち数値が報告された区分です。
@@ -263,7 +279,6 @@
                   {/each}。
                 {/if}
               </p>
-              <!-- here -->
               {#if relayData.isDetailLoading}
                 <p role="status" class="detail-note">内訳を読み込んでいます…</p>
               {:else if relayData.detailError}
@@ -273,27 +288,22 @@
                 <button type="button" onclick={retryDetail}
                   >内訳を再読み込み</button
                 >
-              {:else if !detailRows}
+              {:else if !detailContributions}
                 <p class="detail-note">
                   地図で都道府県を選ぶと、消費地域別の内訳を表示します。
                 </p>
               {:else}
                 <ul class="contributions">
-                  {#each detailRows as cell (cell.consumer_region_code)}
+                  {#each detailContributions as cell (cell.consumer_region_code)}
+                    {@const display = contributionDisplay(cell)}
                     <li>
                       <span class="region-name"
                         >{cell.consumer_region_name}</span
                       >
-                      <strong
-                        >{#if cell.value_kind === "reported"}{formatValue(
-                            cell.raw_value,
-                          )}{:else if cell.value_kind === "below_display_unit"}0 <small
-                            >表示単位未満</small
-                          >{:else if cell.value_kind === "unknown_or_uncollected"}…
-                          <small>不詳・調査なし</small>{:else}— <small
-                            >該当なし</small
-                          >{/if}</strong
-                      >
+                      <strong>
+                        {display.value}
+                        {#if display.note}<small>{display.note}</small>{/if}
+                      </strong>
                     </li>
                   {/each}
                 </ul>

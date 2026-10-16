@@ -10,6 +10,59 @@ import {
 /** @typedef {import("../constants/types.js").PrefectureDetail} PrefectureDetail */
 /** @typedef {import("../constants/types.js").RelayProductIndex} RelayProductIndex */
 
+const DETAIL_MONTH_COUNT = 36;
+const CONTRIBUTION_COUNT = 9;
+const VALID_VALUE_KINDS = new Set([
+  "reported",
+  "below_display_unit",
+  "no_fact",
+  "unknown_or_uncollected",
+]);
+
+/** @param {PrefectureDetail["months"][number]["contributions"][number]} cell */
+function isValidContribution(cell) {
+  if (
+    !CONSUMER_REGIONS.some(
+      ([regionCode]) => regionCode === cell.consumer_region_code,
+    ) ||
+    typeof cell.consumer_region_name !== "string" ||
+    typeof cell.raw_value !== "string" ||
+    !VALID_VALUE_KINDS.has(cell.value_kind)
+  ) {
+    return false;
+  }
+
+  if (cell.value_kind !== "reported") return true;
+  const value = Number(cell.raw_value);
+  return cell.raw_value.trim() !== "" && Number.isFinite(value) && value >= 0;
+}
+
+/** @param {PrefectureDetail["months"][number]} month */
+function isValidDetailMonth(month) {
+  return (
+    /^\d{4}-\d{2}$/.test(month.month) &&
+    Array.isArray(month.contributions) &&
+    month.contributions.length === CONTRIBUTION_COUNT &&
+    new Set(month.contributions.map((cell) => cell.consumer_region_code))
+      .size === CONTRIBUTION_COUNT &&
+    month.contributions.every(isValidContribution)
+  );
+}
+
+/** @param {PrefectureDetail} result @param {string} key @param {string} code */
+function isValidPrefectureDetail(result, key, code) {
+  return (
+    result.schema_version === 2 &&
+    result.commodity === key &&
+    result.consignor_prefecture_code === code &&
+    Array.isArray(result.months) &&
+    result.months.length === DETAIL_MONTH_COUNT &&
+    new Set(result.months.map((month) => month.month)).size ===
+      DETAIL_MONTH_COUNT &&
+    result.months.every(isValidDetailMonth)
+  );
+}
+
 /** @template T @param {string} path @param {string} label @param {AbortSignal} [signal] @returns {Promise<T>} */
 async function fetchJson(path, label, signal) {
   const response = await fetch(path, { signal });
@@ -66,40 +119,7 @@ export function fetchRelayPrefectureDetail(key, code, signal) {
     )
   );
   return request.then((result) => {
-    if (
-      result.schema_version !== 2 ||
-      result.commodity !== key ||
-      result.consignor_prefecture_code !== code ||
-      !Array.isArray(result.months) ||
-      result.months.length !== 36 ||
-      new Set(result.months.map((row) => row.month)).size !== 36 ||
-      result.months.some(
-        (row) =>
-          !/^\d{4}-\d{2}$/.test(row.month) ||
-          !Array.isArray(row.contributions) ||
-          row.contributions.length !== 9 ||
-          new Set(row.contributions.map((cell) => cell.consumer_region_code))
-            .size !== 9 ||
-          row.contributions.some(
-            (cell) =>
-              !CONSUMER_REGIONS.some(
-                ([regionCode]) => regionCode === cell.consumer_region_code,
-              ) ||
-              typeof cell.consumer_region_name !== "string" ||
-              typeof cell.raw_value !== "string" ||
-              ![
-                "reported",
-                "below_display_unit",
-                "no_fact",
-                "unknown_or_uncollected",
-              ].includes(cell.value_kind) ||
-              (cell.value_kind === "reported" &&
-                (!cell.raw_value.trim() ||
-                  !Number.isFinite(Number(cell.raw_value)) ||
-                  Number(cell.raw_value) < 0)),
-          ),
-      )
-    ) {
+    if (!isValidPrefectureDetail(result, key, code)) {
       throw new Error("産地内訳データの形式が正しくありません");
     }
     return result;
