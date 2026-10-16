@@ -1,12 +1,12 @@
-<script lang="ts">
+<script>
   import CcIcon from "#lib/CcIcon.svelte";
   import CcZeroIcon from "#lib/CcZeroIcon.svelte";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
-  import type { PrefectureMonth } from "./constants/types";
+  /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import VegetableSankey from "./VegetableSankey.svelte";
-  import { aggregateSankey } from "./utils/aggregateSankey";
+  import { aggregateSankey } from "./utils/aggregateSankey.js";
   import RelayMap from "./RelayMap.svelte";
-  import { useRelayData } from "./utils/useRelayData.svelte";
+  import { useRelayData } from "./utils/useRelayData.svelte.js";
 
   const relayData = useRelayData();
   let aggregation = $derived(relayData.aggregation);
@@ -34,21 +34,26 @@
     years.find((item) => item.year === Number(selectedMonth.slice(0, 4))),
   );
   let monthIndex = $derived(months.indexOf(selectedMonth));
-  let prefectures = $derived(
+  let monthObservations = $derived(
     yearData?.months.filter((item) => item.month === selectedMonth) ?? [],
   );
-  // here
-  let observations = $derived(
+  let observationsByPrefecture = $derived(
     Object.fromEntries(
-      prefectures.map((item) => [item.consignor_prefecture_name, item]),
+      monthObservations.map((item) => [item.consignor_prefecture_name, item]),
     ),
   );
   let sankeyData = $derived(
     relayData.sankeyDetails.length === 47
-      ? aggregateSankey(relayData.sankeyDetails, selectedMonth, prefectures)
+      ? aggregateSankey(
+          relayData.sankeyDetails,
+          selectedMonth,
+          monthObservations,
+        )
       : undefined,
   );
-  let selectedObservation = $derived(observations[selectedPrefecture]);
+  let selectedObservation = $derived(
+    observationsByPrefecture[selectedPrefecture],
+  );
   let excludedCategoryCounts = $derived(
     selectedObservation
       ? [
@@ -64,8 +69,7 @@
         ].filter((category) => category.count > 0)
       : [],
   );
-  // here
-  let detailRows = $derived.by(() => {
+  let detailContributions = $derived.by(() => {
     const currentDetail = relayData.detail;
     if (
       !currentDetail ||
@@ -78,12 +82,14 @@
       ?.contributions;
   });
 
-  function changeMonth(index: number) {
+  /** @param {number} index */
+  function changeMonth(index) {
     if (index >= 0 && index < months.length) selectedMonth = months[index];
   }
-  function selectPrefecture(name: string) {
+  /** @param {string} name */
+  function selectPrefecture(name) {
     selectedPrefecture = name;
-    const code = observations[name]?.consignor_prefecture_code;
+    const code = observationsByPrefecture[name]?.consignor_prefecture_code;
     if (code) void relayData.selectPrefectureDetail(code);
   }
 
@@ -91,16 +97,19 @@
     const code = selectedObservation?.consignor_prefecture_code;
     if (code) void relayData.selectPrefectureDetail(code);
   }
-  function adjustScale(amount: number) {
+  /** @param {number} amount */
+  function adjustScale(amount) {
     scale = Math.max(1, Number((scale + amount).toFixed(1)));
   }
   const quantityFormatter = new Intl.NumberFormat("ja-JP", {
     maximumFractionDigits: 2,
   });
-  function formatValue(value: string) {
+  /** @param {string} value */
+  function formatValue(value) {
     return quantityFormatter.format(Number(value));
   }
-  function valueLabel(row: PrefectureMonth | undefined) {
+  /** @param {PrefectureMonth | undefined} row */
+  function valueLabel(row) {
     if (!row) return "値なし";
     if (row.reported_cells === 0) {
       return row.below_display_unit_cells > 0
@@ -109,7 +118,21 @@
     }
     return `${formatValue(row.reported_value_sum)} ${row.source_unit}`;
   }
-  const displayMonth = (month: string) => {
+  /** @param {import("./constants/types.js").Contribution} cell */
+  function contributionDisplay(cell) {
+    if (cell.value_kind === "reported") {
+      return { value: formatValue(cell.raw_value), note: "" };
+    }
+    if (cell.value_kind === "below_display_unit") {
+      return { value: "0", note: "表示単位未満" };
+    }
+    if (cell.value_kind === "unknown_or_uncollected") {
+      return { value: "…", note: "不詳・調査なし" };
+    }
+    return { value: "—", note: "該当なし" };
+  }
+  /** @param {string} month */
+  const displayMonth = (month) => {
     const [year, number] = month.split("-");
     return `${year}年 ${Number(number)}月`;
   };
@@ -122,10 +145,8 @@
 <div class="page-shell">
   <main class="page-content">
     <header class="page-heading">
-      <div>
-        <h1>野菜の産地リレー</h1>
-      </div>
       <a class="home-link" href={`${VITE_ROOT_PATH}/`}>Home</a>
+      <h1>野菜の産地リレー</h1>
     </header>
 
     {#if aggregation}
@@ -154,7 +175,7 @@
             {:else}
               <RelayMap
                 {geojson}
-                {observations}
+                {observationsByPrefecture}
                 sourceUnit={yearData?.source_unit ?? null}
                 {scale}
                 onSelect={selectPrefecture}
@@ -246,7 +267,6 @@
                 <strong class="total">{valueLabel(selectedObservation)}</strong>
               </div>
             </div>
-            <!-- here -->
             {#if selectedObservation}
               <p class="detail-note">
                 合計しているのは、主要消費地域9区分のうち数値が報告された区分です。
@@ -257,7 +277,6 @@
                   {/each}。
                 {/if}
               </p>
-              <!-- here -->
               {#if relayData.isDetailLoading}
                 <p role="status" class="detail-note">内訳を読み込んでいます…</p>
               {:else if relayData.detailError}
@@ -267,27 +286,22 @@
                 <button type="button" onclick={retryDetail}
                   >内訳を再読み込み</button
                 >
-              {:else if !detailRows}
+              {:else if !detailContributions}
                 <p class="detail-note">
                   地図で都道府県を選ぶと、消費地域別の内訳を表示します。
                 </p>
               {:else}
                 <ul class="contributions">
-                  {#each detailRows as cell (cell.consumer_region_code)}
+                  {#each detailContributions as cell (cell.consumer_region_code)}
+                    {@const display = contributionDisplay(cell)}
                     <li>
                       <span class="region-name"
                         >{cell.consumer_region_name}</span
                       >
-                      <strong
-                        >{#if cell.value_kind === "reported"}{formatValue(
-                            cell.raw_value,
-                          )}{:else if cell.value_kind === "below_display_unit"}0 <small
-                            >表示単位未満</small
-                          >{:else if cell.value_kind === "unknown_or_uncollected"}…
-                          <small>不詳・調査なし</small>{:else}— <small
-                            >該当なし</small
-                          >{/if}</strong
-                      >
+                      <strong>
+                        {display.value}
+                        {#if display.note}<small>{display.note}</small>{/if}
+                      </strong>
                     </li>
                   {/each}
                 </ul>
@@ -402,17 +416,17 @@
                 </tr>
               </tbody>
             </table>
-            <a
-              class="cc-icons"
-              href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="CC0"
-            >
-              <CcIcon size="2rem" />
-              <CcZeroIcon size="2rem" />
-            </a>
           </section>
+          <a
+            class="cc-icons"
+            href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="CC0"
+          >
+            <CcIcon size="2rem" />
+            <CcZeroIcon size="2rem" />
+          </a>
         </section>
       </div>
     {:else if dataError}
@@ -428,11 +442,19 @@
     display: flex;
     justify-content: end;
     gap: var(--space-1);
-    margin-top: var(--space-4);
-    color: inherit;
-    opacity: 0.5;
+    width: max-content;
+    margin: var(--space-4) var(--space-6) var(--space-4) auto;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    background: #fff;
+    --surface-color: #fff;
+    color: #111;
   }
-  .cc-icons:hover {
+  .cc-icons :global(svg) {
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+  }
+  .cc-icons:hover :global(svg) {
     opacity: 1;
   }
   .page-shell {
@@ -477,14 +499,28 @@
     border-left: var(--border-default);
   }
   .page-heading {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     padding: var(--space-4) var(--space-6);
     border-bottom: var(--border-default);
   }
   .page-heading h1 {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
     margin: 0;
     font-size: 1.25rem;
   }
+  .page-heading::after {
+    content: "";
+    grid-column: 3;
+    grid-row: 1;
+  }
   .home-link {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
     font-size: 0.8rem;
     color: inherit;
   }
@@ -522,14 +558,12 @@
     font-size: 1rem;
   }
 
-  .page-heading,
   .controls,
   .map-heading {
     display: flex;
     align-items: center;
     gap: var(--space-3);
   }
-  .page-heading,
   .map-heading {
     justify-content: space-between;
     margin-bottom: 0;
@@ -691,6 +725,9 @@
     .details-column {
       overflow: visible;
       border-left: 0;
+    }
+    .cc-icons {
+      margin-right: var(--space-4);
     }
     .page-heading {
       padding: var(--space-3) var(--space-4);

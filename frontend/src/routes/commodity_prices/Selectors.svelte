@@ -1,6 +1,16 @@
-<script lang="ts">
-  import type { AreaLookup, Cat02Lookup } from "./constants/types";
+<script>
+  /** @typedef {import("./constants/types.js").AreaLookup} AreaLookup */
+  /** @typedef {import("./constants/types.js").Cat02Lookup} Cat02Lookup */
 
+  /** @type {{
+   * autoAddEnabled: boolean,
+   * selectedCat02Code: string,
+   * selectedAreaCode: string,
+   * cat02Lookup: Cat02Lookup,
+   * areaLookup: AreaLookup,
+   * fetchAndAddData: () => void
+   * }}
+   */
   let {
     autoAddEnabled = $bindable(),
     selectedCat02Code = $bindable(),
@@ -8,13 +18,6 @@
     cat02Lookup,
     areaLookup,
     fetchAndAddData,
-  }: {
-    autoAddEnabled: boolean;
-    selectedCat02Code: string | null;
-    selectedAreaCode: string | null;
-    cat02Lookup: Cat02Lookup;
-    areaLookup: AreaLookup;
-    fetchAndAddData: () => void;
   } = $props();
 </script>
 

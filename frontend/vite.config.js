@@ -1,6 +1,6 @@
 import adapter from "@sveltejs/adapter-static";
-import { svelteTesting } from "@testing-library/svelte/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { svelteTesting } from "@testing-library/svelte/vite";
 import { defineConfig } from "vitest/config";
 
 const runtime = /** @type {unknown} */ (globalThis);
@@ -18,6 +18,7 @@ export default defineConfig({
           ? ""
           : /** @type {`/${string}` | undefined} */ (nodeProcess.env.BASE_PATH),
       },
+      compilerOptions: { runes: true },
     }),
   ],
   test: {

@@ -1,63 +1,61 @@
-<script lang="ts">
+<script>
   import { onMount, untrack } from "svelte";
   import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
-  import type { GeoCollection, PrefectureMonth } from "./constants/types";
+  /** @typedef {import("./constants/types.js").GeoCollection} GeoCollection */
+  /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import {
-    calculateCentroids,
+    createOkinawaInsetGeojson,
     observationLabel,
     prefectureKey,
-    translateCoordinates,
-    type LatLng,
-  } from "./utils/relayMap";
+  } from "./utils/relayMap.js";
+
+  /** @typedef {import("./utils/relayMap.js").LatLng} LatLng */
+  /** @typedef {import("leaflet").Map} LeafletMap */
+  /** @typedef {import("leaflet").GeoJSON} LeafletGeoJSON */
+  /** @typedef {import("leaflet").LayerGroup} LeafletLayerGroup */
+  /** @typedef {import("leaflet").Polyline} LeafletPolyline */
+  /** @typedef {import("leaflet").CircleMarker} LeafletCircleMarker */
 
   const OKINAWA_INSET = {
-    center: [41, 131] as LatLng,
-    separator: [
+    center: /** @type {LatLng} */ ([41, 131]),
+    separator: /** @type {LatLng[]} */ ([
       [38, 126],
       [38, 132],
       [42, 137],
-    ] as [LatLng, LatLng, LatLng],
-  } as const;
-  const TOOLTIP_OPTIONS = { direction: "top", sticky: true } as const;
+    ]),
+  };
+  /** @type {import("leaflet").TooltipOptions} */
+  const TOOLTIP_OPTIONS = { direction: "top", sticky: true };
 
-  let {
-    geojson,
-    observations,
-    sourceUnit,
-    scale,
-    onSelect,
-  }: {
-    geojson: GeoCollection;
-    observations: Record<string, PrefectureMonth>;
-    sourceUnit: string | null;
-    scale: number;
-    onSelect: (name: string) => void;
-  } = $props();
+  /** @type {{geojson: GeoCollection, observationsByPrefecture: Record<string, PrefectureMonth>, sourceUnit: string | null, scale: number, onSelect: (name: string) => void}} */
+  let { geojson, observationsByPrefecture, sourceUnit, scale, onSelect } =
+    $props();
 
-  let host: HTMLDivElement;
+  /** @type {HTMLDivElement} */
+  let host;
   let mapReady = $state(false);
-  let leaflet: typeof import("leaflet") | undefined;
-  let map: import("leaflet").Map | undefined;
-  let boundary: import("leaflet").GeoJSON | undefined;
-  let circles: import("leaflet").LayerGroup | undefined;
-  let insetSeparator: import("leaflet").Polyline | undefined;
-  let mapColors:
-    | {
-        boundary: string;
-        boundaryFill: string;
-        marker: string;
-        markerFill: string;
-      }
-    | undefined;
-  const markers = new SvelteMap<string, import("leaflet").CircleMarker>();
-  const markerAnimations = new SvelteMap<string, number>();
-  const markerTargets = new SvelteMap<
-    string,
-    { radius: number; opacity: number }
-  >();
+  /** @type {typeof import("leaflet") | undefined} */
+  let leaflet;
+  /** @type {LeafletMap | undefined} */
+  let map;
+  /** @type {LeafletGeoJSON | undefined} */
+  let boundary;
+  /** @type {LeafletLayerGroup | undefined} */
+  let circles;
+  /** @type {LeafletPolyline | undefined} */
+  let insetSeparator;
+  /** @type {{boundary: string, boundaryFill: string, marker: string, markerFill: string} | undefined} */
+  let mapColors;
+  /** @type {SvelteMap<string, LeafletCircleMarker>} */
+  const markers = new SvelteMap();
+  /** @type {SvelteMap<string, number>} */
+  const markerAnimations = new SvelteMap();
+  /** @type {SvelteMap<string, {radius: number, opacity: number}>} */
+  const markerTargets = new SvelteMap();
   // Geographic data is recomputed only when the GeoJSON object changes.
-  const centroidLocations = new SvelteMap<string, [number, number]>();
+  /** @type {SvelteMap<string, LatLng>} */
+  const centroidLocations = new SvelteMap();
   let geometryVersion = $state(0);
 
   function readMapColors() {
@@ -70,12 +68,8 @@
     };
   }
 
-  function animateMarker(
-    name: string,
-    marker: import("leaflet").CircleMarker,
-    targetRadius: number,
-    targetOpacity: number,
-  ) {
+  /** @param {string} name @param {LeafletCircleMarker} marker @param {number} targetRadius @param {number} targetOpacity */
+  function animateMarker(name, marker, targetRadius, targetOpacity) {
     const previousTarget = markerTargets.get(name);
     const hasActiveAnimation = markerAnimations.has(name);
     if (
@@ -95,7 +89,8 @@
     const startTime = performance.now();
     const duration = 300;
 
-    const step = (now: number) => {
+    /** @param {number} now */
+    const step = (now) => {
       const progress = Math.min((now - startTime) / duration, 1);
       const eased =
         progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
@@ -161,47 +156,14 @@
     if (!mapReady || !leaflet || !map || !geojson || !mapColors) return;
 
     const colors = mapColors;
-    const originalLocations = calculateCentroids(geojson.features);
-    const okinawa = originalLocations.get("沖縄");
-    const offset = okinawa
-      ? {
-          latitude: OKINAWA_INSET.center[0] - okinawa[0],
-          longitude: OKINAWA_INSET.center[1] - okinawa[1],
-        }
-      : null;
-    const displayGeojson: GeoCollection = offset
-      ? {
-          ...geojson,
-          features: geojson.features.map((feature) => {
-            const name = prefectureKey(
-              String(feature.properties?.N03_001 ?? "").trim(),
-            );
-            if (name !== "沖縄") return feature;
-
-            const geometry = feature.geometry as {
-              type: string;
-              coordinates: unknown;
-            };
-            if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon")
-              return feature;
-
-            return {
-              ...feature,
-              geometry: {
-                ...geometry,
-                coordinates: translateCoordinates(
-                  geometry.coordinates,
-                  offset.longitude,
-                  offset.latitude,
-                ),
-              },
-            };
-          }),
-        }
-      : geojson;
+    const {
+      geojson: displayGeojson,
+      locations,
+      offset,
+    } = createOkinawaInsetGeojson(geojson, OKINAWA_INSET.center);
     boundary?.remove();
     boundary = leaflet
-      .geoJSON(displayGeojson as never, {
+      .geoJSON(/** @type {any} */ (displayGeojson), {
         style: () => ({
           color: colors.boundary,
           weight: 1,
@@ -234,7 +196,7 @@
 
     circles ??= leaflet.layerGroup().addTo(map);
     centroidLocations.clear();
-    for (const [name, location] of originalLocations) {
+    for (const [name, location] of locations) {
       centroidLocations.set(
         name,
         name === "沖縄" && offset
@@ -269,15 +231,14 @@
     )
       return;
     const colors = mapColors;
-    const currentObservations = observations;
+    const currentObservations = observationsByPrefecture;
     const currentScale = scale;
 
     boundary?.eachLayer((layer) => {
-      const feature = (
-        layer as import("leaflet").Layer & {
-          feature?: { properties?: { N03_001?: string } };
-        }
-      ).feature;
+      const feature =
+        /** @type {import("leaflet").Layer & {feature?: {properties?: {N03_001?: string}}} } */ (
+          layer
+        ).feature;
       const name = prefectureKey(
         String(feature?.properties?.N03_001 ?? "").trim(),
       );
@@ -286,7 +247,8 @@
       layer.getTooltip()?.setContent(label);
     });
 
-    const activeNames = new SvelteSet<string>();
+    /** @type {SvelteSet<string>} */
+    const activeNames = new SvelteSet();
     for (const [name, location] of centroidLocations) {
       const observation = currentObservations[name];
       const value = Number(observation?.reported_value_sum ?? 0);

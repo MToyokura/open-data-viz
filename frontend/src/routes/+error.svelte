@@ -1,7 +1,7 @@
-<script lang="ts">
+<script>
   import { page } from "$app/state";
-  let emojis = $state<string[]>(["🚧🚧🚧🚧🚧"]);
-  let containsKey = $state<boolean>(false);
+  let emojis = $state(["🚧🚧🚧🚧🚧"]);
+  let containsKey = $state(false);
 
   function addEmoji() {
     if (containsKey) {

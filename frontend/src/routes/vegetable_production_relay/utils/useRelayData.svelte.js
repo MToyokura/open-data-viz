@@ -1,99 +1,67 @@
 import { onMount } from "svelte";
 import { SvelteMap } from "svelte/reactivity";
-import { PREFECTURE_CODES } from "./aggregateSankey";
-import type {
-  AggregationData,
-  GeoCollection,
-  PrefectureDetail,
-  RelayProduct,
-} from "../constants/types";
+import { PREFECTURE_CODES } from "./aggregateSankey.js";
 import {
   fetchRelayAggregation,
   fetchRelayPrefectureDetail,
   fetchRelayProductIndex,
   fetchPrefectureGeojson,
-} from "./fetchRelayData";
+} from "./fetchRelayData.js";
+import { createDetailRequestManager } from "./detailRequestManager.js";
 
-function toError(reason: unknown, fallback: string): Error {
+/** @typedef {import("../constants/types.js").AggregationData} AggregationData */
+/** @typedef {import("../constants/types.js").GeoCollection} GeoCollection */
+/** @typedef {import("../constants/types.js").PrefectureDetail} PrefectureDetail */
+/** @typedef {import("../constants/types.js").RelayProduct} RelayProduct */
+
+/** @param {unknown} reason @param {string} fallback @returns {Error} */
+function toError(reason, fallback) {
   return reason instanceof Error ? reason : new Error(fallback);
 }
 
 export function useRelayData() {
-  // here
-  let aggregation = $state.raw<AggregationData | undefined>(undefined);
-  let detail = $state.raw<PrefectureDetail | undefined>(undefined);
-  let detailError = $state<Error | undefined>(undefined);
+  let aggregation = /** @type {AggregationData | undefined} */ (
+    $state.raw(undefined)
+  );
+  let detail = /** @type {PrefectureDetail | undefined} */ (
+    $state.raw(undefined)
+  );
+  let detailError = /** @type {Error | undefined} */ ($state(undefined));
   let isDetailLoading = $state(false);
-  const detailCache = new SvelteMap<string, PrefectureDetail>();
+  /** @type {SvelteMap<string, PrefectureDetail>} */
+  const detailCache = new SvelteMap();
   let detailRequestId = 0;
-  let detailController: AbortController | undefined;
-  let products = $state.raw<RelayProduct[]>([]);
+  /** @type {AbortController | undefined} */
+  let detailController;
+  let products = /** @type {RelayProduct[]} */ ($state.raw([]));
   let selectedProduct = $state("");
-  let geojson = $state.raw<GeoCollection | undefined>(undefined);
+  let geojson = /** @type {GeoCollection | undefined} */ (
+    $state.raw(undefined)
+  );
   let isLoading = $state(true);
-  let error = $state<Error | undefined>(undefined);
-  let mapError = $state<Error | undefined>(undefined);
+  let error = /** @type {Error | undefined} */ ($state(undefined));
+  let mapError = /** @type {Error | undefined} */ ($state(undefined));
   let requestId = 0;
-  let productController: AbortController | undefined;
+  /** @type {AbortController | undefined} */
+  let productController;
   let disposed = false;
 
   let sankeyOpen = $state(false);
   let isSankeyLoading = $state(false);
-  let sankeyDetails = $state.raw<PrefectureDetail[]>([]);
-  let sankeyFailures = $state.raw<string[]>([]);
+  let sankeyDetails = /** @type {PrefectureDetail[]} */ ($state.raw([]));
+  let sankeyFailures = /** @type {string[]} */ ($state.raw([]));
   let sankeyCompleted = $state(0);
-  let sankeyCache = new SvelteMap<string, PrefectureDetail>();
-  let sankeyController: AbortController | undefined;
-  // Share pending detail requests, including map requests, to avoid duplicate fetches.
-  const pendingDetails = new SvelteMap<string, Promise<PrefectureDetail>>();
-  let activeDetails = 0;
-  const detailQueue: Array<() => void> = [];
-  async function fetchLimitedDetail(
-    key: string,
-    code: string,
-    signal: AbortSignal,
-  ) {
-    if (activeDetails >= 10)
-      await new Promise<void>((resolve) => detailQueue.push(resolve));
-    else activeDetails++;
-    try {
-      signal.throwIfAborted();
-      return await fetchRelayPrefectureDetail(key, code, signal);
-    } finally {
-      const next = detailQueue.shift();
-      if (next) next();
-      else activeDetails--;
-    }
-  }
-  function getDetail(
-    key: string,
-    code: string,
-    signal: AbortSignal,
-  ): Promise<PrefectureDetail> {
-    const cacheKey = `${key}:${code}`;
-    const cached =
-      detailCache.get(cacheKey) ??
-      (key === selectedProduct ? sankeyCache.get(code) : undefined);
-    if (cached) return Promise.resolve(cached);
-    const pending = pendingDetails.get(cacheKey);
-    if (pending)
-      return pending
-        .then((result) =>
-          signal.aborted
-            ? Promise.reject(new DOMException("Aborted", "AbortError"))
-            : result,
-        )
-        .catch((reason) => {
-          if (signal.aborted) throw reason;
-          return getDetail(key, code, signal);
-        });
-    const request = fetchLimitedDetail(key, code, signal).finally(() => {
-      if (pendingDetails.get(cacheKey) === request)
-        pendingDetails.delete(cacheKey);
-    });
-    pendingDetails.set(cacheKey, request);
-    return request;
-  }
+  /** @type {SvelteMap<string, PrefectureDetail>} */
+  let sankeyCache = new SvelteMap();
+  /** @type {AbortController | undefined} */
+  let sankeyController;
+  const detailRequestManager = createDetailRequestManager({
+    detailCache,
+    getSankeyCache: () => sankeyCache,
+    getSelectedProduct: () => selectedProduct,
+    fetchDetail: fetchRelayPrefectureDetail,
+  });
+  const { getDetail } = detailRequestManager;
   async function openSankey() {
     if (disposed || !aggregation) return;
     sankeyOpen = true;
@@ -104,7 +72,8 @@ export function useRelayData() {
     sankeyController = controller;
     isSankeyLoading = true;
     sankeyFailures = [];
-    const failures: string[] = [];
+    /** @type {string[]} */
+    const failures = [];
     const current = () =>
       !disposed && !controller.signal.aborted && key === selectedProduct;
     const remaining = PREFECTURE_CODES.filter((code) => {
@@ -135,8 +104,8 @@ export function useRelayData() {
     isSankeyLoading = false;
   }
 
-  async function selectProduct(key: string) {
-    // here
+  /** @param {string} key */
+  async function selectProduct(key) {
     if (disposed || !products.some((product) => product.key === key)) return;
 
     sankeyController?.abort();
@@ -177,10 +146,9 @@ export function useRelayData() {
     }
   }
 
-  // Details are fetched only after the user selects a prefecture on the map.
-  // Changing the month reuses the same prefecture's 36-month response.
-  // here
-  async function selectPrefectureDetail(code: string) {
+  // Load details on selection; each response includes all 36 months.
+  /** @param {string} code */
+  async function selectPrefectureDetail(code) {
     detailController?.abort();
     const currentRequest = ++detailRequestId;
     detail = undefined;

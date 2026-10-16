@@ -1,15 +1,19 @@
-<script lang="ts">
+<script>
   import { onMount } from "svelte";
-  import type { EChartsType, EChartsOption } from "echarts";
+  /** @typedef {import("echarts").EChartsType} EChartsType */
+  /** @typedef {import("echarts").EChartsOption} EChartsOption */
 
-  let { chartData }: { chartData: EChartsOption } = $props();
+  /** @type {{ chartData: EChartsOption }} */
+  let { chartData } = $props();
 
-  let container: HTMLDivElement;
-  let chart = $state.raw<EChartsType | null>(null);
+  /** @type {HTMLDivElement} */
+  let container;
+  let chart = $state.raw(/** @type {EChartsType | null} */ (null));
 
   onMount(() => {
     let disposed = false;
-    let resizeObserver: ResizeObserver | undefined;
+    /** @type {ResizeObserver | undefined} */
+    let resizeObserver;
 
     import("echarts")
       .then(({ init }) => {

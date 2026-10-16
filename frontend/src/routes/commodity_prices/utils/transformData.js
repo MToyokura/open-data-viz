@@ -1,9 +1,10 @@
-import type { EChartsOption } from "echarts";
-import type { CommodityPrices } from "../constants/types";
+/** @typedef {import("echarts").EChartsOption} EChartsOption */
+/** @typedef {import("../constants/types.js").CommodityPrices} CommodityPrices */
 
 // Transform the fetched data into a format suitable for Apache ECharts.
-export function transformData(data: CommodityPrices[]): EChartsOption {
-  const allDates = new Set<string>();
+/** @param {CommodityPrices[]} data @returns {EChartsOption} */
+export function transformData(data) {
+  const allDates = new Set();
   data.forEach((commodityPrices) => {
     commodityPrices.time_value_pairs.forEach((pair) => {
       allDates.add(pair.time);
@@ -26,7 +27,7 @@ export function transformData(data: CommodityPrices[]): EChartsOption {
 
     return {
       name: `${commodityPrices.cat02_name}【${commodityPrices.area_name}】`,
-      type: "line" as const,
+      type: /** @type {"line"} */ ("line"),
       showSymbol: false,
       connectNulls: false,
       data: sortedDates.map((date) => {
