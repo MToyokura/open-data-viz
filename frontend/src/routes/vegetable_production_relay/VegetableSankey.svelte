@@ -114,15 +114,15 @@
         <text x="110" y="18">産地都道府県</text>
         <text x={width - 110} y="18" text-anchor="end">主要消費地域</text>
         {#each graph.links as link (`${(link.source as RelaySankeyNode).id}:${(link.target as RelaySankeyNode).id}`)}
-          {@const source = link.source as SankeyNode<
-            RelaySankeyNode,
-            { value: number }
-          >}
-          {@const target = link.target as SankeyNode<
-            RelaySankeyNode,
-            { value: number }
-          >}
-          {@const label = `産地：${source.name} → 消費地域：${target.name}、産地都道府県別の卸売数量 ${quantity(link.value)} t`}
+          {const source = $derived(
+            link.source as SankeyNode<RelaySankeyNode, { value: number }>,
+          )}
+          {const target = $derived(
+            link.target as SankeyNode<RelaySankeyNode, { value: number }>,
+          )}
+          {const label = $derived(
+            `産地：${source.name} → 消費地域：${target.name}、産地都道府県別の卸売数量 ${quantity(link.value)} t`,
+          )}
           <path
             d={path(link) ?? ""}
             stroke={source.color}
