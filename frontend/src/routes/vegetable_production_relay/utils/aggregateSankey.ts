@@ -15,25 +15,116 @@ export const CONSUMER_REGIONS = [
   ["1010", "四国"],
   ["1011", "九州"],
 ] as const;
-export const PREFECTURE_CODES = Array.from({ length: 47 }, (_, i) =>
-  String(1002 + i),
+// 定義順が地域・都道府県の表示順です。沖縄は九州に含めます。
+const AGRICULTURAL_REGIONS = [
+  {
+    name: "北海道",
+    color: "#2563a0",
+    prefectures: [["1002", "北海道"]],
+  },
+  {
+    name: "東北",
+    color: "#647a26",
+    prefectures: [
+      ["1003", "青森"],
+      ["1004", "岩手"],
+      ["1005", "宮城"],
+      ["1006", "秋田"],
+      ["1007", "山形"],
+      ["1008", "福島"],
+    ],
+  },
+  {
+    name: "北陸",
+    color: "#9c5427",
+    prefectures: [
+      ["1016", "新潟"],
+      ["1017", "富山"],
+      ["1018", "石川"],
+      ["1019", "福井"],
+    ],
+  },
+  {
+    name: "関東・東山",
+    color: "#8a528e",
+    prefectures: [
+      ["1009", "茨城"],
+      ["1010", "栃木"],
+      ["1011", "群馬"],
+      ["1012", "埼玉"],
+      ["1013", "千葉"],
+      ["1014", "東京"],
+      ["1015", "神奈川"],
+      ["1020", "山梨"],
+      ["1021", "長野"],
+    ],
+  },
+  {
+    name: "東海",
+    color: "#187c76",
+    prefectures: [
+      ["1022", "岐阜"],
+      ["1023", "静岡"],
+      ["1024", "愛知"],
+      ["1025", "三重"],
+    ],
+  },
+  {
+    name: "近畿",
+    color: "#ab4767",
+    prefectures: [
+      ["1026", "滋賀"],
+      ["1027", "京都"],
+      ["1028", "大阪"],
+      ["1029", "兵庫"],
+      ["1030", "奈良"],
+      ["1031", "和歌山"],
+    ],
+  },
+  {
+    name: "中国",
+    color: "#766128",
+    prefectures: [
+      ["1032", "鳥取"],
+      ["1033", "島根"],
+      ["1034", "岡山"],
+      ["1035", "広島"],
+      ["1036", "山口"],
+    ],
+  },
+  {
+    name: "四国",
+    color: "#526a96",
+    prefectures: [
+      ["1037", "徳島"],
+      ["1038", "香川"],
+      ["1039", "愛媛"],
+      ["1040", "高知"],
+    ],
+  },
+  {
+    name: "九州",
+    color: "#9b5d78",
+    prefectures: [
+      ["1041", "福岡"],
+      ["1042", "佐賀"],
+      ["1043", "長崎"],
+      ["1044", "熊本"],
+      ["1045", "大分"],
+      ["1046", "宮崎"],
+      ["1047", "鹿児島"],
+      ["1048", "沖縄"],
+    ],
+  },
+] as const;
+
+const PREFECTURE_STYLES = new Map<string, { color: string; order: number }>(
+  AGRICULTURAL_REGIONS.flatMap((region) =>
+    region.prefectures.map(([code]) => ({ code, color: region.color })),
+  ).map(({ code, color }, order) => [code, { color, order }]),
 );
 
-function prefectureColor(code: string) {
-  const number = Number(code) - 1001;
-  const limits = [1, 7, 14, 23, 30, 35, 39, 47];
-  const colors = [
-    "#2563a0",
-    "#647a26",
-    "#9c5427",
-    "#8a528e",
-    "#187c76",
-    "#ab4767",
-    "#766128",
-    "#526a96",
-  ];
-  return colors[limits.findIndex((limit) => number <= limit)] ?? colors[7];
-}
+export const PREFECTURE_CODES = [...PREFECTURE_STYLES.keys()];
 
 export function aggregateSankey(
   details: PrefectureDetail[],
@@ -43,14 +134,23 @@ export function aggregateSankey(
   const result: RelaySankeyData = {
     nodes: prefectures
       .slice()
-      .sort((a, b) =>
-        a.consignor_prefecture_code.localeCompare(b.consignor_prefecture_code),
+      .sort(
+        (a, b) =>
+          (PREFECTURE_STYLES.get(a.consignor_prefecture_code)?.order ??
+            PREFECTURE_STYLES.size) -
+            (PREFECTURE_STYLES.get(b.consignor_prefecture_code)?.order ??
+              PREFECTURE_STYLES.size) ||
+          a.consignor_prefecture_code.localeCompare(
+            b.consignor_prefecture_code,
+          ),
       )
       .map((row, order) => ({
         id: `p:${row.consignor_prefecture_code}`,
         name: row.consignor_prefecture_name,
         side: "source",
-        color: prefectureColor(row.consignor_prefecture_code),
+        color:
+          PREFECTURE_STYLES.get(row.consignor_prefecture_code)?.color ??
+          "#64748b",
         order,
       })),
     links: [],
