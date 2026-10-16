@@ -418,17 +418,17 @@
                 </tr>
               </tbody>
             </table>
-            <a
-              class="cc-icons"
-              href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="CC0"
-            >
-              <CcIcon size="2rem" />
-              <CcZeroIcon size="2rem" />
-            </a>
           </section>
+          <a
+            class="cc-icons"
+            href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="CC0"
+          >
+            <CcIcon size="2rem" />
+            <CcZeroIcon size="2rem" />
+          </a>
         </section>
       </div>
     {:else if dataError}
@@ -444,11 +444,19 @@
     display: flex;
     justify-content: end;
     gap: var(--space-1);
-    margin-top: var(--space-4);
-    color: inherit;
-    opacity: 0.5;
+    width: max-content;
+    margin: var(--space-4) var(--space-6) var(--space-4) auto;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    background: #fff;
+    --surface-color: #fff;
+    color: #111;
   }
-  .cc-icons:hover {
+  .cc-icons :global(svg) {
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+  }
+  .cc-icons:hover :global(svg) {
     opacity: 1;
   }
   .page-shell {
@@ -707,6 +715,9 @@
     .details-column {
       overflow: visible;
       border-left: 0;
+    }
+    .cc-icons {
+      margin-right: var(--space-4);
     }
     .page-heading {
       padding: var(--space-3) var(--space-4);
