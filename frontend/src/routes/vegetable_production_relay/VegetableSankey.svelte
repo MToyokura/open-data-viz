@@ -94,7 +94,6 @@
   <p class="scroll-note">
     線やノードにポインターを合わせるか、タップ・Tab キーで数量を確認できます。
   </p>
-  <p class="scroll-note">狭い画面では図を横にスクロールできます。</p>
   {#if graph}
     <!-- Keyboard users need to scroll the chart region. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->

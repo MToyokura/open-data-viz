@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
+  import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
   import type { GeoCollection, PrefectureMonth } from "./constants/types";
   import {
@@ -49,11 +50,14 @@
         markerFill: string;
       }
     | undefined;
-  const markers = new Map<string, import("leaflet").CircleMarker>();
-  const markerAnimations = new Map<string, number>();
-  const markerTargets = new Map<string, { radius: number; opacity: number }>();
+  const markers = new SvelteMap<string, import("leaflet").CircleMarker>();
+  const markerAnimations = new SvelteMap<string, number>();
+  const markerTargets = new SvelteMap<
+    string,
+    { radius: number; opacity: number }
+  >();
   // Geographic data is recomputed only when the GeoJSON object changes.
-  const centroidLocations = new Map<string, [number, number]>();
+  const centroidLocations = new SvelteMap<string, [number, number]>();
   let geometryVersion = $state(0);
 
   function readMapColors() {
@@ -282,7 +286,7 @@
       layer.getTooltip()?.setContent(label);
     });
 
-    const activeNames = new Set<string>();
+    const activeNames = new SvelteSet<string>();
     for (const [name, location] of centroidLocations) {
       const observation = currentObservations[name];
       const value = Number(observation?.reported_value_sum ?? 0);
