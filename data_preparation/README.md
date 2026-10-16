@@ -2,6 +2,8 @@
 
 このディレクトリには、e-Stat の統計データと国土交通省の地理データを取得・加工する Rust プログラムがあります。以下のコマンドはすべて `data_preparation/` から実行します。
 
+[`inspections/`](inspections/README.md) は、最終的にどのデータをどのように加工するかを検討するための実験・調査用フォルダです。データ候補の比較、出典や値の解釈の確認、加工方法の試行とその記録を置きます。
+
 ## 必要な環境
 
 - Rust と Cargo
@@ -35,7 +37,7 @@ export ESTAT_APP_ID="取得したアプリケーションID"
 cargo run -- vegetable-relay
 ```
 
-生成の仕組み、調査コマンド、ファイル形式、データの解釈は[野菜リレー調査記録](inspections/vegetable_production_relay/README.md)を参照してください。
+生成の仕組み、調査コマンド、ファイル形式、データの解釈は[野菜リレーの実験・調査記録](inspections/vegetable_production_relay/README.md)を参照してください。
 
 ## 都道府県データ
 

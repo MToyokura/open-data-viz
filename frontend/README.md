@@ -4,7 +4,7 @@ SvelteKit、Svelte 5、Vite を使ったウェブアプリです。
 
 ## 開発環境
 
-Node.js のバージョンはリポジトリルートの `.node-version` に記載しています。`frontend/` で依存パッケージをインストールして開発サーバーを起動します。
+Node.js は 22.17.0 以上が必要です（[package.json](package.json) の `engines.node`）。GitHub Actions では 22.17.0 を使っています。`frontend/` で依存パッケージをインストールして開発サーバーを起動します。
 
 ```sh
 cd frontend
@@ -38,4 +38,4 @@ npm run preview
 - `/commodity_prices`: 品目と都市を選び、小売価格の系列をグラフに追加して比較します。
 - `/vegetable_production_relay`: 品目と年月を選び、都道府県ごとの報告数量を地図で見ます。地図上の都道府県を選ぶと主要消費地域9区分の内訳を読み込みます。同じページを開いている間、取得済みの内訳はキャッシュされます。
 
-産地リレーの集計方法と出典の解釈は[野菜リレー調査記録](../data_preparation/inspections/vegetable_production_relay/README.md#調査結果の読み方)を参照してください。
+産地リレーの集計方法と出典の解釈は[野菜リレーの実験・調査記録](../data_preparation/inspections/vegetable_production_relay/README.md#調査結果の読み方)を参照してください。
