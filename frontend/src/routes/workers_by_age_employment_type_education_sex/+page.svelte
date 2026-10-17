@@ -57,6 +57,18 @@
       data: item.data,
     })),
   );
+  const dataNotes = $derived([
+    ...new Set(
+      items.flatMap(
+        (item) =>
+          item.data?.time_value_pairs
+            .map((row) => row.reason?.trim())
+            .filter(
+              (reason) => typeof reason === "string" && reason.length > 0,
+            ) ?? [],
+      ),
+    ),
+  ]);
 
   async function loadOptions() {
     optionsLoading = true;
@@ -256,6 +268,9 @@
         <li>
           2011年以前の「非正規の職員・従業員」は、データベース収録値と遡及集計された結果表の値が異なる場合があります。
         </li>
+        {#each dataNotes as note (note)}
+          <li>{note}</li>
+        {/each}
       </ul>
       <h2>出典情報</h2>
       <table class="reference-table ui-table">
