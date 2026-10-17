@@ -5,17 +5,18 @@ export const ASSET_DISTRIBUTION_PATH = `${VITE_STORAGE_BASE_URL}/asset_distribut
 /** @typedef {{ code: string, label: string, kind: string, order: number }} Category */
 /** @typedef {{ id: string, label: string, category_codes: string[] }} ComparisonSet */
 /** @typedef {{ id: string, label: string, role: "filter"|"asset_class", order: number, total_code: string|null, default_code: string|null, categories: Category[], display_category_codes?: string[], comparison_sets?: ComparisonSet[] }} Dimension */
-/** @typedef {{ id: string, dimensions: Record<string, string>, status: "published"|"not_published", reason: string|null, items_file: string|null }} Combination */
+/** @typedef {{ id: string, dimensions: Record<string, string>, status: "published", reason: null, items_file: string }} Combination */
 /** @typedef {{ combination_id: string, asset_class_code: string, count: number|null, status: "observed"|"suppressed"|"missing", raw_value: string, annotations: string[] }} DistributionItem */
-/** @typedef {{ path: string, combination_ids: string[], bytes?: number }} Chunk */
-/** @typedef {{ schema_version: 2, metadata: Record<string, unknown>, dimensions: Dimension[], combinations: Combination[], chunks: Chunk[] }} AssetDistribution */
+/** @typedef {{ path: string, start_index: number, count: number, bytes?: number }} Chunk */
+/** @typedef {{ dimension_ids: string[], count: number }} CombinationIndex */
+/** @typedef {{ schema_version: 3, metadata: Record<string, unknown>, dimensions: Dimension[], combination_index: CombinationIndex, chunks: Chunk[] }} AssetDistribution */
 
 const DISPLAY_CATEGORY_COUNT = 21;
 
 /** @type {Map<string, Promise<DistributionItem[]>>} */
 const chunkPromises = new Map();
 
-/** @type {WeakMap<AssetDistribution, Map<string, Combination>>} */
+/** @type {WeakMap<AssetDistribution, { chunks: Chunk[], byPath: Map<string, Chunk> }>} */
 const combinationIndexes = new WeakMap();
 
 /** @param {unknown} input */
@@ -24,28 +25,29 @@ export function validateAssetDistribution(input) {
     throw new Error("manifestの形式が正しくありません");
   const data = /** @type {AssetDistribution} */ (input);
   if (
-    data.schema_version !== 2 ||
+    data.schema_version !== 3 ||
     !data.metadata ||
     typeof data.metadata !== "object" ||
     !Array.isArray(data.dimensions) ||
-    !Array.isArray(data.combinations) ||
+    !data.combination_index ||
+    typeof data.combination_index !== "object" ||
     !Array.isArray(data.chunks)
   )
     throw new Error("manifestの形式またはバージョンが正しくありません");
 
-  const dimensionIds = new Set();
+  const seenDimensionIds = new Set();
   for (const dimension of data.dimensions) {
     if (
       !dimension ||
       typeof dimension.id !== "string" ||
-      dimensionIds.has(dimension.id) ||
+      seenDimensionIds.has(dimension.id) ||
       typeof dimension.label !== "string" ||
       !["filter", "asset_class"].includes(dimension.role) ||
       !Number.isFinite(dimension.order) ||
       !Array.isArray(dimension.categories)
     )
       throw new Error("分類軸の形式が正しくありません");
-    dimensionIds.add(dimension.id);
+    seenDimensionIds.add(dimension.id);
     const categoryCodes = new Set();
     for (const category of dimension.categories) {
       if (
@@ -125,76 +127,70 @@ export function validateAssetDistribution(input) {
   )
     throw new Error("表示対象の資産階級一覧が正しくありません");
 
-  /** @type {Map<string, Combination>} */
-  const combinationById = new Map();
-  for (const combination of data.combinations) {
-    if (
-      !combination ||
-      typeof combination.id !== "string" ||
-      combinationById.has(combination.id) ||
-      !["published", "not_published"].includes(combination.status) ||
-      (combination.status === "not_published" &&
-        (typeof combination.reason !== "string" ||
-          !combination.reason.trim())) ||
-      !combination.dimensions ||
-      typeof combination.dimensions !== "object" ||
-      (combination.status === "published" &&
-        !validRelativePath(combination.items_file)) ||
-      (combination.status === "not_published" &&
-        combination.items_file !== null)
-    )
-      throw new Error("組み合わせ一覧の形式が正しくありません");
-    combinationById.set(combination.id, combination);
-    for (const dimension of data.dimensions.filter(
-      (item) => item.role === "filter",
-    )) {
-      const code = combination.dimensions[dimension.id];
-      if (
-        typeof code !== "string" ||
-        !dimension.categories.some((category) => category.code === code)
-      )
-        throw new Error(`組み合わせの分類コードが不正です: ${dimension.id}`);
-    }
-  }
+  const filterDimensions = data.dimensions.filter(
+    (dimension) => dimension.role === "filter",
+  );
+  const dimensionIds = data.combination_index.dimension_ids;
+  if (
+    !Array.isArray(dimensionIds) ||
+    dimensionIds.some((id) => typeof id !== "string") ||
+    new Set(dimensionIds).size !== dimensionIds.length ||
+    dimensionIds.length !== filterDimensions.length ||
+    dimensionIds.some(
+      (id) => !filterDimensions.some((dimension) => dimension.id === id),
+    ) ||
+    filterDimensions.some((dimension) => !dimensionIds.includes(dimension.id))
+  )
+    throw new Error("組み合わせインデックスの分類軸が正しくありません");
+  const indexDimensions = dimensionIds.map(
+    (id) =>
+      /** @type {Dimension} */ (
+        filterDimensions.find((dimension) => dimension.id === id)
+      ),
+  );
+  const expectedCombinationCount = indexDimensions.reduce(
+    (count, dimension) => count * dimension.categories.length,
+    1,
+  );
+  if (
+    !Number.isSafeInteger(data.combination_index.count) ||
+    data.combination_index.count < 1 ||
+    data.combination_index.count !== expectedCombinationCount
+  )
+    throw new Error("組み合わせインデックスの件数が正しくありません");
 
   /** @type {Map<string, Chunk>} */
   const chunkByPath = new Map();
-  const chunkCombinationIds = new Set();
+  const orderedChunks = [];
   for (const chunk of data.chunks) {
     if (
       !chunk ||
       !validRelativePath(chunk.path) ||
       chunkByPath.has(chunk.path) ||
-      !Array.isArray(chunk.combination_ids) ||
-      chunk.combination_ids.length === 0 ||
-      new Set(chunk.combination_ids).size !== chunk.combination_ids.length ||
+      !Number.isSafeInteger(chunk.start_index) ||
+      !Number.isSafeInteger(chunk.count) ||
+      chunk.start_index < 0 ||
+      chunk.count < 1 ||
       (chunk.bytes !== undefined &&
         (!Number.isInteger(chunk.bytes) || chunk.bytes < 0))
     )
       throw new Error("値ファイル一覧の形式が正しくありません");
     chunkByPath.set(chunk.path, chunk);
-    for (const id of chunk.combination_ids) {
-      const combination = combinationById.get(id);
-      if (
-        !combination ||
-        combination.status !== "published" ||
-        combination.items_file !== chunk.path ||
-        chunkCombinationIds.has(id)
-      )
-        throw new Error("manifestの値ファイル対応が正しくありません");
-      chunkCombinationIds.add(id);
-    }
+    orderedChunks.push(chunk);
   }
-  for (const combination of data.combinations) {
+  orderedChunks.sort((left, right) => left.start_index - right.start_index);
+  let nextIndex = 0;
+  for (const chunk of orderedChunks) {
     if (
-      combination.status === "published" &&
-      (combination.items_file === null ||
-        !chunkByPath.has(combination.items_file) ||
-        !chunkCombinationIds.has(combination.id))
+      chunk.start_index !== nextIndex ||
+      chunk.start_index + chunk.count > data.combination_index.count
     )
-      throw new Error(`組み合わせ ${combination.id} の値ファイルがありません`);
+      throw new Error("値ファイル範囲に重複または欠落があります");
+    nextIndex += chunk.count;
   }
-  combinationIndexes.set(data, combinationById);
+  if (nextIndex !== data.combination_index.count)
+    throw new Error("値ファイル範囲に欠落があります");
+  combinationIndexes.set(data, { chunks: orderedChunks, byPath: chunkByPath });
   return data;
 }
 
@@ -215,16 +211,44 @@ export function getDisplayAssetCategories(manifest) {
   });
 }
 
-/** @param {AssetDistribution} manifest */
-function getCombinationIndex(manifest) {
-  let combinationById = combinationIndexes.get(manifest);
-  if (!combinationById) {
-    combinationById = new Map(
-      manifest.combinations.map((combination) => [combination.id, combination]),
+/** @param {AssetDistribution} manifest @param {Record<string, string>} codes @returns {Combination|undefined} */
+export function findCombination(manifest, codes) {
+  const dimensions = /** @type {Dimension[]} */ (
+    manifest.combination_index.dimension_ids.map((id) =>
+      manifest.dimensions.find((dimension) => dimension.id === id),
+    )
+  );
+  let index = 0;
+  for (const dimension of dimensions) {
+    const categoryIndex = dimension.categories.findIndex(
+      (category) => category.code === codes[dimension.id],
     );
-    combinationIndexes.set(manifest, combinationById);
+    if (categoryIndex < 0) return undefined;
+    index = index * dimension.categories.length + categoryIndex;
   }
-  return combinationById;
+  const indexed = combinationIndexes.get(manifest);
+  const chunks =
+    indexed?.chunks ??
+    [...manifest.chunks].sort(
+      (left, right) => left.start_index - right.start_index,
+    );
+  const chunk = chunks.find(
+    (item) =>
+      index >= item.start_index && index < item.start_index + item.count,
+  );
+  if (!chunk) return undefined;
+  const combinationDimensions = Object.fromEntries(
+    dimensions.map((dimension) => [dimension.id, codes[dimension.id]]),
+  );
+  return /** @type {Combination} */ ({
+    id: dimensions
+      .map((dimension) => `${dimension.id}=${codes[dimension.id]}`)
+      .join("|"),
+    dimensions: combinationDimensions,
+    status: "published",
+    reason: null,
+    items_file: chunk.path,
+  });
 }
 
 /** @param {unknown} path */
@@ -268,12 +292,16 @@ export async function fetchAssetDistribution() {
 
 /** @param {AssetDistribution} manifest @param {string} combinationId */
 export function fetchCombinationItems(manifest, combinationId) {
-  const combination = getCombinationIndex(manifest).get(combinationId);
-  if (
-    !combination ||
-    combination.status !== "published" ||
-    !combination.items_file
-  )
+  const indexed = combinationIndexes.get(manifest);
+  const parts = combinationId.split("|");
+  const codes = /** @type {Record<string, string>} */ ({});
+  for (const part of parts) {
+    const separator = part.indexOf("=");
+    if (separator < 1) break;
+    codes[part.slice(0, separator)] = part.slice(separator + 1);
+  }
+  const combination = findCombination(manifest, codes);
+  if (!combination || combination.id !== combinationId)
     return Promise.reject(
       new Error(`公表系列の値ファイルが見つかりません: ${combinationId}`),
     );
@@ -284,8 +312,10 @@ export function fetchCombinationItems(manifest, combinationId) {
       items.filter((item) => item.combination_id === combinationId),
     );
 
-  const chunk = manifest.chunks.find((item) => item.path === file);
-  if (!chunk || !chunk.combination_ids.includes(combinationId))
+  const chunk =
+    indexed?.byPath.get(file) ??
+    manifest.chunks.find((item) => item.path === file);
+  if (!chunk)
     return Promise.reject(
       new Error(`manifestに値ファイルの登録がありません: ${combinationId}`),
     );
@@ -298,6 +328,44 @@ export function fetchCombinationItems(manifest, combinationId) {
   return request.then((items) =>
     items.filter((item) => item.combination_id === combinationId),
   );
+}
+
+/** @param {number} index @param {Dimension[]} dimensions */
+function decodeCombinationIndex(index, dimensions) {
+  const codes = Array(dimensions.length);
+  for (let cursor = dimensions.length - 1; cursor >= 0; cursor--) {
+    const categories = dimensions[cursor].categories;
+    codes[cursor] = categories[index % categories.length].code;
+    index = Math.floor(index / categories.length);
+  }
+  return codes;
+}
+
+/** @param {AssetDistribution} manifest @param {Chunk} chunk @param {number} index */
+function combinationAtIndex(manifest, chunk, index) {
+  const resolvedDimensions = /** @type {Dimension[]} */ (
+    manifest.combination_index.dimension_ids.map((dimensionId) =>
+      manifest.dimensions.find((dimension) => dimension.id === dimensionId),
+    )
+  );
+  const codes = decodeCombinationIndex(index, resolvedDimensions);
+  return /** @type {Combination} */ ({
+    id: resolvedDimensions
+      .map(
+        (dimension, dimensionIndex) =>
+          `${dimension.id}=${codes[dimensionIndex]}`,
+      )
+      .join("|"),
+    dimensions: Object.fromEntries(
+      resolvedDimensions.map((dimension, dimensionIndex) => [
+        dimension.id,
+        codes[dimensionIndex],
+      ]),
+    ),
+    status: "published",
+    reason: null,
+    items_file: chunk.path,
+  });
 }
 
 /** @param {AssetDistribution} manifest @param {Chunk} chunk */
@@ -331,7 +399,7 @@ async function loadAndValidateChunk(manifest, chunk) {
   } catch {
     throw new Error(`値ファイルのJSONを解析できませんでした: ${chunk.path}`);
   }
-  if (!payload || payload.schema_version !== 2 || !Array.isArray(payload.items))
+  if (!payload || payload.schema_version !== 3 || !Array.isArray(payload.items))
     throw new Error(
       `値ファイルの形式またはバージョンが正しくありません: ${chunk.path}`,
     );
@@ -340,17 +408,28 @@ async function loadAndValidateChunk(manifest, chunk) {
   const assetCodes = new Set(
     getDisplayAssetCategories(manifest).map((category) => category.code),
   );
-  const expectedCombinations = new Set(chunk.combination_ids);
+  const expectedCombinations = new Set();
+  const combinations = [];
+  for (
+    let index = chunk.start_index;
+    index < chunk.start_index + chunk.count;
+    index++
+  ) {
+    const combination = combinationAtIndex(manifest, chunk, index);
+    expectedCombinations.add(combination.id);
+    combinations.push(combination);
+  }
   const itemCounts = new Map();
   const itemKeys = new Set();
-  const combinationById = getCombinationIndex(manifest);
+  const combinationById = new Map(
+    combinations.map((combination) => [combination.id, combination]),
+  );
   for (const item of items) {
     const combination = combinationById.get(item?.combination_id);
     if (
       !item ||
       !expectedCombinations.has(item.combination_id) ||
       !combination ||
-      combination.status !== "published" ||
       combination.items_file !== chunk.path ||
       typeof item.asset_class_code !== "string" ||
       !assetCodes.has(item.asset_class_code) ||

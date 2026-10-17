@@ -48,9 +48,9 @@ export ESTAT_APP_ID="取得したアプリケーションID"
 cargo run -- asset-distribution
 ```
 
-取得済みのAPI応答から再変換する場合は `cargo run -- asset-distribution --transform-only` を実行します。生データは `output/asset_distribution/` に保存されます。配信用データは同ディレクトリの `manifest.json` と `items/` 配下のJSONチャンクで、schema version 2 の manifest が分類辞書・表示階級順・組み合わせ・値ファイルの対応を示し、各チャンクは21階級の値を収録します。表示階級は再掲 `R01`～`R03` と通常階級 `02`～`19` で、再掲 `01` は重複計上を避けるため含めません。フロントエンドは version 2 とこの表示階級リストを必須として読み込みます。追試用サンプルは `inspections/asset_distribution/` に保存されます。表の分類・値の解釈、現行出力の規模、転送量の計測方法は[調査記録](inspections/asset_distribution/README.md)を参照してください。
+取得済みのAPI応答から再変換する場合は `cargo run -- asset-distribution --transform-only` を実行します。生データは `output/asset_distribution/` に保存されます。配信用データは同ディレクトリの `manifest.json` と `items/` 配下のJSONチャンクです。schema version 3 の manifest は分類辞書と表示階級順を保持し、属性の直積インデックスと各チャンクの連続範囲から組み合わせ・値ファイルの対応を導出します。manifest と各チャンクは version 3 で、チャンクは21階級の値を収録します。表示階級は再掲 `R01`～`R03` と通常階級 `02`～`19` で、再掲 `01` は重複計上を避けるため含めません。フロントエンドは version 3 のみを受け付けます。version 2 および旧形式との後方互換性、変換やフォールバックはありません。追試用サンプルは `inspections/asset_distribution/` に保存されます。表の分類・値の解釈、出力サイズと転送量の区別は[調査記録](inspections/asset_distribution/README.md)を参照してください。
 
-このデータは `VITE_STORAGE_BASE_URL` で指定する外部ストレージから配信します。世代ごとに別のディレクトリへ manifest と全参照チャンクをまとめてアップロードし、その世代を指す `VITE_STORAGE_BASE_URL` でフロントエンドをビルド・公開してください。新しい世代を別パスに置くことで、公開中の旧フロントエンドが新しい manifest を先に読む状態を避けられます。固定パスを上書きする運用では、公開の切り替え中にフロントエンドとデータの世代が混ざらないよう、両方を同時に切り替え、古い manifest とチャンクのキャッシュも無効化してください。旧画面を開いたままの利用者は再読み込みが必要です。切り戻す場合も、フロントエンドとデータを対応する同じ世代に戻します。GitHub Actions の現行 workflow はフロントエンドのみを GitHub Pages に公開し、外部データのアップロードやキャッシュ更新は行いません。
+このデータは `VITE_STORAGE_BASE_URL` で指定する外部ストレージの `/asset_distribution/` 以下から配信します。version 3 への切り替えでは、同じ場所の全チャンクを配置してから `manifest.json` を置き換え、その後に version 3 対応フロントエンドを公開します。version 2 を読む旧フロントエンドと version 3 のデータは互換性がないため、配置から公開後の確認まで画面が利用できない時間が発生します。配信先から manifest と全チャンクを検証し、新フロントエンドで初期表示・属性変更・複数系列比較を確認してください。切り替え前から開いていた画面は再読み込みが必要です。GitHub Actions の現行 workflow はフロントエンドのみを GitHub Pages に公開し、外部データのアップロードやキャッシュ更新は行いません。
 
 ## 野菜の産地別卸売データ
 
