@@ -477,9 +477,6 @@
         </div>{/if}
       {#if currentSeries.length > 0}
         <h2 class="chart-title">純資産額階級別の世帯数</h2>
-        <p class="hint">
-          「0万円未満」は純資産がマイナスの世帯です。横軸は世帯数なので、棒は正の長さで表示します。
-        </p>
         {#if comparisonMode}<p class="hint">
             属性の比較中です。選択軸の単一区分条件は使っていません。
           </p>{/if}

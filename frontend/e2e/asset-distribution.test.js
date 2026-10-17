@@ -110,7 +110,7 @@ test("asset distribution shows negative assets, selection, and comparison on a n
     page.getByRole("heading", { name: "日本の純資産分布" }),
   ).toBeVisible();
   await expect(
-    page.getByText(/「0万円未満」は純資産がマイナスの世帯です/),
+    page.getByText(/「0万円未満」は純資産総額がマイナスの世帯です/),
   ).toBeVisible();
 
   const chart = page.getByRole("img", {
