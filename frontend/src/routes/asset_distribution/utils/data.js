@@ -13,6 +13,9 @@ export const ASSET_DISTRIBUTION_PATH = `${VITE_STORAGE_BASE_URL}/asset_distribut
 /** @type {Map<string, Promise<DistributionItem[]>>} */
 const chunkPromises = new Map();
 
+/** @type {WeakMap<AssetDistribution, Map<string, Combination>>} */
+const combinationIndexes = new WeakMap();
+
 /** @param {unknown} input */
 export function validateAssetDistribution(input) {
   if (!input || typeof input !== "object")
@@ -157,7 +160,20 @@ export function validateAssetDistribution(input) {
     )
       throw new Error(`組み合わせ ${combination.id} の値ファイルがありません`);
   }
+  combinationIndexes.set(data, combinationById);
   return data;
+}
+
+/** @param {AssetDistribution} manifest */
+function getCombinationIndex(manifest) {
+  let combinationById = combinationIndexes.get(manifest);
+  if (!combinationById) {
+    combinationById = new Map(
+      manifest.combinations.map((combination) => [combination.id, combination]),
+    );
+    combinationIndexes.set(manifest, combinationById);
+  }
+  return combinationById;
 }
 
 /** @param {unknown} path */
@@ -201,9 +217,7 @@ export async function fetchAssetDistribution() {
 
 /** @param {AssetDistribution} manifest @param {string} combinationId */
 export function fetchCombinationItems(manifest, combinationId) {
-  const combination = manifest.combinations.find(
-    (item) => item.id === combinationId,
-  );
+  const combination = getCombinationIndex(manifest).get(combinationId);
   if (
     !combination ||
     combination.status !== "published" ||
@@ -284,10 +298,9 @@ async function loadAndValidateChunk(manifest, chunk) {
   const expectedCombinations = new Set(chunk.combination_ids);
   const itemCounts = new Map();
   const itemKeys = new Set();
+  const combinationById = getCombinationIndex(manifest);
   for (const item of items) {
-    const combination = manifest.combinations.find(
-      (entry) => entry.id === item?.combination_id,
-    );
+    const combination = combinationById.get(item?.combination_id);
     if (
       !item ||
       !expectedCombinations.has(item.combination_id) ||
