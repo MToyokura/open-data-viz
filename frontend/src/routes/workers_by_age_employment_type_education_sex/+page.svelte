@@ -2,7 +2,6 @@
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import { onMount } from "svelte";
   import Spinner from "#lib/Spinner.svelte";
-  import { VITE_ROOT_PATH } from "#lib/paths.js";
   import BarChart from "./BarChart.svelte";
   import { fetchOptions, fetchSeries } from "./utils/fetchData.js";
 
@@ -310,7 +309,6 @@
         </tbody>
       </table>
     </section>
-    <p><a href={`${VITE_ROOT_PATH}/`}>トップページへ戻る</a></p>
   </main>
 </div>
 
