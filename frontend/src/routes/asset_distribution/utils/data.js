@@ -59,7 +59,9 @@ export function validateAssetDistribution(input) {
       (!categoryCodes.has(dimension.total_code) ||
         !categoryCodes.has(dimension.default_code))
     )
-      throw new Error(`総数または初期値が分類区分にありません: ${dimension.label}`);
+      throw new Error(
+        `総数または初期値が分類区分にありません: ${dimension.label}`,
+      );
     if (
       dimension.role === "asset_class" &&
       (dimension.total_code !== null || dimension.default_code !== null)
@@ -95,15 +97,20 @@ export function validateAssetDistribution(input) {
       combinationById.has(combination.id) ||
       !["published", "not_published"].includes(combination.status) ||
       (combination.status === "not_published" &&
-        (typeof combination.reason !== "string" || !combination.reason.trim())) ||
+        (typeof combination.reason !== "string" ||
+          !combination.reason.trim())) ||
       !combination.dimensions ||
       typeof combination.dimensions !== "object" ||
-      (combination.status === "published" && !validRelativePath(combination.items_file)) ||
-      (combination.status === "not_published" && combination.items_file !== null)
+      (combination.status === "published" &&
+        !validRelativePath(combination.items_file)) ||
+      (combination.status === "not_published" &&
+        combination.items_file !== null)
     )
       throw new Error("組み合わせ一覧の形式が正しくありません");
     combinationById.set(combination.id, combination);
-    for (const dimension of data.dimensions.filter((item) => item.role === "filter")) {
+    for (const dimension of data.dimensions.filter(
+      (item) => item.role === "filter",
+    )) {
       const code = combination.dimensions[dimension.id];
       if (
         typeof code !== "string" ||
@@ -124,7 +131,8 @@ export function validateAssetDistribution(input) {
       !Array.isArray(chunk.combination_ids) ||
       chunk.combination_ids.length === 0 ||
       new Set(chunk.combination_ids).size !== chunk.combination_ids.length ||
-      (chunk.bytes !== undefined && (!Number.isInteger(chunk.bytes) || chunk.bytes < 0))
+      (chunk.bytes !== undefined &&
+        (!Number.isInteger(chunk.bytes) || chunk.bytes < 0))
     )
       throw new Error("値ファイル一覧の形式が正しくありません");
     chunkByPath.set(chunk.path, chunk);
@@ -176,7 +184,9 @@ export async function fetchAssetDistribution() {
   try {
     response = await fetch(ASSET_DISTRIBUTION_PATH);
   } catch {
-    throw new Error("manifestを取得できませんでした。通信状態を確認してください");
+    throw new Error(
+      "manifestを取得できませんでした。通信状態を確認してください",
+    );
   }
   if (!response.ok)
     throw new Error(`manifestを取得できませんでした (HTTP ${response.status})`);
@@ -191,23 +201,38 @@ export async function fetchAssetDistribution() {
 
 /** @param {AssetDistribution} manifest @param {string} combinationId */
 export function fetchCombinationItems(manifest, combinationId) {
-  const combination = manifest.combinations.find((item) => item.id === combinationId);
-  if (!combination || combination.status !== "published" || !combination.items_file)
-    return Promise.reject(new Error(`公表系列の値ファイルが見つかりません: ${combinationId}`));
+  const combination = manifest.combinations.find(
+    (item) => item.id === combinationId,
+  );
+  if (
+    !combination ||
+    combination.status !== "published" ||
+    !combination.items_file
+  )
+    return Promise.reject(
+      new Error(`公表系列の値ファイルが見つかりません: ${combinationId}`),
+    );
   const file = combination.items_file;
   const cached = chunkPromises.get(file);
-  if (cached) return cached.then((items) => items.filter((item) => item.combination_id === combinationId));
+  if (cached)
+    return cached.then((items) =>
+      items.filter((item) => item.combination_id === combinationId),
+    );
 
   const chunk = manifest.chunks.find((item) => item.path === file);
   if (!chunk || !chunk.combination_ids.includes(combinationId))
-    return Promise.reject(new Error(`manifestに値ファイルの登録がありません: ${combinationId}`));
+    return Promise.reject(
+      new Error(`manifestに値ファイルの登録がありません: ${combinationId}`),
+    );
 
   const request = loadAndValidateChunk(manifest, chunk);
   chunkPromises.set(file, request);
   request.catch(() => {
     if (chunkPromises.get(file) === request) chunkPromises.delete(file);
   });
-  return request.then((items) => items.filter((item) => item.combination_id === combinationId));
+  return request.then((items) =>
+    items.filter((item) => item.combination_id === combinationId),
+  );
 }
 
 /** @param {AssetDistribution} manifest @param {Chunk} chunk */
@@ -219,15 +244,22 @@ async function loadAndValidateChunk(manifest, chunk) {
     throw new Error(`値ファイルを取得できませんでした: ${chunk.path}`);
   }
   if (!response.ok)
-    throw new Error(`値ファイルを取得できませんでした (HTTP ${response.status}): ${chunk.path}`);
+    throw new Error(
+      `値ファイルを取得できませんでした (HTTP ${response.status}): ${chunk.path}`,
+    );
   let text;
   try {
     text = await response.text();
   } catch {
     throw new Error(`値ファイルのJSONを解析できませんでした: ${chunk.path}`);
   }
-  if (chunk.bytes !== undefined && new TextEncoder().encode(text).byteLength !== chunk.bytes)
-    throw new Error(`値ファイルのサイズがmanifestと一致しません: ${chunk.path}`);
+  if (
+    chunk.bytes !== undefined &&
+    new TextEncoder().encode(text).byteLength !== chunk.bytes
+  )
+    throw new Error(
+      `値ファイルのサイズがmanifestと一致しません: ${chunk.path}`,
+    );
   let payload;
   try {
     payload = JSON.parse(text);
@@ -235,10 +267,14 @@ async function loadAndValidateChunk(manifest, chunk) {
     throw new Error(`値ファイルのJSONを解析できませんでした: ${chunk.path}`);
   }
   if (!payload || payload.schema_version !== 1 || !Array.isArray(payload.items))
-    throw new Error(`値ファイルの形式またはバージョンが正しくありません: ${chunk.path}`);
+    throw new Error(
+      `値ファイルの形式またはバージョンが正しくありません: ${chunk.path}`,
+    );
   const items = /** @type {DistributionItem[]} */ (payload.items);
 
-  const assetDimension = manifest.dimensions.find((dimension) => dimension.role === "asset_class");
+  const assetDimension = manifest.dimensions.find(
+    (dimension) => dimension.role === "asset_class",
+  );
   if (!assetDimension) throw new Error("資産階級軸を一つ特定できません");
   const assetCodes = new Set(
     assetDimension.categories
@@ -249,7 +285,9 @@ async function loadAndValidateChunk(manifest, chunk) {
   const itemCounts = new Map();
   const itemKeys = new Set();
   for (const item of items) {
-    const combination = manifest.combinations.find((entry) => entry.id === item?.combination_id);
+    const combination = manifest.combinations.find(
+      (entry) => entry.id === item?.combination_id,
+    );
     if (
       !item ||
       !expectedCombinations.has(item.combination_id) ||
@@ -259,17 +297,30 @@ async function loadAndValidateChunk(manifest, chunk) {
       typeof item.asset_class_code !== "string" ||
       !assetCodes.has(item.asset_class_code) ||
       !["observed", "suppressed", "missing"].includes(item.status) ||
-      !(item.count === null || (typeof item.count === "number" && Number.isFinite(item.count) && item.count >= 0)) ||
+      !(
+        item.count === null ||
+        (typeof item.count === "number" &&
+          Number.isFinite(item.count) &&
+          item.count >= 0)
+      ) ||
       (item.status === "observed") !== (item.count !== null) ||
       typeof item.raw_value !== "string" ||
       !Array.isArray(item.annotations) ||
       item.annotations.some((note) => typeof note !== "string")
     )
-      throw new Error(`値ファイル内の階級別データが正しくありません: ${chunk.path}`);
+      throw new Error(
+        `値ファイル内の階級別データが正しくありません: ${chunk.path}`,
+      );
     const key = `${item.combination_id}\u0000${item.asset_class_code}`;
-    if (itemKeys.has(key)) throw new Error(`値ファイル内に階級別データの重複があります: ${chunk.path}`);
+    if (itemKeys.has(key))
+      throw new Error(
+        `値ファイル内に階級別データの重複があります: ${chunk.path}`,
+      );
     itemKeys.add(key);
-    itemCounts.set(item.combination_id, (itemCounts.get(item.combination_id) ?? 0) + 1);
+    itemCounts.set(
+      item.combination_id,
+      (itemCounts.get(item.combination_id) ?? 0) + 1,
+    );
   }
   for (const id of expectedCombinations) {
     const expected = assetCodes.size;

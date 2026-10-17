@@ -16,8 +16,8 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use crate::modules::estat_api::{
-    get_meta_info::{get_meta_info, GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
-    get_stats_data::{get_stats_data, GetStatsDataParamsBuilder, MandatoryParams as DataParams},
+    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams, get_meta_info},
+    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams, get_stats_data},
 };
 
 const STATS_DATA_ID: &str = "0004056120";
@@ -899,20 +899,24 @@ fn classify_value(
         return Ok((
             None,
             "missing",
-            vec![notes
-                .get(raw)
-                .cloned()
-                .unwrap_or_else(|| "該当数字がない".into())],
+            vec![
+                notes
+                    .get(raw)
+                    .cloned()
+                    .unwrap_or_else(|| "該当数字がない".into()),
+            ],
         ));
     }
     if raw == "X" {
         return Ok((
             None,
             "suppressed",
-            vec![notes
-                .get(raw)
-                .cloned()
-                .ok_or("Suppressed value has no API note")?],
+            vec![
+                notes
+                    .get(raw)
+                    .cloned()
+                    .ok_or("Suppressed value has no API note")?,
+            ],
         ));
     }
     let value: u64 = raw

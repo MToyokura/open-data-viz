@@ -2,7 +2,10 @@
   import { onMount } from "svelte";
   import Spinner from "#lib/Spinner.svelte";
   import DistributionChart from "./DistributionChart.svelte";
-  import { fetchAssetDistribution, fetchCombinationItems } from "./utils/data.js";
+  import {
+    fetchAssetDistribution,
+    fetchCombinationItems,
+  } from "./utils/data.js";
 
   /** @typedef {import("./utils/data.js").Dimension} Dimension */
   /** @typedef {import("./utils/data.js").ComparisonSet} ComparisonSet */
@@ -17,7 +20,9 @@
   let compareDimensionId = $state("");
   let compareSetId = $state("");
   let compareCodes = $state(/** @type {string[]} */ ([]));
-  let seriesItems = $state.raw(/** @type {Record<string, import("./utils/data.js").DistributionItem[]>} */ ({}));
+  let seriesItems = $state.raw(
+    /** @type {Record<string, import("./utils/data.js").DistributionItem[]>} */ ({}),
+  );
   let seriesLoading = $state(false);
   let seriesError = $state("");
   let seriesLoadGeneration = 0;
@@ -123,15 +128,24 @@
     !comparisonMode ? findCombination(selections) : undefined,
   );
   const activeCombinations = $derived.by(() => {
-    if (!data) return /** @type {import("./utils/data.js").Combination[]} */ ([]);
+    if (!data)
+      return /** @type {import("./utils/data.js").Combination[]} */ ([]);
     if (!comparisonMode) {
-      return currentCombination?.status === "published" ? [currentCombination] : [];
+      return currentCombination?.status === "published"
+        ? [currentCombination]
+        : [];
     }
     const combinations = (comparisonSet?.category_codes ?? [])
       .filter((code) => compareCodes.includes(code))
-      .map((code) => findCombination({ ...selections, [compareDimensionId]: code }))
+      .map((code) =>
+        findCombination({ ...selections, [compareDimensionId]: code }),
+      )
       .filter(isPublishedCombination);
-    return [...new Map(combinations.map((combination) => [combination.id, combination])).values()];
+    return [
+      ...new Map(
+        combinations.map((combination) => [combination.id, combination]),
+      ).values(),
+    ];
   });
   const currentSeries = $derived.by(() => {
     if (
@@ -152,8 +166,11 @@
           "")
         : "選択条件";
       const items = seriesItems[combination.id];
-      if (!items) throw new Error(`階級別データがありません: ${combination.id}`);
-      const itemsByCode = new Map(items.map((item) => [item.asset_class_code, item]));
+      if (!items)
+        throw new Error(`階級別データがありません: ${combination.id}`);
+      const itemsByCode = new Map(
+        items.map((item) => [item.asset_class_code, item]),
+      );
       const rows = assetCategories.map((category) => {
         const item = itemsByCode.get(category.code);
         if (!item)
@@ -217,7 +234,9 @@
     const combinations = activeCombinations;
     const generation = ++seriesLoadGeneration;
     seriesError = "";
-    const missing = combinations.filter((combination) => !seriesItems[combination.id]);
+    const missing = combinations.filter(
+      (combination) => !seriesItems[combination.id],
+    );
     if (!manifest || missing.length === 0) {
       seriesLoading = false;
       return;
@@ -246,7 +265,9 @@
   });
 
   function retrySeries() {
-    const activeIds = new Set(activeCombinations.map((combination) => combination.id));
+    const activeIds = new Set(
+      activeCombinations.map((combination) => combination.id),
+    );
     seriesItems = Object.fromEntries(
       Object.entries(seriesItems).filter(([id]) => !activeIds.has(id)),
     );
@@ -436,7 +457,11 @@
         >
           この条件は公表されていません: {currentCombination.reason}
         </p>{/if}
-      {#if seriesLoading}<p class="hint" role="status">{comparisonMode ? "比較系列" : "選択中の系列"}データを読み込んでいます…</p>{/if}
+      {#if seriesLoading}<p class="hint" role="status">
+          {comparisonMode
+            ? "比較系列"
+            : "選択中の系列"}データを読み込んでいます…
+        </p>{/if}
       {#if seriesError}<div class="error" role="alert">
           <p>{seriesError}</p>
           <button onclick={retrySeries}>再試行</button>
@@ -475,23 +500,39 @@
           <tbody>
             <tr>
               <th>調査年・公表日</th>
-              <td>{String(data.metadata.year ?? "")}年（公表日: {String(data.metadata.published_at ?? "")}）</td>
+              <td
+                >{String(data.metadata.year ?? "")}年（公表日: {String(
+                  data.metadata.published_at ?? "",
+                )}）</td
+              >
             </tr>
             <tr>
               <th>対象・表章項目</th>
-              <td>{String(data.metadata.area ?? "全国")}、{String(data.metadata.measure ?? "世帯数")}（{String(data.metadata.unit ?? "世帯")}）</td>
+              <td
+                >{String(data.metadata.area ?? "全国")}、{String(
+                  data.metadata.measure ?? "世帯数",
+                )}（{String(data.metadata.unit ?? "世帯")}）</td
+              >
             </tr>
             <tr>
               <th>階級の定義</th>
-              <td>{String(data.metadata.asset_basis ?? "純資産総額")}。純資産総額が0またはマイナスの世帯は「25万円未満」に含まれ、資産額不詳の世帯は平均にのみ含まれるため、金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。</td>
+              <td
+                >{String(
+                  data.metadata.asset_basis ?? "純資産総額",
+                )}。純資産総額が0またはマイナスの世帯は「25万円未満」に含まれ、資産額不詳の世帯は平均にのみ含まれるため、金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。</td
+              >
             </tr>
             <tr>
               <th>世帯数の推計</th>
-              <td>世帯数は調査世帯の単純な回答数ではなく、集計用乗率を使った推計値です。</td>
+              <td
+                >世帯数は調査世帯の単純な回答数ではなく、集計用乗率を使った推計値です。</td
+              >
             </tr>
             <tr>
               <th>値の表記</th>
-              <td>「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。公表値は整数に丸められており、階級別の合計と平均（資産額不詳を除く）が1世帯ずれる場合があります。</td>
+              <td
+                >「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。公表値は整数に丸められており、階級別の合計と平均（資産額不詳を除く）が1世帯ずれる場合があります。</td
+              >
             </tr>
             <tr>
               <th>統計名</th>
