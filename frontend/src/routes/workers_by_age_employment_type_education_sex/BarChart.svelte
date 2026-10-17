@@ -45,20 +45,37 @@
           return [year, ...rows].join("<br>");
         },
       },
-      legend: { type: "scroll", bottom: 0 },
+      legend: {
+        type: "scroll",
+        bottom: 0,
+        formatter: (/** @type {string} */ name) =>
+          name.replace(/\s+\[[^\]]+\]$/, ""),
+      },
       grid: {
-        left: horizontal ? 120 : 56,
+        left: horizontal ? 120 : 68,
         right: 24,
-        top: 24,
+        top: 40,
         bottom: 72,
         containLabel: true,
       },
       xAxis: horizontal
-        ? { type: "value", name: categories[0]?.data?.unit ?? "" }
+        ? {
+            type: "value",
+            name: categories[0]?.data?.unit ?? "",
+            nameLocation: "middle",
+            nameGap: 32,
+            nameRotate: 0,
+          }
         : { type: "category", data: years, axisLabel: { rotate: 45 } },
       yAxis: horizontal
         ? { type: "category", data: years }
-        : { type: "value", name: categories[0]?.data?.unit ?? "" },
+        : {
+            type: "value",
+            name: categories[0]?.data?.unit ?? "",
+            nameLocation: "middle",
+            nameGap: 42,
+            nameRotate: 0,
+          },
       series: categories.map((item) => ({
         id: item.key,
         // ECharts treats series names as legend identities, so include the stable codes.
