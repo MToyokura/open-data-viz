@@ -6,7 +6,7 @@
 
 ## テーマ
 
-- [属性別純資産額階級別世帯数](asset_distribution/README.md): e-Stat 表 `0004056120` の公式表定義・分類表示を確認。公式APIへの接続制限によりAPIコードと値の調査は未完了。
+- [属性別純資産額階級別世帯数](asset_distribution/README.md): e-Stat 表 `0004056120` のAPI分類・全件値を公式表と照合し、配信用JSONの構成と転送量計測の基準を記録。
 - [年齢階級・雇用形態・教育・性別別雇用者数](workers_by_age_employment_type_education_sex/README.md): e-Stat 表 `0003006608` の現行分類、応答形式、ページングと再実行可能な応答標本の調査。
 - [野菜の産地リレー](vegetable_production_relay/README.md): 取得対象の選定、公式ワークブックと e-Stat データの照合、年月の対応付け、正規化・集計方法の検討。
 

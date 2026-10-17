@@ -2,13 +2,13 @@
   import { onMount } from "svelte";
   import Spinner from "#lib/Spinner.svelte";
   import DistributionChart from "./DistributionChart.svelte";
-  import { fetchAssetDistribution } from "./utils/data.js";
+  import { fetchAssetDistribution, fetchCombinationItems } from "./utils/data.js";
 
   /** @typedef {import("./utils/data.js").Dimension} Dimension */
   /** @typedef {import("./utils/data.js").ComparisonSet} ComparisonSet */
   /** @typedef {{ key: string, label: string, rows: { code: string, label: string, count: number|null, status: string, raw_value: string, annotations: string[] }[] }} DisplaySeries */
 
-  let data = $state(
+  let data = $state.raw(
     /** @type {import("./utils/data.js").AssetDistribution|null} */ (null),
   );
   let loading = $state(true);
@@ -17,6 +17,10 @@
   let compareDimensionId = $state("");
   let compareSetId = $state("");
   let compareCodes = $state(/** @type {string[]} */ ([]));
+  let seriesItems = $state.raw(/** @type {Record<string, import("./utils/data.js").DistributionItem[]>} */ ({}));
+  let seriesLoading = $state(false);
+  let seriesError = $state("");
+  let seriesLoadGeneration = 0;
 
   const dimensions = $derived(
     data?.dimensions.toSorted((a, b) => a.order - b.order) ?? [],
@@ -52,6 +56,11 @@
           combination.dimensions[dimension.id] === codes[dimension.id],
       ),
     );
+  }
+
+  /** @param {import("./utils/data.js").Combination|undefined} combination @returns {combination is import("./utils/data.js").Combination} */
+  function isPublishedCombination(combination) {
+    return combination?.status === "published";
   }
 
   /** @param {Dimension} dimension @param {string} code @param {boolean} [omitComparisonAxis] */
@@ -113,6 +122,17 @@
   const currentCombination = $derived(
     !comparisonMode ? findCombination(selections) : undefined,
   );
+  const activeCombinations = $derived.by(() => {
+    if (!data) return /** @type {import("./utils/data.js").Combination[]} */ ([]);
+    if (!comparisonMode) {
+      return currentCombination?.status === "published" ? [currentCombination] : [];
+    }
+    const combinations = (comparisonSet?.category_codes ?? [])
+      .filter((code) => compareCodes.includes(code))
+      .map((code) => findCombination({ ...selections, [compareDimensionId]: code }))
+      .filter(isPublishedCombination);
+    return [...new Map(combinations.map((combination) => [combination.id, combination])).values()];
+  });
   const currentSeries = $derived.by(() => {
     if (
       !data ||
@@ -120,19 +140,10 @@
       (comparisonMode && (!comparisonSet || !comparisonDimension))
     )
       return /** @type {DisplaySeries[]} */ ([]);
-    const activeData = data;
-    const codes = comparisonMode
-      ? (comparisonSet?.category_codes ?? []).filter((code) =>
-          compareCodes.includes(code),
-        )
-      : currentCombination?.status === "published"
-        ? [null]
-        : [];
-    return codes.flatMap((code) => {
-      const combination = comparisonMode
-        ? findCombination({ ...selections, [compareDimensionId]: code ?? "" })
-        : currentCombination;
-      if (combination?.status !== "published") return [];
+    if (activeCombinations.some((combination) => !seriesItems[combination.id]))
+      return /** @type {DisplaySeries[]} */ ([]);
+    return activeCombinations.map((combination) => {
+      const code = combination.dimensions[compareDimensionId];
       const categoryLabel = comparisonMode
         ? (comparisonDimension?.categories.find(
             (category) => category.code === code,
@@ -140,12 +151,11 @@
           code ??
           "")
         : "選択条件";
+      const items = seriesItems[combination.id];
+      if (!items) throw new Error(`階級別データがありません: ${combination.id}`);
+      const itemsByCode = new Map(items.map((item) => [item.asset_class_code, item]));
       const rows = assetCategories.map((category) => {
-        const item = activeData.items.find(
-          (entry) =>
-            entry.combination_id === combination.id &&
-            entry.asset_class_code === category.code,
-        );
+        const item = itemsByCode.get(category.code);
         if (!item)
           throw new Error(
             `階級別データがありません: ${combination.id} / ${category.code}`,
@@ -159,7 +169,7 @@
           annotations: item.annotations,
         };
       });
-      return [{ key: combination.id, label: categoryLabel, rows }];
+      return { key: combination.id, label: categoryLabel, rows };
     });
   });
   const unavailableRows = $derived(
@@ -177,12 +187,14 @@
     ),
   );
   const noComparableSeries = $derived(
-    comparisonMode && currentSeries.length < 2,
+    comparisonMode && activeCombinations.length < 2,
   );
 
   async function loadData() {
     loading = true;
     error = "";
+    seriesError = "";
+    seriesItems = {};
     try {
       data = await fetchAssetDistribution();
       selections = Object.fromEntries(
@@ -198,6 +210,46 @@
     } finally {
       loading = false;
     }
+  }
+
+  $effect(() => {
+    const manifest = data;
+    const combinations = activeCombinations;
+    const generation = ++seriesLoadGeneration;
+    seriesError = "";
+    const missing = combinations.filter((combination) => !seriesItems[combination.id]);
+    if (!manifest || missing.length === 0) {
+      seriesLoading = false;
+      return;
+    }
+    seriesLoading = true;
+    void Promise.all(
+      missing.map(async (combination) => [
+        combination.id,
+        await fetchCombinationItems(manifest, combination.id),
+      ]),
+    )
+      .then((loaded) => {
+        if (generation !== seriesLoadGeneration) return;
+        seriesItems = { ...seriesItems, ...Object.fromEntries(loaded) };
+      })
+      .catch((cause) => {
+        if (generation !== seriesLoadGeneration) return;
+        seriesError =
+          cause instanceof Error
+            ? cause.message
+            : "系列データの読み込みに失敗しました";
+      })
+      .finally(() => {
+        if (generation === seriesLoadGeneration) seriesLoading = false;
+      });
+  });
+
+  function retrySeries() {
+    const activeIds = new Set(activeCombinations.map((combination) => combination.id));
+    seriesItems = Object.fromEntries(
+      Object.entries(seriesItems).filter(([id]) => !activeIds.has(id)),
+    );
   }
 
   function startComparison() {
@@ -384,6 +436,11 @@
         >
           この条件は公表されていません: {currentCombination.reason}
         </p>{/if}
+      {#if seriesLoading}<p class="hint" role="status">{comparisonMode ? "比較系列" : "選択中の系列"}データを読み込んでいます…</p>{/if}
+      {#if seriesError}<div class="error" role="alert">
+          <p>{seriesError}</p>
+          <button onclick={retrySeries}>再試行</button>
+        </div>{/if}
       {#if currentSeries.length > 0}
         <h2 class="chart-title">純資産額階級別の世帯数</h2>
         {#if comparisonMode}<p class="hint">
@@ -408,40 +465,58 @@
             </ul>
           </section>
         {/if}
-      {:else if !comparisonMode && currentCombination?.status !== "not_published"}
+      {:else if !comparisonMode && currentCombination?.status !== "not_published" && !seriesLoading && !seriesError}
         <p class="hint" role="status">表示できる公表系列がありません。</p>
       {/if}
 
       <section class="reference ui-panel ui-panel--subtle">
         <h2>データについて</h2>
-        <p>
-          調査年: {String(data.metadata.year ?? "")}年（公表日: {String(
-            data.metadata.published_at ?? ""
-          )}）。対象: {String(
-            data.metadata.area ?? "全国",
-          )}。表章項目: {String(data.metadata.measure ?? "世帯数")}（{String(
-            data.metadata.unit ?? "世帯",
-          )}）。階級の定義: {String(
-            data.metadata.asset_basis ?? "純資産総額",
-          )}。
-        </p>
-        <p>
-          世帯数は調査世帯の単純な回答数ではなく、集計用乗率を使った推計値です。純資産総額が0またはマイナスの世帯は「25万円未満」に含まれ、資産額不詳の世帯は平均にのみ含まれるため、金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。
-        </p>
-        <p>
-          統計表の「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題の「世帯数」に基づき単位を「世帯」としています。公表値は整数に丸められており、階級別の合計と平均（資産額不詳を除く）が1世帯ずれる場合があります。
-        </p>
-        <h2>出典</h2>
-        <p>
-          総務省統計局「令和6年全国家計構造調査」表7-131-1-1「資産額階級別世帯数」
-        </p>
-        <p>
-          <a
-            href="https://www.e-stat.go.jp/dbview?sid=0004056120"
-            target="_blank"
-            rel="noopener noreferrer">統計表ID 0004056120（e-Stat）</a
-          >
-        </p>
+        <table class="reference-table ui-table">
+          <tbody>
+            <tr>
+              <th>調査年・公表日</th>
+              <td>{String(data.metadata.year ?? "")}年（公表日: {String(data.metadata.published_at ?? "")}）</td>
+            </tr>
+            <tr>
+              <th>対象・表章項目</th>
+              <td>{String(data.metadata.area ?? "全国")}、{String(data.metadata.measure ?? "世帯数")}（{String(data.metadata.unit ?? "世帯")}）</td>
+            </tr>
+            <tr>
+              <th>階級の定義</th>
+              <td>{String(data.metadata.asset_basis ?? "純資産総額")}。純資産総額が0またはマイナスの世帯は「25万円未満」に含まれ、資産額不詳の世帯は平均にのみ含まれるため、金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。</td>
+            </tr>
+            <tr>
+              <th>世帯数の推計</th>
+              <td>世帯数は調査世帯の単純な回答数ではなく、集計用乗率を使った推計値です。</td>
+            </tr>
+            <tr>
+              <th>値の表記</th>
+              <td>「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。公表値は整数に丸められており、階級別の合計と平均（資産額不詳を除く）が1世帯ずれる場合があります。</td>
+            </tr>
+            <tr>
+              <th>統計名</th>
+              <td>総務省統計局「令和6年全国家計構造調査」</td>
+            </tr>
+            <tr>
+              <th>表題</th>
+              <td>表7-131-1-1「資産額階級別世帯数」</td>
+            </tr>
+            <tr>
+              <th>統計表ID</th>
+              <td>
+                <div>0004056120</div>
+                <div>
+                  <a
+                    href="https://www.e-stat.go.jp/dbview?sid=0004056120"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >https://www.e-stat.go.jp/dbview?sid=0004056120</a
+                  >
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </section>
     {/if}
   </main>
@@ -512,8 +587,15 @@
   .reference {
     margin-top: var(--space-8);
   }
-  .reference p:last-child {
-    margin-bottom: 0;
+  .reference h2 {
+    margin-top: 0;
+    margin-bottom: var(--space-4);
+  }
+  .reference-table {
+    margin-top: var(--space-4);
+  }
+  .reference-table a {
+    word-break: break-all;
   }
   .error {
     color: var(--danger-color);

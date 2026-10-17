@@ -65,6 +65,23 @@ API応答は `@unit` を含まず、値は文字列で返る。全件の値は�
 
 `samples/meta_info.json` は `getMetaInfo` 応答、`samples/stats_data.json` は全件取得から抽出した実際の値レコードである。統計データ標本は総数条件と年齢35歳未満条件の各36区分を含む。標本のコード・値は実測値で、アプリケーションIDは含まない。SHA-256とAPI取得条件、ページ数、総件数は [`capture_manifest.json`](capture_manifest.json) を参照。
 
-生成 JSON は `output/asset_distribution/asset_distribution.json`。`dimensions`、`combinations`、`items` はAPIメタデータと全件応答から整形される。再取得には `ESTAT_APP_ID` を環境に設定して `cargo run -- asset-distribution`、保存済み応答の再変換には `cargo run -- asset-distribution --transform-only` を使う。
+生成物は `output/asset_distribution/manifest.json` と `output/asset_distribution/items/` 配下の値チャンクである。manifest は `schema_version`、メタデータ、分類辞書 (`dimensions`)、全属性組み合わせ (`combinations`)、チャンク一覧 (`chunks`) を持つ。各組み合わせの `items_file` が値ファイルを示し、チャンク一覧にはパス、対象組み合わせID、バイト数を記録する。値チャンクは通常階級の値 (`items`) を収録する。旧単一ファイル `asset_distribution.json` は配信用出力に含めない。再取得には `ESTAT_APP_ID` を環境に設定して `cargo run -- asset-distribution`、保存済み応答の再変換には `cargo run -- asset-distribution --transform-only` を使う。
+
+## 出力サイズと転送量の計測
+
+分割出力に移行する前の実測ベースラインは以下の通り。対象は既存 `output/asset_distribution/asset_distribution.json` で、ファイル実サイズは30,359,227 bytes (約28.95 MiB)。このJSONは6,762組み合わせ、128,478値を含み、全系列が19階級である。JSONを空白なしで再直列化したときの各セクションのサイズは、metadata 310 bytes、dimensions 6,617 bytes、combinations 980,785 bytes、items 20,332,046 bytes。セクション値のみのサイズなので、キーや整形空白を含むファイル全体とは一致しない。
+
+分割出力を再生成した結果は、manifest 2,189,528 bytes、値チャンク112個、チャンク合計28,767,753 bytes。チャンクの最小・中央値・最大は13,747 / 259,107 / 261,028 bytesで、1チャンクあたり3〜65組み合わせを含む。初期選択の系列 `cat01=00|cat02=0|cat03=00|cat05=0` は `items/00000.json` (258,851 bytes) を使うため、manifest取得後の系列読込を含む初期表示は2,448,379 bytes。旧JSON全体より約91.9%少ない。manifestだけの初期要求は旧JSONより約92.8%少ない。これらはローカルファイルの非圧縮バイト数であり、gzip/Brotli後の実ネットワーク転送量は未計測である。
+
+代表比較として、初期の他条件を保った学歴の「在学中・卒業」2系列は異なる2チャンクを使い、初期系列のチャンクを取得済みの場合の追加分は518,839 bytes。初期系列の取得後に比較を開始した累計は2,967,218 bytes (manifest + 初期チャンク + 比較2チャンク) で、旧JSONより約90.2%少ない。計測は生成manifestのパス対応と各ファイルサイズから算出し、gzip/Brotliやブラウザーキャッシュは含めない。
+
+生成後は同じ条件で次を記録する。
+
+- 再計測時は `manifest.json` と各チャンクの実バイト数、チャンク数、最大・中央値サイズ、全配信ファイルの合計を記録する。
+- 初期転送量はmanifestだけの要求と、初期系列のチャンクを含む表示完了までを分ける（圧縮配信を測定できる場合はgzip/Brotli後の転送量も併記）。
+- 比較操作は対象系列IDから参照チャンクを引き、重複パスを除いた追加チャンク数・追加バイト数を記録する。同じチャンクを既に取得済みなら追加転送量は0として扱う。
+- 計測対象の初期条件・比較条件、キャッシュ有無、測定日を記録し、モノリシック版の30,359,227 bytesと比較する。ブラウザーのNetworkパネル等で測る場合は実際の転送サイズとリソースサイズを区別する。
+
+旧単一JSONからの移行時には、生成処理・フロントエンド・関連文書をmanifestとチャンクの形式に更新した。再生成では旧 `asset_distribution.json` を配信用出力から除去する。将来、参照先を確認するときはリポジトリ全体で `asset_distribution.json` を検索し、inspection のベースライン記述など歴史的な言及と、実際の取得経路を区別する。
 
 調査年は2024年、公表日は2026-08-28。分類表示と値の再現確認はe-Stat APIの全243,432件、公式HTMLの表題・選択軸、および公式Excelの代表5値で照合した。公式平均（資産額不詳を除く）と19階級合計の丸め差も上記の通り記録する。

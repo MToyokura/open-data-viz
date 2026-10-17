@@ -52,10 +52,11 @@
 
 既存の Rust プロジェクトパイプラインを参考に `asset-distribution` コマンドを追加する。メタデータで特定したコードを使い、全国・2024年の対象データを分類軸と階級のコード・ラベルを保持して整形する。総数の系列だけに絞らず、属性の組み合わせごとの値も収録する。APIの取得件数上限がある場合は分割取得し、全件を取り込んだことを検証する。
 
-配布 JSON は `metadata`、分類辞書 `dimensions`、組み合わせ一覧 `combinations`、値の一覧 `items` を持つ。以下は形式例であり、軸・区分コードや値は公表値ではない。
+配布データは `data_preparation/output/asset_distribution/manifest.json` と `items/` 配下の値チャンクで構成する。manifest には `schema_version`、メタデータ、分類辞書 `dimensions`、全組み合わせ `combinations`、チャンク一覧 (`chunks`) を含める。組み合わせごとの `items_file` で値ファイルを特定し、チャンク一覧にはファイルサイズと対象組み合わせを記録する。以下は論理構造の例であり、軸・区分コードや値は公表値ではない。
 
 ```json
 {
+  "schema_version": 1,
   "metadata": {
     "stats_data_id": "0004056120",
     "year": 2024,
@@ -97,9 +98,21 @@
         "<属性軸のAPI ID>": "<公式区分コード>"
       },
       "status": "published",
-      "reason": null
+      "reason": null,
+      "items_file": "items/00000.json"
     }
   ],
+  "chunks": [
+    { "path": "items/00000.json", "combination_ids": ["<組み合わせID>"], "bytes": 1234 }
+  ]
+}
+```
+
+値ファイルの例（`items/00000.json`）：
+
+```json
+{
+  "schema_version": 1,
   "items": [
     {
       "combination_id": "<組み合わせID>",
@@ -136,7 +149,7 @@
 - 絞り込み条件は分類軸ごとの公式区分コードで評価し、未選択の軸は公式の全体・総数区分を使う。部分集団を足して全体を作らない。
 - API値を公式統計表と照合し、値の単位、丸め、推計世帯数としての扱いを記録する。
 
-**成果物候補**：`data_preparation/output/asset_distribution/asset_distribution.json`。
+**成果物**：`data_preparation/output/asset_distribution/manifest.json` と同ディレクトリの `items/*.json`。既存の単一 `asset_distribution.json` は配信用生成物から外す。
 
 ### 3. 検証記録を残す
 
@@ -177,7 +190,7 @@
 
 ### 6. データ配信
 
-生成 JSON がローカルの `npm run serve` 経由で読み込める構成にする。本番の静的データ置き場には `asset_distribution/asset_distribution.json` を既存データと同じ方法で配置し、`VITE_STORAGE_BASE_URL` から参照できるようにする。API ID は Actions のビルド環境やブラウザーに渡さない。
+manifest と `items/` 配下のチャンクがローカルの `npm run serve` 経由で同じ相対パス構造のまま読み込める構成にする。本番の静的データ置き場には `asset_distribution/manifest.json` と `asset_distribution/items/*.json` を配置し、`VITE_STORAGE_BASE_URL` を基点に取得できるようにする。API ID は Actions のビルド環境やブラウザーに渡さない。
 
 ## 完了条件
 

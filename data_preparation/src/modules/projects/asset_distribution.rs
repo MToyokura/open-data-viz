@@ -4,7 +4,7 @@
 //! particular, no classification codes are duplicated in this module.
 
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, BTreeSet, HashMap, VecDeque},
     error::Error,
     fs,
     path::PathBuf,
@@ -16,13 +16,16 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use crate::modules::estat_api::{
-    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams, get_meta_info},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams, get_stats_data},
+    get_meta_info::{get_meta_info, GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
+    get_stats_data::{get_stats_data, GetStatsDataParamsBuilder, MandatoryParams as DataParams},
 };
 
 const STATS_DATA_ID: &str = "0004056120";
 const OUTPUT_DIR: &str = "output/asset_distribution";
 const PAGE_SIZE: u32 = 100_000;
+const CHUNK_MAX_BYTES: usize = 1024 * 1024;
+const CHUNK_TARGET_BYTES: usize = 256 * 1024;
+const CHUNK_MAX_COMBINATIONS: usize = 128;
 
 pub fn run(args: &[String]) -> bool {
     if args.first().map(String::as_str) != Some("asset-distribution") {
@@ -388,7 +391,8 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             .ok_or("Combination count overflow")
     })?;
     let mut combinations = Vec::with_capacity(expected_combinations);
-    let mut items = Vec::with_capacity(expected_combinations * regular_asset.len());
+    let mut items_by_combination = Vec::with_capacity(expected_combinations);
+    let mut all_items = Vec::with_capacity(expected_combinations * regular_asset.len());
     for codes in cartesian_codes(&attribute_dims) {
         let combination_id = codes
             .iter()
@@ -400,6 +404,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             combo_dims.insert(id.clone(), Value::String(code.clone()));
         }
         combinations.push(serde_json::json!({"id": combination_id, "dimensions": combo_dims, "status": "published", "reason": null}));
+        let mut combination_items = Vec::with_capacity(regular_asset.len());
         for asset in &asset_dimension.categories {
             let mut key: Vec<String> = dimensions
                 .iter()
@@ -423,8 +428,11 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
                 continue;
             }
             let (count, status, annotations) = classify_value(&raw_value, &notes)?;
-            items.push(serde_json::json!({"combination_id": combination_id, "asset_class_code": asset.code, "count": count, "status": status, "raw_value": raw_value, "annotations": annotations}));
+            let item = serde_json::json!({"combination_id": combination_id, "asset_class_code": asset.code, "count": count, "status": status, "raw_value": raw_value, "annotations": annotations});
+            combination_items.push(item.clone());
+            all_items.push(item);
         }
+        items_by_combination.push(combination_items);
     }
     if !records.is_empty() {
         return Err(format!(
@@ -445,25 +453,397 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
         "unit_basis": "表題の世帯数。e-Stat APIの@unitは応答に含まれない",
         "source_url": "https://www.e-stat.go.jp/dbview?sid=0004056120"
     });
-    let output = serde_json::json!({"metadata": metadata_out, "dimensions": dimensions.iter().map(dimension_json).collect::<Vec<_>>(), "combinations": combinations, "items": items});
-    let transformed_path = root.join("asset_distribution.json");
-    fs::write(&transformed_path, serde_json::to_vec_pretty(&output)?)?;
+    let dimensions_out = dimensions.iter().map(dimension_json).collect::<Vec<_>>();
+    // Keep the inspection sample workflow based on the same complete transformed
+    // records, while only publishing the manifest and lazy value chunks.
+    let inspection_output = serde_json::json!({"metadata": metadata_out.clone(), "dimensions": dimensions_out.clone(), "combinations": combinations.clone(), "items": all_items});
     write_inspection_samples(
         &metadata,
         &class_objs,
         &raw_paths,
-        &output,
+        &inspection_output,
         &measure_code,
         &area_code,
         &year_code,
     )?;
+    let chunk_count = write_distribution_bundle(
+        &root,
+        metadata_out,
+        dimensions_out,
+        &mut combinations,
+        items_by_combination,
+    )?;
     println!(
-        "Transformed {} published combinations and {} regular-class values to {}",
+        "Transformed {} published combinations and {} regular-class values into {} chunks in {}",
         expected_combinations,
         expected_combinations * regular_asset.len(),
-        transformed_path.display()
+        chunk_count,
+        root.display()
     );
     Ok(())
+}
+
+/// Write and validate the browser-facing manifest/chunks before replacing any
+/// previous generated output. Chunks are formed in deterministic combination
+/// order and never split a series across files.
+fn write_distribution_bundle(
+    root: &PathBuf,
+    metadata: Value,
+    dimensions: Vec<Value>,
+    combinations: &mut [Value],
+    items_by_combination: Vec<Vec<Value>>,
+) -> Result<usize, Box<dyn Error>> {
+    if combinations.len() != items_by_combination.len() {
+        return Err("Combination and item-series counts do not match".into());
+    }
+
+    let groups = plan_chunk_groups(combinations, &items_by_combination)?;
+    // Estimate sizes while planning, then measure the real pretty-printed bytes.
+    // If any estimate was low, split that candidate and remeasure its children.
+    let finalized_chunks = serialize_planned_chunks(groups, &items_by_combination)?;
+
+    let staging = root.join(".asset_distribution.staging");
+    let backup = root.join(".asset_distribution.previous");
+    let _ = fs::remove_dir_all(&staging);
+    let _ = fs::remove_dir_all(&backup);
+    fs::create_dir_all(staging.join("items"))?;
+
+    let mut manifest_chunks = Vec::with_capacity(finalized_chunks.len());
+    for (chunk_index, (group, bytes)) in finalized_chunks.iter().enumerate() {
+        let relative_path = format!("items/{chunk_index:05}.json");
+        let mut combination_ids = Vec::with_capacity(group.len());
+        for &combination_index in group {
+            let combination = &mut combinations[combination_index];
+            let id = combination["id"]
+                .as_str()
+                .ok_or("Generated combination omitted its ID")?
+                .to_owned();
+            combination["items_file"] = Value::String(relative_path.clone());
+            combination_ids.push(id);
+        }
+        fs::write(staging.join(&relative_path), bytes)?;
+        manifest_chunks.push(serde_json::json!({
+            "path": relative_path,
+            "combination_ids": combination_ids,
+            "bytes": bytes.len()
+        }));
+    }
+
+    let manifest = serde_json::json!({
+        "schema_version": 1,
+        "metadata": metadata,
+        "dimensions": dimensions,
+        "combinations": combinations,
+        "chunks": manifest_chunks
+    });
+    fs::write(
+        staging.join("manifest.json"),
+        serde_json::to_vec_pretty(&manifest)?,
+    )?;
+    validate_staged_bundle(&staging, &manifest, &items_by_combination)?;
+    replace_distribution_bundle(root, &staging, &backup)?;
+    let _ = fs::remove_dir_all(&backup);
+    let _ = fs::remove_dir_all(&staging);
+    Ok(finalized_chunks.len())
+}
+
+fn plan_chunk_groups(
+    combinations: &[Value],
+    items_by_combination: &[Vec<Value>],
+) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
+    let empty_chunk_bytes = chunk_json_bytes(&[])?.len();
+    let mut estimates = Vec::with_capacity(items_by_combination.len());
+    for (index, series) in items_by_combination.iter().enumerate() {
+        let status = combinations[index]["status"]
+            .as_str()
+            .ok_or("Generated combination omitted status")?;
+        if status != "published" {
+            if !series.is_empty() {
+                return Err(format!(
+                    "Non-published combination {} has generated values",
+                    combinations[index]["id"].as_str().unwrap_or("(unknown)")
+                )
+                .into());
+            }
+            continue;
+        }
+        let wrapped = serde_json::to_vec_pretty(&serde_json::json!({
+            "schema_version": 1,
+            "items": series
+        }))?;
+        // Each series serialized alone includes the same pretty-print nesting as
+        // in a chunk. Add separator allowance for combining neighboring series.
+        estimates.push((index, wrapped.len().saturating_sub(empty_chunk_bytes) + 16));
+    }
+
+    let mut groups = Vec::new();
+    let mut current = Vec::new();
+    let mut current_estimated_size = empty_chunk_bytes;
+    for (index, series_size) in estimates {
+        let candidate_size = current_estimated_size.saturating_add(series_size);
+        if !current.is_empty()
+            && (current.len() >= CHUNK_MAX_COMBINATIONS
+                || candidate_size > CHUNK_MAX_BYTES
+                || candidate_size > CHUNK_TARGET_BYTES)
+        {
+            groups.push(std::mem::take(&mut current));
+            current_estimated_size = empty_chunk_bytes;
+        }
+        current.push(index);
+        current_estimated_size = current_estimated_size.saturating_add(series_size);
+        if current.len() >= CHUNK_MAX_COMBINATIONS || current_estimated_size >= CHUNK_TARGET_BYTES {
+            groups.push(std::mem::take(&mut current));
+            current_estimated_size = empty_chunk_bytes;
+        }
+    }
+    if !current.is_empty() {
+        groups.push(current);
+    }
+    Ok(groups)
+}
+
+fn serialize_planned_chunks(
+    groups: Vec<Vec<usize>>,
+    items_by_combination: &[Vec<Value>],
+) -> Result<Vec<(Vec<usize>, Vec<u8>)>, Box<dyn Error>> {
+    let mut pending: VecDeque<_> = groups.into();
+    let mut finalized = Vec::new();
+    while let Some(group) = pending.pop_front() {
+        let mut items = Vec::new();
+        for &index in &group {
+            items.extend(items_by_combination[index].iter().cloned());
+        }
+        let bytes = chunk_json_bytes(&items)?;
+        if bytes.len() > CHUNK_MAX_BYTES && group.len() > 1 {
+            let right = group[group.len() / 2..].to_vec();
+            let left = group[..group.len() / 2].to_vec();
+            pending.push_front(right);
+            pending.push_front(left);
+        } else {
+            finalized.push((group, bytes));
+        }
+    }
+    Ok(finalized)
+}
+
+fn chunk_json_bytes(items: &[Value]) -> Result<Vec<u8>, Box<dyn Error>> {
+    Ok(serde_json::to_vec_pretty(&serde_json::json!({
+        "schema_version": 1,
+        "items": items
+    }))?)
+}
+
+fn validate_staged_bundle(
+    staging: &PathBuf,
+    manifest: &Value,
+    expected_items: &[Vec<Value>],
+) -> Result<(), Box<dyn Error>> {
+    let on_disk_manifest: Value =
+        serde_json::from_slice(&fs::read(staging.join("manifest.json"))?)?;
+    if &on_disk_manifest != manifest {
+        return Err("Staged manifest does not match generated manifest".into());
+    }
+    let combinations = manifest["combinations"]
+        .as_array()
+        .ok_or("Generated manifest omitted combinations")?;
+    let chunks = manifest["chunks"]
+        .as_array()
+        .ok_or("Generated manifest omitted chunks")?;
+    if combinations.len() != expected_items.len() {
+        return Err("Manifest combination count does not match generated values".into());
+    }
+
+    let mut seen_combinations = BTreeSet::new();
+    let mut seen_values = BTreeSet::new();
+    let mut seen_item_records = BTreeMap::new();
+    let mut item_counts_by_combination: HashMap<String, usize> = HashMap::new();
+    let mut chunk_by_combination: HashMap<String, String> = HashMap::new();
+    for chunk_ref in chunks {
+        let relative_path = chunk_ref["path"]
+            .as_str()
+            .ok_or("Manifest chunk omitted path")?;
+        if !relative_path.starts_with("items/") || relative_path.contains("..") {
+            return Err(format!("Unsafe chunk path in manifest: {relative_path}").into());
+        }
+        let chunk: Value = serde_json::from_slice(&fs::read(staging.join(relative_path))?)?;
+        if chunk["schema_version"] != 1 {
+            return Err(format!("Unexpected schema version in {relative_path}").into());
+        }
+        let item_rows = chunk["items"]
+            .as_array()
+            .ok_or("Chunk omitted items array")?;
+        let expected_ids: BTreeSet<_> = chunk_ref["combination_ids"]
+            .as_array()
+            .ok_or("Manifest chunk omitted combination_ids")?
+            .iter()
+            .filter_map(Value::as_str)
+            .collect();
+        if expected_ids.len() != chunk_ref["combination_ids"].as_array().unwrap().len() {
+            return Err(format!("Chunk {relative_path} repeats a combination ID").into());
+        }
+        if chunk_ref["bytes"].as_u64() != Some(fs::metadata(staging.join(relative_path))?.len()) {
+            return Err(
+                format!("Chunk byte size does not match manifest for {relative_path}").into(),
+            );
+        }
+        let mut actual_ids = BTreeSet::new();
+        for item in item_rows {
+            let combination_id = item["combination_id"]
+                .as_str()
+                .ok_or("Chunk item omitted combination_id")?;
+            let asset_code = item["asset_class_code"]
+                .as_str()
+                .ok_or("Chunk item omitted asset_class_code")?;
+            let combo_key = combination_id.to_owned();
+            if !expected_ids.contains(combination_id) {
+                return Err(format!(
+                    "Chunk {relative_path} contains unlisted combination {combination_id}"
+                )
+                .into());
+            }
+            let key = (combo_key, asset_code.to_owned());
+            if !seen_values.insert(key) {
+                return Err("Duplicate combination/asset value found across chunks".into());
+            }
+            *item_counts_by_combination
+                .entry(combination_id.to_owned())
+                .or_default() += 1;
+            seen_item_records.insert(
+                (combination_id.to_owned(), asset_code.to_owned()),
+                item.clone(),
+            );
+            actual_ids.insert(combination_id);
+        }
+        if actual_ids != expected_ids {
+            return Err(
+                format!("Chunk {relative_path} does not match its combination list").into(),
+            );
+        }
+        for combination_id in &expected_ids {
+            if !seen_combinations.insert((*combination_id).to_owned()) {
+                return Err(
+                    format!("Combination {combination_id} is assigned to multiple chunks").into(),
+                );
+            }
+            chunk_by_combination.insert((*combination_id).to_owned(), relative_path.to_owned());
+        }
+    }
+
+    let mut expected_value_count = 0;
+    let mut expected_value_keys = BTreeSet::new();
+    for (index, combination) in combinations.iter().enumerate() {
+        let id = combination["id"]
+            .as_str()
+            .ok_or("Manifest combination omitted ID")?;
+        let status = combination["status"]
+            .as_str()
+            .ok_or("Manifest combination omitted status")?;
+        let file = combination["items_file"].as_str();
+        let actual_for_combo = item_counts_by_combination
+            .get(id)
+            .copied()
+            .unwrap_or_default();
+        let expected_for_combo = if status == "published" {
+            expected_items[index].len()
+        } else {
+            0
+        };
+        if actual_for_combo != expected_for_combo {
+            return Err(format!(
+                "Combination {id} has {actual_for_combo} values; expected {expected_for_combo}"
+            )
+            .into());
+        }
+        if status != "published" && !expected_items[index].is_empty() {
+            return Err(format!("Non-published combination {id} has generated values").into());
+        }
+        if status == "published" {
+            if !seen_combinations.contains(id) {
+                return Err(format!("Published combination {id} has no chunk reference").into());
+            }
+            let file = file.ok_or("Published combination omitted items_file")?;
+            if chunk_by_combination.get(id).map(String::as_str) != Some(file) {
+                return Err(format!("Combination {id} references an unregistered chunk").into());
+            }
+        } else {
+            if !combination["items_file"].is_null() {
+                return Err(
+                    format!("Non-published combination {id} must have null items_file").into(),
+                );
+            }
+            if seen_combinations.contains(id) || actual_for_combo != 0 {
+                return Err(format!(
+                    "Non-published combination {id} has a chunk reference or values"
+                )
+                .into());
+            }
+        }
+        for expected_item in &expected_items[index] {
+            let asset_code = expected_item["asset_class_code"]
+                .as_str()
+                .ok_or("Generated item omitted asset_class_code")?;
+            expected_value_keys.insert((id.to_owned(), asset_code.to_owned()));
+            if seen_item_records.get(&(id.to_owned(), asset_code.to_owned())) != Some(expected_item)
+            {
+                return Err(format!(
+                    "Chunk item for {id}/{asset_code} differs from generated record"
+                )
+                .into());
+            }
+        }
+        expected_value_count += expected_for_combo;
+    }
+    let published_count = combinations
+        .iter()
+        .filter(|combination| combination["status"] == "published")
+        .count();
+    if seen_combinations.len() != published_count {
+        return Err("Manifest contains an unreferenced or duplicate combination".into());
+    }
+    let source_expected_count: usize = expected_items.iter().map(Vec::len).sum();
+    if expected_value_count != source_expected_count
+        || seen_values.len() != source_expected_count
+        || seen_values != expected_value_keys
+    {
+        return Err("Chunk values are missing or unexpected".into());
+    }
+    Ok(())
+}
+
+fn replace_distribution_bundle(
+    root: &PathBuf,
+    staging: &PathBuf,
+    backup: &PathBuf,
+) -> Result<(), Box<dyn Error>> {
+    fs::create_dir_all(backup)?;
+    let generated_names = ["manifest.json", "items", "asset_distribution.json"];
+    for name in generated_names {
+        let old = root.join(name);
+        if old.exists() {
+            if let Err(error) = fs::rename(&old, backup.join(name)) {
+                restore_distribution_backup(root, backup);
+                return Err(error.into());
+            }
+        }
+    }
+    for name in ["items", "manifest.json"] {
+        if let Err(error) = fs::rename(staging.join(name), root.join(name)) {
+            let _ = fs::remove_file(root.join("manifest.json"));
+            let _ = fs::remove_dir_all(root.join("items"));
+            restore_distribution_backup(root, backup);
+            return Err(error.into());
+        }
+    }
+    Ok(())
+}
+
+fn restore_distribution_backup(root: &PathBuf, backup: &PathBuf) {
+    for name in ["manifest.json", "items", "asset_distribution.json"] {
+        let saved = backup.join(name);
+        if saved.exists() {
+            let _ = fs::rename(saved, root.join(name));
+        }
+    }
 }
 
 fn classify_category(axis: &str, name: &str) -> String {
@@ -519,24 +899,20 @@ fn classify_value(
         return Ok((
             None,
             "missing",
-            vec![
-                notes
-                    .get(raw)
-                    .cloned()
-                    .unwrap_or_else(|| "該当数字がない".into()),
-            ],
+            vec![notes
+                .get(raw)
+                .cloned()
+                .unwrap_or_else(|| "該当数字がない".into())],
         ));
     }
     if raw == "X" {
         return Ok((
             None,
             "suppressed",
-            vec![
-                notes
-                    .get(raw)
-                    .cloned()
-                    .ok_or("Suppressed value has no API note")?,
-            ],
+            vec![notes
+                .get(raw)
+                .cloned()
+                .ok_or("Suppressed value has no API note")?],
         ));
     }
     let value: u64 = raw
