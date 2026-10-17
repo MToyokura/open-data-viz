@@ -35,7 +35,7 @@
     legend: { type: "scroll", bottom: 0 },
     grid: {
       left: 18,
-      right: 36,
+      right: 56,
       top: 24,
       bottom: series.length > 1 ? 64 : 32,
       containLabel: true,
