@@ -28,6 +28,17 @@ cargo run -- commodity-prices
 
 メタデータ、API の生データ、加工後のデータは `output/commodity_prices/` 以下に保存されます。取得済みファイルの再利用条件は各処理で確認されます。
 
+## 年齢階級・雇用形態・教育・性別別の雇用者数
+
+e-Stat の表 ID `0003006608` から選択肢と系列データを生成します。
+
+```sh
+export ESTAT_APP_ID="取得したアプリケーションID"
+cargo run -- workers-by-age-employment-type-education-sex
+```
+
+メタデータ、ページ分割した取得データ、フロントエンド向け JSON は `output/workers_by_age_employment_type_education_sex/` 以下に保存されます。取得済みの API 応答を使って再変換するときは `cargo run -- workers-by-age-employment-type-education-sex --transform-only` を実行します。
+
 ## 野菜の産地別卸売データ
 
 clone 後、ネット接続と e-Stat のアプリケーション ID を用意し、`data_preparation/` から次を実行すると野菜の産地リレー用データを生成できます。
