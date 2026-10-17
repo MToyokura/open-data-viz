@@ -117,6 +117,7 @@
 
 <style>
   .chart {
+    box-sizing: border-box;
     width: 100%;
     min-height: 360px;
     margin: var(--space-4) 0;

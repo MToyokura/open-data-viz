@@ -5,6 +5,7 @@
   import {
     fetchAssetDistribution,
     fetchCombinationItems,
+    getDisplayAssetCategories,
   } from "./utils/data.js";
 
   /** @typedef {import("./utils/data.js").Dimension} Dimension */
@@ -37,10 +38,18 @@
     dimensions.find((dimension) => dimension.role === "asset_class"),
   );
   const assetCategories = $derived(
-    assetDimension?.categories
-      .filter((category) => category.kind === "regular")
-      .toSorted((a, b) => a.order - b.order) ?? [],
+    data
+      ? getDisplayAssetCategories(data).map((category) => ({
+          ...category,
+          label: displayCategoryLabel(category.label),
+        }))
+      : [],
   );
+
+  /** @param {string} label */
+  function displayCategoryLabel(label) {
+    return label.replace(/[（(]再掲[）)]/g, "");
+  }
   const comparisonDimension = $derived(
     filterDimensions.find((dimension) => dimension.id === compareDimensionId),
   );
@@ -179,7 +188,7 @@
           );
         return {
           code: category.code,
-          label: category.label,
+          label: displayCategoryLabel(category.label),
           count: item.count,
           status: item.status,
           raw_value: item.raw_value,
@@ -468,6 +477,9 @@
         </div>{/if}
       {#if currentSeries.length > 0}
         <h2 class="chart-title">純資産額階級別の世帯数</h2>
+        <p class="hint">
+          「0万円未満」は純資産がマイナスの世帯です。横軸は世帯数なので、棒は正の長さで表示します。
+        </p>
         {#if comparisonMode}<p class="hint">
             属性の比較中です。選択軸の単一区分条件は使っていません。
           </p>{/if}
@@ -519,7 +531,7 @@
               <td
                 >{String(
                   data.metadata.asset_basis ?? "純資産総額",
-                )}。純資産総額が0またはマイナスの世帯は「25万円未満」に含まれ、資産額不詳の世帯は平均にのみ含まれるため、金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。</td
+                )}。最低階級は公式の再掲内訳である「0万円未満」「0万円」「0万円超25万円未満」の3区分で表示します。元の「25万円未満」は内訳と重ねて表示せず、二重計上を防いでいます。「0万円未満」は純資産総額がマイナスの世帯です。資産額不詳の世帯は金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。</td
               >
             </tr>
             <tr>
@@ -531,7 +543,7 @@
             <tr>
               <th>値の表記</th>
               <td
-                >「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。公表値は整数に丸められており、階級別の合計と平均（資産額不詳を除く）が1世帯ずれる場合があります。</td
+                >「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。世帯数は推計値で、公表値の丸めにより内訳の合計と総数が一致しない場合があります。公表値の差は補正していません。</td
               >
             </tr>
             <tr>

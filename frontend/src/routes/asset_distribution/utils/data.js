@@ -4,11 +4,13 @@ export const ASSET_DISTRIBUTION_PATH = `${VITE_STORAGE_BASE_URL}/asset_distribut
 
 /** @typedef {{ code: string, label: string, kind: string, order: number }} Category */
 /** @typedef {{ id: string, label: string, category_codes: string[] }} ComparisonSet */
-/** @typedef {{ id: string, label: string, role: "filter"|"asset_class", order: number, total_code: string|null, default_code: string|null, categories: Category[], comparison_sets?: ComparisonSet[] }} Dimension */
+/** @typedef {{ id: string, label: string, role: "filter"|"asset_class", order: number, total_code: string|null, default_code: string|null, categories: Category[], display_category_codes?: string[], comparison_sets?: ComparisonSet[] }} Dimension */
 /** @typedef {{ id: string, dimensions: Record<string, string>, status: "published"|"not_published", reason: string|null, items_file: string|null }} Combination */
 /** @typedef {{ combination_id: string, asset_class_code: string, count: number|null, status: "observed"|"suppressed"|"missing", raw_value: string, annotations: string[] }} DistributionItem */
 /** @typedef {{ path: string, combination_ids: string[], bytes?: number }} Chunk */
-/** @typedef {{ schema_version: 1, metadata: Record<string, unknown>, dimensions: Dimension[], combinations: Combination[], chunks: Chunk[] }} AssetDistribution */
+/** @typedef {{ schema_version: 2, metadata: Record<string, unknown>, dimensions: Dimension[], combinations: Combination[], chunks: Chunk[] }} AssetDistribution */
+
+const DISPLAY_CATEGORY_COUNT = 21;
 
 /** @type {Map<string, Promise<DistributionItem[]>>} */
 const chunkPromises = new Map();
@@ -22,7 +24,7 @@ export function validateAssetDistribution(input) {
     throw new Error("manifestの形式が正しくありません");
   const data = /** @type {AssetDistribution} */ (input);
   if (
-    data.schema_version !== 1 ||
+    data.schema_version !== 2 ||
     !data.metadata ||
     typeof data.metadata !== "object" ||
     !Array.isArray(data.dimensions) ||
@@ -90,6 +92,38 @@ export function validateAssetDistribution(input) {
       .length !== 1
   )
     throw new Error("資産階級軸を一つ特定できません");
+
+  const assetDimension = data.dimensions.find(
+    (dimension) => dimension.role === "asset_class",
+  );
+  if (!assetDimension) throw new Error("資産階級軸を一つ特定できません");
+  const categoryCodes = new Set(
+    assetDimension.categories.map((category) => category.code),
+  );
+  const displayCodes = assetDimension.display_category_codes;
+  const displayCategories = Array.isArray(displayCodes)
+    ? displayCodes.map((code) =>
+        assetDimension.categories.find((category) => category.code === code),
+      )
+    : [];
+  const displayKindCounts = displayCategories.reduce((counts, category) => {
+    if (category)
+      counts.set(category.kind, (counts.get(category.kind) ?? 0) + 1);
+    return counts;
+  }, new Map());
+  if (
+    !Array.isArray(displayCodes) ||
+    displayCodes.length !== DISPLAY_CATEGORY_COUNT ||
+    new Set(displayCodes).size !== displayCodes.length ||
+    displayCodes.some(
+      (code) => typeof code !== "string" || !categoryCodes.has(code),
+    ) ||
+    displayCodes.includes("01") ||
+    displayKindCounts.size !== 2 ||
+    displayKindCounts.get("reprint") !== 3 ||
+    displayKindCounts.get("regular") !== 18
+  )
+    throw new Error("表示対象の資産階級一覧が正しくありません");
 
   /** @type {Map<string, Combination>} */
   const combinationById = new Map();
@@ -162,6 +196,23 @@ export function validateAssetDistribution(input) {
   }
   combinationIndexes.set(data, combinationById);
   return data;
+}
+
+/** @param {AssetDistribution} manifest */
+export function getDisplayAssetCategories(manifest) {
+  const dimension = manifest.dimensions.find(
+    (item) => item.role === "asset_class",
+  );
+  if (!dimension?.display_category_codes)
+    throw new Error("表示対象の資産階級一覧がありません");
+  const categoriesByCode = new Map(
+    dimension.categories.map((category) => [category.code, category]),
+  );
+  return dimension.display_category_codes.map((code) => {
+    const category = categoriesByCode.get(code);
+    if (!category) throw new Error(`表示対象の資産階級がありません: ${code}`);
+    return category;
+  });
 }
 
 /** @param {AssetDistribution} manifest */
@@ -280,20 +331,14 @@ async function loadAndValidateChunk(manifest, chunk) {
   } catch {
     throw new Error(`値ファイルのJSONを解析できませんでした: ${chunk.path}`);
   }
-  if (!payload || payload.schema_version !== 1 || !Array.isArray(payload.items))
+  if (!payload || payload.schema_version !== 2 || !Array.isArray(payload.items))
     throw new Error(
       `値ファイルの形式またはバージョンが正しくありません: ${chunk.path}`,
     );
   const items = /** @type {DistributionItem[]} */ (payload.items);
 
-  const assetDimension = manifest.dimensions.find(
-    (dimension) => dimension.role === "asset_class",
-  );
-  if (!assetDimension) throw new Error("資産階級軸を一つ特定できません");
   const assetCodes = new Set(
-    assetDimension.categories
-      .filter((category) => category.kind === "regular")
-      .map((category) => category.code),
+    getDisplayAssetCategories(manifest).map((category) => category.code),
   );
   const expectedCombinations = new Set(chunk.combination_ids);
   const itemCounts = new Map();

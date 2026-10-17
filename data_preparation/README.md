@@ -48,7 +48,9 @@ export ESTAT_APP_ID="取得したアプリケーションID"
 cargo run -- asset-distribution
 ```
 
-取得済みのAPI応答から再変換する場合は `cargo run -- asset-distribution --transform-only` を実行します。生データは `output/asset_distribution/` に保存されます。配信用データは同ディレクトリの `manifest.json` と `items/` 配下のJSONチャンクで、manifestに分類辞書・組み合わせ・値ファイルの対応を、チャンクに通常階級の値を収録します。旧単一ファイル `asset_distribution.json` は生成しません。追試用サンプルは `inspections/asset_distribution/` に保存されます。表の分類・値の解釈、現行出力の規模、転送量の計測方法は[調査記録](inspections/asset_distribution/README.md)を参照してください。
+取得済みのAPI応答から再変換する場合は `cargo run -- asset-distribution --transform-only` を実行します。生データは `output/asset_distribution/` に保存されます。配信用データは同ディレクトリの `manifest.json` と `items/` 配下のJSONチャンクで、schema version 2 の manifest が分類辞書・表示階級順・組み合わせ・値ファイルの対応を示し、各チャンクは21階級の値を収録します。表示階級は再掲 `R01`～`R03` と通常階級 `02`～`19` で、再掲 `01` は重複計上を避けるため含めません。フロントエンドは version 2 とこの表示階級リストを必須として読み込みます。追試用サンプルは `inspections/asset_distribution/` に保存されます。表の分類・値の解釈、現行出力の規模、転送量の計測方法は[調査記録](inspections/asset_distribution/README.md)を参照してください。
+
+このデータは `VITE_STORAGE_BASE_URL` で指定する外部ストレージから配信します。世代ごとに別のディレクトリへ manifest と全参照チャンクをまとめてアップロードし、その世代を指す `VITE_STORAGE_BASE_URL` でフロントエンドをビルド・公開してください。新しい世代を別パスに置くことで、公開中の旧フロントエンドが新しい manifest を先に読む状態を避けられます。固定パスを上書きする運用では、公開の切り替え中にフロントエンドとデータの世代が混ざらないよう、両方を同時に切り替え、古い manifest とチャンクのキャッシュも無効化してください。旧画面を開いたままの利用者は再読み込みが必要です。切り戻す場合も、フロントエンドとデータを対応する同じ世代に戻します。GitHub Actions の現行 workflow はフロントエンドのみを GitHub Pages に公開し、外部データのアップロードやキャッシュ更新は行いません。
 
 ## 野菜の産地別卸売データ
 

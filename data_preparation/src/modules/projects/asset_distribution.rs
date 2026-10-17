@@ -198,6 +198,7 @@ struct Dimension {
     total_code: Option<String>,
     categories: Vec<Category>,
     comparison_sets: Vec<Value>,
+    display_category_codes: Vec<String>,
 }
 
 pub fn transform() -> Result<(), Box<dyn Error>> {
@@ -305,6 +306,11 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
         } else {
             Vec::new()
         };
+        let display_category_codes = if id == &"cat04" {
+            resolve_display_category_codes(&categories)?
+        } else {
+            Vec::new()
+        };
         dimensions.push(Dimension {
             id: (*id).to_owned(),
             label,
@@ -313,6 +319,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             total_code,
             categories,
             comparison_sets,
+            display_category_codes,
         });
     }
     if dimensions
@@ -380,11 +387,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
     let axis_by_id: HashMap<_, _> = dimensions.iter().map(|d| (d.id.as_str(), d)).collect();
     let attribute_dims: Vec<_> = dimensions.iter().filter(|d| d.role == "filter").collect();
     let asset_dimension = dimensions.iter().find(|d| d.role == "asset_class").unwrap();
-    let regular_asset: Vec<_> = asset_dimension
-        .categories
-        .iter()
-        .filter(|c| c.kind == "regular")
-        .collect();
+    let display_codes = &asset_dimension.display_category_codes;
     let expected_combinations = attribute_dims.iter().try_fold(1_usize, |total, d| {
         total
             .checked_mul(d.categories.len())
@@ -392,7 +395,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
     })?;
     let mut combinations = Vec::with_capacity(expected_combinations);
     let mut items_by_combination = Vec::with_capacity(expected_combinations);
-    let mut all_items = Vec::with_capacity(expected_combinations * regular_asset.len());
+    let mut all_items = Vec::with_capacity(expected_combinations * display_codes.len());
     for codes in cartesian_codes(&attribute_dims) {
         let combination_id = codes
             .iter()
@@ -404,7 +407,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             combo_dims.insert(id.clone(), Value::String(code.clone()));
         }
         combinations.push(serde_json::json!({"id": combination_id, "dimensions": combo_dims, "status": "published", "reason": null}));
-        let mut combination_items = Vec::with_capacity(regular_asset.len());
+        let mut combination_items = Vec::with_capacity(display_codes.len());
         for asset in &asset_dimension.categories {
             let mut key: Vec<String> = dimensions
                 .iter()
@@ -424,7 +427,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             let raw_value = records.remove(&key).ok_or_else(|| {
                 format!("Source row missing for {} / {}", combination_id, asset.code)
             })?;
-            if asset.kind != "regular" {
+            if !display_codes.contains(&asset.code) {
                 continue;
             }
             let (count, status, annotations) = classify_value(&raw_value, &notes)?;
@@ -432,11 +435,17 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             combination_items.push(item.clone());
             all_items.push(item);
         }
+        combination_items.sort_by_key(|item| {
+            display_codes
+                .iter()
+                .position(|code| item["asset_class_code"] == *code)
+                .unwrap()
+        });
         items_by_combination.push(combination_items);
     }
     if !records.is_empty() {
         return Err(format!(
-            "{} unexpected or non-regular source rows were not classified",
+            "{} unexpected source rows were not classified",
             records.len()
         )
         .into());
@@ -474,9 +483,9 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
         items_by_combination,
     )?;
     println!(
-        "Transformed {} published combinations and {} regular-class values into {} chunks in {}",
+        "Transformed {} published combinations and {} display-class values into {} chunks in {}",
         expected_combinations,
-        expected_combinations * regular_asset.len(),
+        expected_combinations * display_codes.len(),
         chunk_count,
         root.display()
     );
@@ -530,7 +539,7 @@ fn write_distribution_bundle(
     }
 
     let manifest = serde_json::json!({
-        "schema_version": 1,
+        "schema_version": 2,
         "metadata": metadata,
         "dimensions": dimensions,
         "combinations": combinations,
@@ -568,7 +577,7 @@ fn plan_chunk_groups(
             continue;
         }
         let wrapped = serde_json::to_vec_pretty(&serde_json::json!({
-            "schema_version": 1,
+            "schema_version": 2,
             "items": series
         }))?;
         // Each series serialized alone includes the same pretty-print nesting as
@@ -620,6 +629,9 @@ fn serialize_planned_chunks(
             pending.push_front(right);
             pending.push_front(left);
         } else {
+            if bytes.len() > CHUNK_MAX_BYTES {
+                return Err("A single display series exceeds the chunk size limit".into());
+            }
             finalized.push((group, bytes));
         }
     }
@@ -628,7 +640,7 @@ fn serialize_planned_chunks(
 
 fn chunk_json_bytes(items: &[Value]) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec_pretty(&serde_json::json!({
-        "schema_version": 1,
+        "schema_version": 2,
         "items": items
     }))?)
 }
@@ -642,6 +654,33 @@ fn validate_staged_bundle(
         serde_json::from_slice(&fs::read(staging.join("manifest.json"))?)?;
     if &on_disk_manifest != manifest {
         return Err("Staged manifest does not match generated manifest".into());
+    }
+    if manifest["schema_version"] != 2 {
+        return Err("Unexpected manifest schema version".into());
+    }
+    let asset_dimension = manifest["dimensions"]
+        .as_array()
+        .ok_or("Manifest omitted dimensions")?
+        .iter()
+        .find(|dimension| dimension["id"] == "cat04")
+        .ok_or("Manifest omitted cat04")?;
+    let categories = asset_dimension["categories"]
+        .as_array()
+        .ok_or("Manifest omitted asset categories")?
+        .iter()
+        .enumerate()
+        .map(|(order, category)| {
+            Ok(Category {
+                code: required_attr(category, "code")?.to_owned(),
+                label: required_attr(category, "label")?.to_owned(),
+                kind: required_attr(category, "kind")?.to_owned(),
+                order,
+            })
+        })
+        .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
+    let display_codes = resolve_display_category_codes(&categories)?;
+    if asset_dimension["display_category_codes"] != serde_json::json!(display_codes) {
+        return Err("Manifest display categories do not match the official breakdown".into());
     }
     let combinations = manifest["combinations"]
         .as_array()
@@ -665,8 +704,11 @@ fn validate_staged_bundle(
         if !relative_path.starts_with("items/") || relative_path.contains("..") {
             return Err(format!("Unsafe chunk path in manifest: {relative_path}").into());
         }
+        if fs::metadata(staging.join(relative_path))?.len() > CHUNK_MAX_BYTES as u64 {
+            return Err(format!("Chunk {relative_path} exceeds the size limit").into());
+        }
         let chunk: Value = serde_json::from_slice(&fs::read(staging.join(relative_path))?)?;
-        if chunk["schema_version"] != 1 {
+        if chunk["schema_version"] != 2 {
             return Err(format!("Unexpected schema version in {relative_path}").into());
         }
         let item_rows = chunk["items"]
@@ -694,6 +736,9 @@ fn validate_staged_bundle(
             let asset_code = item["asset_class_code"]
                 .as_str()
                 .ok_or("Chunk item omitted asset_class_code")?;
+            if !display_codes.iter().any(|code| code == asset_code) {
+                return Err(format!("Unexpected display category {asset_code}").into());
+            }
             let combo_key = combination_id.to_owned();
             if !expected_ids.contains(combination_id) {
                 return Err(format!(
@@ -705,9 +750,15 @@ fn validate_staged_bundle(
             if !seen_values.insert(key) {
                 return Err("Duplicate combination/asset value found across chunks".into());
             }
-            *item_counts_by_combination
+            let count = item_counts_by_combination
                 .entry(combination_id.to_owned())
-                .or_default() += 1;
+                .or_default();
+            if display_codes.get(*count).map(String::as_str) != Some(asset_code) {
+                return Err(
+                    format!("Combination {combination_id} has unexpected display order").into(),
+                );
+            }
+            *count += 1;
             seen_item_records.insert(
                 (combination_id.to_owned(), asset_code.to_owned()),
                 item.clone(),
@@ -744,7 +795,10 @@ fn validate_staged_bundle(
             .copied()
             .unwrap_or_default();
         let expected_for_combo = if status == "published" {
-            expected_items[index].len()
+            if expected_items[index].len() != display_codes.len() {
+                return Err(format!("Combination {id} has an incomplete display series").into());
+            }
+            display_codes.len()
         } else {
             0
         };
@@ -816,7 +870,12 @@ fn replace_distribution_bundle(
     backup: &PathBuf,
 ) -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(backup)?;
-    let generated_names = ["manifest.json", "items", "asset_distribution.json"];
+    // The obsolete single-file output is removed, never restored as a fallback.
+    let legacy = root.join("asset_distribution.json");
+    if legacy.exists() {
+        fs::remove_file(legacy)?;
+    }
+    let generated_names = ["manifest.json", "items"];
     for name in generated_names {
         let old = root.join(name);
         if old.exists() {
@@ -838,7 +897,7 @@ fn replace_distribution_bundle(
 }
 
 fn restore_distribution_backup(root: &PathBuf, backup: &PathBuf) {
-    for name in ["manifest.json", "items", "asset_distribution.json"] {
+    for name in ["manifest.json", "items"] {
         let saved = backup.join(name);
         if saved.exists() {
             let _ = fs::rename(saved, root.join(name));
@@ -862,17 +921,57 @@ fn classify_category(axis: &str, name: &str) -> String {
     "regular".into()
 }
 
+/// Resolve the official lowest-class breakdown by label, retaining metadata codes.
+fn resolve_display_category_codes(categories: &[Category]) -> Result<Vec<String>, Box<dyn Error>> {
+    let mut selected = Vec::new();
+    for label in [
+        "（再掲）0万円未満",
+        "（再掲）0万円",
+        "（再掲）0万円超25万円未満",
+    ] {
+        let matches: Vec<_> = categories
+            .iter()
+            .filter(|category| category.label == label)
+            .collect();
+        if matches.len() != 1 || matches[0].kind != "reprint" {
+            return Err(format!("Missing or ambiguous official asset category {label}").into());
+        }
+        selected.push(matches[0].code.clone());
+    }
+    let lowest: Vec<_> = categories
+        .iter()
+        .filter(|category| category.label == "25万円未満" && category.kind == "regular")
+        .collect();
+    if lowest.len() != 1 {
+        return Err("Missing or ambiguous lowest regular asset category".into());
+    }
+    selected.extend(
+        categories
+            .iter()
+            .filter(|category| category.kind == "regular" && category.code != lowest[0].code)
+            .map(|category| category.code.clone()),
+    );
+    if selected.len() != 21 || selected.iter().collect::<BTreeSet<_>>().len() != 21 {
+        return Err("Display asset categories must contain 21 unique codes".into());
+    }
+    Ok(selected)
+}
+
 fn make_set(id: &str, label: &str, categories: Vec<&Category>) -> Value {
     serde_json::json!({"id": id, "label": label, "category_codes": categories.iter().map(|c| c.code.as_str()).collect::<Vec<_>>()})
 }
 
 fn dimension_json(d: &Dimension) -> Value {
-    serde_json::json!({
+    let mut dimension = serde_json::json!({
         "id": d.id, "label": d.label, "role": d.role, "order": d.order,
         "total_code": d.total_code, "default_code": d.total_code,
         "categories": d.categories.iter().map(|c| serde_json::json!({"code":c.code,"label":c.label,"kind":c.kind,"order":c.order})).collect::<Vec<_>>(),
         "comparison_sets": d.comparison_sets
-    })
+    });
+    if d.role == "asset_class" {
+        dimension["display_category_codes"] = serde_json::json!(d.display_category_codes);
+    }
+    dimension
 }
 
 fn cartesian_codes(dimensions: &[&Dimension]) -> Vec<Vec<(String, String)>> {
@@ -1124,5 +1223,219 @@ fn redact_app_id(value: &mut Value) {
         }
         Value::Array(items) => items.iter_mut().for_each(redact_app_id),
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn asset_categories() -> Vec<Category> {
+        let metadata: Value = serde_json::from_str(include_str!(
+            "../../../inspections/asset_distribution/samples/meta_info.json"
+        ))
+        .unwrap();
+        let objects =
+            as_items(&metadata["GET_META_INFO"]["METADATA_INF"]["CLASS_INF"]["CLASS_OBJ"]);
+        let dimension = objects
+            .into_iter()
+            .find(|dimension| dimension["@id"] == "cat04")
+            .unwrap();
+        as_items(&dimension["CLASS"])
+            .into_iter()
+            .enumerate()
+            .map(|(order, category)| Category {
+                code: category["@code"].as_str().unwrap().to_owned(),
+                label: category["@name"].as_str().unwrap().to_owned(),
+                kind: classify_category("cat04", category["@name"].as_str().unwrap()),
+                order,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn display_breakdown_replaces_lowest_class_without_double_counting() {
+        let categories = asset_categories();
+        let actual = resolve_display_category_codes(&categories).unwrap();
+        let mut expected = vec!["R01".to_owned(), "R02".to_owned(), "R03".to_owned()];
+        expected.extend((2..=19).map(|code| format!("{code:02}")));
+        assert_eq!(actual, expected);
+        assert!(!actual.contains(&"01".to_owned()));
+        assert!(
+            categories
+                .iter()
+                .filter(|category| actual[..3].contains(&category.code))
+                .all(|category| category.kind == "reprint")
+        );
+    }
+
+    #[test]
+    fn missing_or_duplicate_official_breakdown_is_an_error() {
+        let categories = asset_categories();
+        for code in ["R01", "R02", "R03", "01", "02"] {
+            let reduced: Vec<_> = categories
+                .iter()
+                .filter(|category| category.code != code)
+                .cloned()
+                .collect();
+            assert!(resolve_display_category_codes(&reduced).is_err(), "{code}");
+        }
+        let mut duplicated = categories.clone();
+        duplicated.push(
+            categories
+                .iter()
+                .find(|category| category.code == "R01")
+                .unwrap()
+                .clone(),
+        );
+        assert!(resolve_display_category_codes(&duplicated).is_err());
+    }
+
+    #[test]
+    fn official_non_numeric_values_are_not_filled_with_zero() {
+        let notes = HashMap::from([("X".to_owned(), "秘匿".to_owned())]);
+        for (raw, status) in [("X", "suppressed"), ("-", "missing"), ("0", "missing")] {
+            let (count, actual_status, annotations) = classify_value(raw, &notes).unwrap();
+            assert_eq!(count, None);
+            assert_eq!(actual_status, status);
+            assert!(!annotations.is_empty());
+        }
+        assert_eq!(
+            classify_value("3973273", &notes).unwrap().0,
+            Some(3_973_273)
+        );
+    }
+
+    #[test]
+    fn display_codes_are_serialized_only_for_asset_dimension() {
+        let categories = asset_categories();
+        let display_category_codes = resolve_display_category_codes(&categories).unwrap();
+        let asset_dimension = Dimension {
+            id: "cat04".into(),
+            label: "資産額階級36区分".into(),
+            role: "asset_class".into(),
+            order: 3,
+            total_code: None,
+            categories,
+            comparison_sets: Vec::new(),
+            display_category_codes,
+        };
+        assert_eq!(
+            dimension_json(&asset_dimension)["display_category_codes"],
+            serde_json::json!(asset_dimension.display_category_codes)
+        );
+        let filter_dimension = Dimension {
+            id: "cat01".into(),
+            label: "年齢".into(),
+            role: "filter".into(),
+            order: 0,
+            total_code: None,
+            categories: Vec::new(),
+            comparison_sets: Vec::new(),
+            display_category_codes: Vec::new(),
+        };
+        assert!(
+            dimension_json(&filter_dimension)
+                .get("display_category_codes")
+                .is_none()
+        );
+    }
+    #[test]
+    fn bundle_validator_rejects_old_schemas_missing_contract_and_bad_series() {
+        let categories = asset_categories();
+        let codes = resolve_display_category_codes(&categories).unwrap();
+        let directory =
+            std::env::temp_dir().join(format!("asset-distribution-test-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&directory);
+        fs::create_dir_all(directory.join("items")).unwrap();
+        let series: Vec<_> = codes.iter().map(|code| serde_json::json!({"combination_id":"test", "asset_class_code":code, "count":1,"raw_value":"1","status":"observed","annotations":[]})).collect();
+        let bytes = chunk_json_bytes(&series).unwrap();
+        let manifest = serde_json::json!({"schema_version":2,"dimensions":[{
+            "id":"cat04", "categories":categories.iter().map(|category| serde_json::json!({"code":category.code,"label":category.label,"kind":category.kind})).collect::<Vec<_>>(),
+            "display_category_codes":codes
+        }],"combinations":[{"id":"test","status":"published","items_file":"items/00000.json"}],
+        "chunks":[{"path":"items/00000.json","bytes":bytes.len(),"combination_ids":["test"]}]});
+        let check = |candidate: &Value, items: &[Value], expected: &[Vec<Value>]| {
+            let chunk = chunk_json_bytes(items).unwrap();
+            let mut candidate = candidate.clone();
+            candidate["chunks"][0]["bytes"] = serde_json::json!(chunk.len());
+            fs::write(
+                directory.join("manifest.json"),
+                serde_json::to_vec(&candidate).unwrap(),
+            )
+            .unwrap();
+            fs::write(directory.join("items/00000.json"), chunk).unwrap();
+            validate_staged_bundle(&directory, &candidate, expected)
+        };
+        assert!(check(&manifest, &series, &[series.clone()]).is_ok());
+        for version in [1, 3] {
+            let mut bad = manifest.clone();
+            bad["schema_version"] = serde_json::json!(version);
+            assert!(check(&bad, &series, &[series.clone()]).is_err());
+        }
+        let mut bad = manifest.clone();
+        bad["dimensions"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("display_category_codes");
+        assert!(check(&bad, &series, &[series.clone()]).is_err());
+        for invalid_codes in [
+            vec!["R01"],
+            vec!["R01", "R01"],
+            vec!["01", "R01"],
+            vec!["unknown"],
+        ] {
+            let mut bad = manifest.clone();
+            bad["dimensions"][0]["display_category_codes"] = serde_json::json!(invalid_codes);
+            assert!(check(&bad, &series, &[series.clone()]).is_err());
+        }
+        assert!(check(&manifest, &series[1..], &[series.clone()]).is_err());
+        let mut duplicated = series.clone();
+        duplicated[1] = duplicated[0].clone();
+        assert!(check(&manifest, &duplicated, &[series.clone()]).is_err());
+        let mut reordered = series.clone();
+        reordered.swap(0, 1);
+        assert!(check(&manifest, &reordered, &[series.clone()]).is_err());
+        let mut old_chunk: Value = serde_json::from_slice(&bytes).unwrap();
+        old_chunk["schema_version"] = serde_json::json!(1);
+        let old_bytes = serde_json::to_vec(&old_chunk).unwrap();
+        let mut bad = manifest.clone();
+        bad["chunks"][0]["bytes"] = serde_json::json!(old_bytes.len());
+        fs::write(
+            directory.join("manifest.json"),
+            serde_json::to_vec(&bad).unwrap(),
+        )
+        .unwrap();
+        fs::write(directory.join("items/00000.json"), old_bytes).unwrap();
+        assert!(validate_staged_bundle(&directory, &bad, &[series]).is_err());
+        fs::remove_dir_all(directory).unwrap();
+    }
+    #[test]
+    fn national_breakdown_matches_official_values_without_rounding_adjustment() {
+        let sample: Value = serde_json::from_str(include_str!(
+            "../../../inspections/asset_distribution/samples/stats_data.json"
+        ))
+        .unwrap();
+        let rows = as_items(&sample["GET_STATS_DATA"]["STATISTICAL_DATA"]["DATA_INF"]["VALUE"]);
+        let national: HashMap<_, _> = rows
+            .iter()
+            .filter(|row| {
+                row["@cat01"] == "00"
+                    && row["@cat02"] == "0"
+                    && row["@cat03"] == "00"
+                    && row["@cat05"] == "0"
+            })
+            .map(|row| (row["@cat04"].as_str().unwrap(), row["$"].as_str().unwrap()))
+            .collect();
+        let expected = [("R01", 3_973_273), ("R02", 1_520_744), ("R03", 1_039_774)];
+        let mut sum = 0;
+        for (code, value) in expected {
+            let (count, status, _) = classify_value(national[code], &HashMap::new()).unwrap();
+            assert_eq!(count, Some(value));
+            assert_eq!(status, "observed");
+            sum += value;
+        }
+        assert_eq!(sum, 6_533_791);
+        assert_eq!(national["01"], "6533792");
     }
 }
