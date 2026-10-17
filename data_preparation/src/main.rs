@@ -6,6 +6,9 @@ use modules::projects::commodity_prices::process_commodity_prices::process_commo
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if modules::projects::asset_distribution::run(&args) {
+        return;
+    }
     if modules::projects::vegetable_production_relay::cli::run(&args) {
         return;
     }

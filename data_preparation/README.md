@@ -39,6 +39,17 @@ cargo run -- workers-by-age-employment-type-education-sex
 
 メタデータ、ページ分割した取得データ、フロントエンド向け JSON は `output/workers_by_age_employment_type_education_sex/` 以下に保存されます。取得済みの API 応答を使って再変換するときは `cargo run -- workers-by-age-employment-type-education-sex --transform-only` を実行します。
 
+## 属性別純資産額階級別世帯数
+
+e-Stat 表 `0004056120` の全メタデータ・ページ分割データを取得し、分類辞書、属性組み合わせ、通常の純資産額階級別世帯数を生成します。
+
+```sh
+export ESTAT_APP_ID="取得したアプリケーションID"
+cargo run -- asset-distribution
+```
+
+取得済みのAPI応答から再変換する場合は `cargo run -- asset-distribution --transform-only` を実行します。生データは `output/asset_distribution/` に保存されます。配信用データは同ディレクトリの `manifest.json` と `items/` 配下のJSONチャンクで、manifestに分類辞書・組み合わせ・値ファイルの対応を、チャンクに通常階級の値を収録します。旧単一ファイル `asset_distribution.json` は生成しません。追試用サンプルは `inspections/asset_distribution/` に保存されます。表の分類・値の解釈、現行出力の規模、転送量の計測方法は[調査記録](inspections/asset_distribution/README.md)を参照してください。
+
 ## 野菜の産地別卸売データ
 
 clone 後、ネット接続と e-Stat のアプリケーション ID を用意し、`data_preparation/` から次を実行すると野菜の産地リレー用データを生成できます。
