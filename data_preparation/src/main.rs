@@ -9,6 +9,12 @@ fn main() {
     if modules::projects::vegetable_production_relay::cli::run(&args) {
         return;
     }
+    if modules::projects::workers_by_age_employment_type_education_sex::run(&args) {
+        return;
+    }
+    if modules::projects::workers_by_age_employment_type_education_sex::run_inspection(&args) {
+        return;
+    }
 
     match args.first().map(String::as_str) {
         Some("--help") | Some("-h") => {
@@ -48,8 +54,12 @@ fn main() {
 
 fn print_usage() {
     println!("Usage: cargo run -- <command> [arguments]");
-    println!("Commands include commodity-prices, prefectures-update, and vegetable-relay.");
+    println!(
+        "Commands include commodity-prices, prefectures-update, vegetable-relay, and workers-by-age-employment-type-education-sex."
+    );
     println!(
         "Vegetable inspections: vegetable-relay-inspect-workbooks, vegetable-relay-acquire-product-observations, vegetable-relay-verify-product-mappings, vegetable-relay-verify-daikon-mapping, vegetable-relay-validate-m3-m5."
     );
+    println!("Workers data: workers-by-age-employment-type-education-sex [--transform-only].");
+    println!("Workers API inspection: workers-by-age-inspect [--limit N] [--scan-all-values].");
 }
