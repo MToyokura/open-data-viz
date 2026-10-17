@@ -9,7 +9,15 @@
   let container;
   let chart = $state.raw(/** @type {EChartsType|null} */ (null));
 
-  let years = $derived([...new Set(items.flatMap((item) => item.data?.time_value_pairs.map((row) => row.year) ?? []))].sort());
+  let years = $derived(
+    [
+      ...new Set(
+        items.flatMap(
+          (item) => item.data?.time_value_pairs.map((row) => row.year) ?? [],
+        ),
+      ),
+    ].sort(),
+  );
   let option = $derived.by(() => {
     const horizontal = orientation === "horizontal";
     const categories = items.filter((item) => item.data);
@@ -20,24 +28,64 @@
           const values = Array.isArray(params) ? params : [params];
           const year = String(values[0]?.axisValue ?? "");
           const rows = categories.map((item) => {
-            const row = item.data?.time_value_pairs.find((entry) => entry.year === year);
-            const marker = values.find((entry) => entry.seriesId === item.key)?.marker ?? "";
-            const value = !row ? "この年のデータなし" : row.value === null ? (row.reason || "欠損") : `${row.value.toLocaleString()} ${item.data?.unit ?? ""}`;
+            const row = item.data?.time_value_pairs.find(
+              (entry) => entry.year === year,
+            );
+            const marker =
+              values.find((entry) => entry.seriesId === item.key)?.marker ?? "";
+            const value = !row
+              ? "この年のデータなし"
+              : row.value === null
+                ? row.reason
+                  ? "注記あり（グラフ下の「データ利用上の注意」を参照）"
+                  : "欠損"
+                : `${row.value.toLocaleString()} ${item.data?.unit ?? ""}`;
             return `${marker}${item.label}: ${value}`;
           });
           return [year, ...rows].join("<br>");
         },
       },
-      legend: { type: "scroll", bottom: 0 },
-      grid: { left: horizontal ? 120 : 56, right: 24, top: 24, bottom: 72, containLabel: true },
-      xAxis: horizontal ? { type: "value", name: categories[0]?.data?.unit ?? "" } : { type: "category", data: years, axisLabel: { rotate: 45 } },
-      yAxis: horizontal ? { type: "category", data: years } : { type: "value", name: categories[0]?.data?.unit ?? "" },
+      legend: {
+        type: "scroll",
+        bottom: 0,
+        formatter: (/** @type {string} */ name) =>
+          name.replace(/\s+\[[^\]]+\]$/, ""),
+      },
+      grid: {
+        left: horizontal ? 120 : 68,
+        right: 24,
+        top: 40,
+        bottom: 72,
+        containLabel: true,
+      },
+      xAxis: horizontal
+        ? {
+            type: "value",
+            name: categories[0]?.data?.unit ?? "",
+            nameLocation: "middle",
+            nameGap: 32,
+            nameRotate: 0,
+          }
+        : { type: "category", data: years, axisLabel: { rotate: 45 } },
+      yAxis: horizontal
+        ? { type: "category", data: years }
+        : {
+            type: "value",
+            name: categories[0]?.data?.unit ?? "",
+            nameLocation: "middle",
+            nameGap: 42,
+            nameRotate: 0,
+          },
       series: categories.map((item) => ({
         id: item.key,
         // ECharts treats series names as legend identities, so include the stable codes.
         name: `${item.label} [${item.key.replaceAll("|", "/")}]`,
         type: "bar",
-        data: years.map((year) => item.data?.time_value_pairs.find((row) => row.year === year)?.value ?? null),
+        data: years.map(
+          (year) =>
+            item.data?.time_value_pairs.find((row) => row.year === year)
+              ?.value ?? null,
+        ),
         barMaxWidth: 28,
         ...(horizontal ? { barMinHeight: 1 } : {}),
       })),
@@ -55,15 +103,39 @@
       observer.observe(container);
       chart.setOption(option, { notMerge: true });
     });
-    return () => { disposed = true; observer?.disconnect(); chart?.dispose(); chart = null; };
+    return () => {
+      disposed = true;
+      observer?.disconnect();
+      chart?.dispose();
+      chart = null;
+    };
   });
 
-  $effect(() => { if (chart) chart.setOption(option, { notMerge: true }); });
+  $effect(() => {
+    if (chart) chart.setOption(option, { notMerge: true });
+  });
 </script>
 
-<div bind:this={container} class="chart" role="img" aria-label="雇用者数の年次推移"></div>
+<div
+  bind:this={container}
+  class="chart"
+  role="img"
+  aria-label="雇用者数の年次推移"
+></div>
 
 <style>
-  .chart { width: 100%; height: 62vh; min-height: 360px; margin: var(--space-6) 0; border: var(--border-default); border-radius: var(--radius-md); }
-  @media (max-width: 48rem) { .chart { height: 55vh; min-height: 320px; } }
+  .chart {
+    width: 100%;
+    height: 62vh;
+    min-height: 360px;
+    margin: var(--space-6) 0;
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+  }
+  @media (max-width: 48rem) {
+    .chart {
+      height: 55vh;
+      min-height: 320px;
+    }
+  }
 </style>
