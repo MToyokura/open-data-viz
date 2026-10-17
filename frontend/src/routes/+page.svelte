@@ -15,7 +15,7 @@
       href: `${VITE_ROOT_PATH}/workers_by_age_employment_type_education_sex`,
     },
     {
-      title: "属性別・純資産額階級別の世帯数",
+      title: "日本の純資産分布",
       href: `${VITE_ROOT_PATH}/asset_distribution`,
     },
   ];
