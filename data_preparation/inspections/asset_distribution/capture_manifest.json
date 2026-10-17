@@ -7,7 +7,7 @@
   },
   "output_counts": {
     "combinations": 6762,
-    "items": 128478
+    "items": 142002
   },
   "pages": 3,
   "result_total_number": 243432,
@@ -50,5 +50,26 @@
       "3304085"
     ],
     "result": "all five values match exactly"
+  },
+  "negative_asset_crosscheck": {
+    "source_title": "e-Stat official Excel, table 7-131-1",
+    "stat_infid": "000040490406",
+    "selection": "Household size = average; age = average; education = average; disposable income = average",
+    "asset_codes": [
+      "R01",
+      "R02",
+      "R03"
+    ],
+    "official_values": [
+      "3973273",
+      "1520744",
+      "1039774"
+    ],
+    "api_values": [
+      "3973273",
+      "1520744",
+      "1039774"
+    ],
+    "result": "all three values match exactly; their sum differs from category 01 by one household due to published rounding"
   }
 }
