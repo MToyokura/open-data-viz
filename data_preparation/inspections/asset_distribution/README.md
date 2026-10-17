@@ -67,23 +67,24 @@ API応答は `@unit` を含まず、値は文字列で返る。全件の値は�
 
 `samples/meta_info.json` は `getMetaInfo` 応答、`samples/stats_data.json` は全件取得から抽出した実際の値レコードである。統計データ標本は総数条件と年齢35歳未満条件の各36区分を含む。標本のコード・値は実測値で、アプリケーションIDは含まない。SHA-256とAPI取得条件、ページ数、総件数は [`capture_manifest.json`](capture_manifest.json) を参照。
 
-生成物は `output/asset_distribution/manifest.json` と `output/asset_distribution/items/` 配下の値チャンクである。manifest は `schema_version: 2`、メタデータ、分類辞書 (`dimensions`)、表示順を示す `cat04.display_category_codes`、全属性組み合わせ (`combinations`)、チャンク一覧 (`chunks`) を持つ。各組み合わせの `items_file` が値ファイルを示し、チャンク一覧にはパス、対象組み合わせID、バイト数を記録する。値チャンクは指定順の21階級の値 (`items`) を収録する。schema version 1 は新しいフロントエンドとの互換対象ではない。旧単一ファイル `asset_distribution.json` は配信用出力に含めず、再生成時に残存していれば除去する。再取得には `ESTAT_APP_ID` を環境に設定して `cargo run -- asset-distribution`、保存済み応答の再変換には `cargo run -- asset-distribution --transform-only` を使う。
+生成物は `output/asset_distribution/manifest.json` と `output/asset_distribution/items/` 配下の値チャンクである。schema version 3 の manifest はメタデータ、分類辞書 (`dimensions`)、表示順を示す `cat04.display_category_codes`、属性直積の定義 (`combination_index`)、チャンク一覧 (`chunks`) を持つ。属性軸の順序と各軸の区分順から組み合わせを導出し、チャンクの `start_index` と `count` が直積上の連続範囲を示す。組み合わせ一覧やチャンクごとの系列ID一覧は保持しない。値チャンクは指定順の21階級の値 (`items`) を収録する。フロントエンドは version 3 のみを受け付ける。schema version 2、version 1、旧単一ファイル形式との後方互換性はなく、旧形式を読む処理、変換、フォールバックは設けない。再取得には `ESTAT_APP_ID` を環境に設定して `cargo run -- asset-distribution`、保存済み応答の再変換には `cargo run -- asset-distribution --transform-only` を使う。
 
 ## 出力サイズと転送量の計測
 
-分割出力に移行する前の実測ベースラインは以下の通り。対象は既存 `output/asset_distribution/asset_distribution.json` で、ファイル実サイズは30,359,227 bytes (約28.95 MiB)。このJSONは6,762組み合わせ、128,478値を含み、全系列が19階級である。JSONを空白なしで再直列化したときの各セクションのサイズは、metadata 310 bytes、dimensions 6,617 bytes、combinations 980,785 bytes、items 20,332,046 bytes。セクション値のみのサイズなので、キーや整形空白を含むファイル全体とは一致しない。
+分割出力に移行する前の旧単一ファイル形式の実測ベースラインは以下の通り。対象は `output/asset_distribution/asset_distribution.json` で、ファイル実サイズは30,359,227 bytes (約28.95 MiB)。このJSONは6,762組み合わせ、128,478値を含み、全系列が19階級である。JSONを空白なしで再直列化したときの各セクションのサイズは、metadata 310 bytes、dimensions 6,617 bytes、combinations 980,785 bytes、items 20,332,046 bytes。セクション値のみのサイズなので、キーや整形空白を含むファイル全体とは一致しない。
 
-schema version 2 の再生成結果（2026-10-17）は、manifest 2,191,115 bytes、値チャンク124個、チャンク合計31,877,334 bytes。チャンクの最小・中央値・最大は69,296 / 258,463 / 261,016 bytesで、1チャンクあたり14〜59組み合わせを含む。配信ファイル全体は34,068,449 bytes。初期選択の系列 `cat01=00|cat02=0|cat03=00|cat05=0` は `items/00000.json` (259,537 bytes) を使うため、manifest取得後の系列読込を含む初期表示は2,450,652 bytes。旧JSON全体より約91.9%少ない。manifestだけの初期要求は旧JSONより約92.8%少ない。これらはローカルファイルの非圧縮バイト数であり、gzip/Brotli後の実ネットワーク転送量は未計測である。
+schema version 2 の再生成結果（2026-10-17、v3 導入前の履歴値）は、manifest 2,191,115 bytes、値チャンク124個、チャンク合計31,877,334 bytes。チャンクの最小・中央値・最大は69,296 / 258,463 / 261,016 bytesで、1チャンクあたり14〜59組み合わせを含む。配信ファイル全体は34,068,449 bytes。初期選択の系列 `cat01=00|cat02=0|cat03=00|cat05=0` は `items/00000.json` (259,537 bytes) を使うため、manifest取得後の系列読込を含む初期表示は2,450,652 bytes。旧JSON全体より約91.9%少ない。manifestだけの初期要求は旧JSONより約92.8%少ない。これらはローカルファイルの非圧縮サイズである。
 
-代表比較として、初期の他条件を保った学歴の「在学中・卒業」2系列は異なる2チャンクを使い、初期系列のチャンクを取得済みの場合の追加分は515,964 bytes。初期系列の取得後に比較を開始した累計は2,966,616 bytes (manifest + 初期チャンク + 比較2チャンク) で、旧JSONより約90.2%少ない。計測は生成manifestのパス対応と各ファイルサイズから算出し、gzip/Brotliやブラウザーキャッシュは含めない。
+manifest の非圧縮 JSON サイズ、HTTP 転送量、ローカルで gzip 圧縮したサイズは別の指標として扱う。schema version 2 の manifest をローカルで gzip 圧縮したサイズは72,558 bytesだった。一方、計測時の Google Cloud Storage 応答には `Content-Encoding` がなく `identity` で返り、実際の HTTP 転送量は未圧縮 manifest と同じ2,191,115 bytesだった。schema version 3 の生成 bundle は2026-10-18に計測し、整形 manifest は28,290 bytes、ローカル gzip 後は3,488 bytes、値チャンクは124個で合計31,877,334 bytes、manifest とチャンクの合計は31,905,624 bytesだった。manifest のHTTP転送量は公開先から未計測であるため、gzip のローカル値を実転送量として扱わない。v3 manifest の整形 JSON は250,000 bytes以下という目標を満たす。
 
-生成後は同じ条件で次を記録する。
+schema version 2 での代表比較では、初期の他条件を保った学歴の「在学中・卒業」2系列は異なる2チャンクを使い、初期系列のチャンクを取得済みの場合の追加分は515,964 bytes。初期系列の取得後に比較を開始した累計は2,966,616 bytes (manifest + 初期チャンク + 比較2チャンク) で、旧JSONより約90.2%少ない。計測は生成manifestのパス対応と各ファイルサイズから算出し、gzip/Brotliやブラウザーキャッシュは含めない。
 
-- 再計測時は `manifest.json` と各チャンクの実バイト数、チャンク数、最大・中央値サイズ、全配信ファイルの合計を記録する。
-- 初期転送量はmanifestだけの要求と、初期系列のチャンクを含む表示完了までを分ける（圧縮配信を測定できる場合はgzip/Brotli後の転送量も併記）。
-- 比較操作は対象系列IDから参照チャンクを引き、重複パスを除いた追加チャンク数・追加バイト数を記録する。同じチャンクを既に取得済みなら追加転送量は0として扱う。
-- 計測対象の初期条件・比較条件、キャッシュ有無、測定日を記録し、モノリシック版の30,359,227 bytesと比較する。ブラウザーのNetworkパネル等で測る場合は実際の転送サイズとリソースサイズを区別する。
+上記の v3 ファイルサイズはローカル生成物から測定した。配信先での転送量は未計測であり、公開時に次を記録する。
 
-今回の形式置換では manifest とチャンクを schema version 2 に上げ、フロントエンドは version 2 のみを受け入れる。version 1 の読み込み、19階級へのフォールバック、旧配信データ向けの形式変換は設けない。生成コードに残っていた旧単一ファイルを保存・復元対象とする処理を削除し、再生成時に残存する単一ファイルは配信物から除去する。生成失敗時の manifest とチャンクの退避・復元は現行バンドルの保護として維持した。保存済み公式API応答と調査用標本は配信用旧形式とは別の元データとして維持する。
+- 初期要求は manifest の転送量と、初期系列のチャンクを含む表示完了までを分ける（配信先が gzip/Brotli を使う場合は圧縮後の転送量も併記）。
+- 比較操作では対象系列が参照するチャンクの実転送量と、キャッシュ済みで追加転送がないチャンクを区別する。
+- 初期条件・比較条件、キャッシュ有無、測定日を記録する。ブラウザーの Network パネル等では転送サイズとリソースサイズを区別する。
+
+schema version 3 への置き換えでは、version 2、version 1、旧単一ファイル形式の読み込み、変換、フォールバックを設けない。保存済み公式API応答と調査用標本は配信用データとは別の元データとして維持する。v3 公開では既存の `/asset_distribution/` 配下でチャンク一式と manifest を置き換えるため、配置と新フロントエンド公開の切り替え中は画面の停止を許容する。切り替え後、旧画面を開いていた場合は再読み込みする。
 
 調査年は2024年、公表日は2026-08-28。分類表示と値の再現確認はe-Stat APIの全243,432件、公式HTMLの表題・選択軸、および公式Excelの代表値で照合した。旧19階級の合計と公式平均（資産額不詳を除く）の丸め差に加え、新しい最低階級内訳3区分と通常階級 `01` の1世帯の丸め差も上記の通り記録する。

@@ -28,7 +28,7 @@ const assetCategories = [
 ];
 
 const manifest = {
-  schema_version: 2,
+  schema_version: 3,
   metadata: {
     year: 2024,
     published_at: "2025-12-19",
@@ -65,26 +65,24 @@ const manifest = {
       display_category_codes: displayCodes,
     },
   ],
-  combinations: ["00", "01", "02"].map((sexCode) => ({
-    id: `sex-${sexCode}`,
-    dimensions: { cat01: sexCode },
-    status: "published",
-    reason: null,
-    items_file: "items/sex-series.json",
-  })),
+  combination_index: {
+    dimension_ids: ["cat01"],
+    count: 3,
+  },
   chunks: [
     {
       path: "items/sex-series.json",
-      combination_ids: ["sex-00", "sex-01", "sex-02"],
+      start_index: 0,
+      count: 3,
     },
   ],
 };
 
 const chunk = {
-  schema_version: 2,
+  schema_version: 3,
   items: ["00", "01", "02"].flatMap((sexCode) =>
     displayCodes.map((code, index) => ({
-      combination_id: `sex-${sexCode}`,
+      combination_id: `cat01=${sexCode}`,
       asset_class_code: code,
       count: 1000 + index,
       status: "observed",

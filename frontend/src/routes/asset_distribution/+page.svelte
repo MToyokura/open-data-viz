@@ -5,6 +5,7 @@
   import {
     fetchAssetDistribution,
     fetchCombinationItems,
+    findCombination,
     getDisplayAssetCategories,
   } from "./utils/data.js";
 
@@ -63,13 +64,8 @@
   );
 
   /** @param {Record<string, string>} codes */
-  function findCombination(codes) {
-    return data?.combinations.find((combination) =>
-      filterDimensions.every(
-        (dimension) =>
-          combination.dimensions[dimension.id] === codes[dimension.id],
-      ),
-    );
+  function combinationFor(codes) {
+    return data ? findCombination(data, codes) : undefined;
   }
 
   /** @param {import("./utils/data.js").Combination|undefined} combination @returns {combination is import("./utils/data.js").Combination} */
@@ -85,7 +81,7 @@
       !comparisonMode ||
       (omitComparisonAxis && dimension.id === compareDimensionId)
     ) {
-      const combination = findCombination(codes);
+      const combination = combinationFor(codes);
       return combination?.status === "published"
         ? { available: true, reason: "" }
         : {
@@ -97,7 +93,7 @@
     const published = [];
     const unavailable = [];
     for (const compareCode of comparisonSet?.category_codes ?? []) {
-      const combination = findCombination({
+      const combination = combinationFor({
         ...codes,
         [compareDimensionId]: compareCode,
       });
@@ -122,7 +118,7 @@
   function comparisonSetStatus(dimension, set) {
     const published = set.category_codes.filter(
       (code) =>
-        findCombination({ ...selections, [dimension.id]: code })?.status ===
+        combinationFor({ ...selections, [dimension.id]: code })?.status ===
         "published",
     ).length;
     return published >= 2
@@ -134,7 +130,7 @@
   }
 
   const currentCombination = $derived(
-    !comparisonMode ? findCombination(selections) : undefined,
+    !comparisonMode ? combinationFor(selections) : undefined,
   );
   const activeCombinations = $derived.by(() => {
     if (!data)
@@ -147,7 +143,7 @@
     const combinations = (comparisonSet?.category_codes ?? [])
       .filter((code) => compareCodes.includes(code))
       .map((code) =>
-        findCombination({ ...selections, [compareDimensionId]: code }),
+        combinationFor({ ...selections, [compareDimensionId]: code }),
       )
       .filter(isPublishedCombination);
     return [
@@ -307,7 +303,7 @@
     compareDimensionId = "";
     compareSetId = "";
     compareCodes = [];
-    if (findCombination(selections)?.status !== "published" && data) {
+    if (combinationFor(selections)?.status !== "published" && data) {
       selections = Object.fromEntries(
         filterDimensions.map((dimension) => [
           dimension.id,
@@ -460,12 +456,6 @@
         {/if}
       </section>
 
-      {#if !comparisonMode && currentCombination?.status === "not_published"}<p
-          class="hint"
-          role="status"
-        >
-          この条件は公表されていません: {currentCombination.reason}
-        </p>{/if}
       {#if seriesLoading}<p class="hint" role="status">
           {comparisonMode
             ? "比較系列"
@@ -499,7 +489,7 @@
             </ul>
           </section>
         {/if}
-      {:else if !comparisonMode && currentCombination?.status !== "not_published" && !seriesLoading && !seriesError}
+      {:else if !comparisonMode && !seriesLoading && !seriesError}
         <p class="hint" role="status">表示できる公表系列がありません。</p>
       {/if}
 

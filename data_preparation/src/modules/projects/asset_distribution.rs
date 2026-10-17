@@ -518,38 +518,45 @@ fn write_distribution_bundle(
     fs::create_dir_all(staging.join("items"))?;
 
     let mut manifest_chunks = Vec::with_capacity(finalized_chunks.len());
+    let mut next_start_index = 0_usize;
     for (chunk_index, (group, bytes)) in finalized_chunks.iter().enumerate() {
-        let relative_path = format!("items/{chunk_index:05}.json");
-        let mut combination_ids = Vec::with_capacity(group.len());
-        for &combination_index in group {
-            let combination = &mut combinations[combination_index];
-            let id = combination["id"]
-                .as_str()
-                .ok_or("Generated combination omitted its ID")?
-                .to_owned();
-            combination["items_file"] = Value::String(relative_path.clone());
-            combination_ids.push(id);
+        if group.is_empty() || group[0] != next_start_index {
+            return Err("Chunk groups are not contiguous combination ranges".into());
         }
+        for (offset, &combination_index) in group.iter().enumerate() {
+            if combination_index != next_start_index + offset {
+                return Err("Chunk group is not a contiguous combination range".into());
+            }
+        }
+        let relative_path = format!("items/{chunk_index:05}.json");
         fs::write(staging.join(&relative_path), bytes)?;
         manifest_chunks.push(serde_json::json!({
             "path": relative_path,
-            "combination_ids": combination_ids,
-            "bytes": bytes.len()
+            "bytes": bytes.len(),
+            "start_index": group[0],
+            "count": group.len()
         }));
+        next_start_index += group.len();
+    }
+    if next_start_index != combinations.len() {
+        return Err("Chunk ranges do not cover every combination".into());
     }
 
     let manifest = serde_json::json!({
-        "schema_version": 2,
+        "schema_version": 3,
         "metadata": metadata,
         "dimensions": dimensions,
-        "combinations": combinations,
+        "combination_index": {
+            "dimension_ids": dimensions.iter().filter(|dimension| dimension["role"] == "filter").filter_map(|dimension| dimension["id"].as_str().map(str::to_owned)).collect::<Vec<_>>(),
+            "count": combinations.len()
+        },
         "chunks": manifest_chunks
     });
     fs::write(
         staging.join("manifest.json"),
         serde_json::to_vec_pretty(&manifest)?,
     )?;
-    validate_staged_bundle(&staging, &manifest, &items_by_combination)?;
+    validate_staged_bundle(&staging, &manifest, combinations, &items_by_combination)?;
     replace_distribution_bundle(root, &staging, &backup)?;
     let _ = fs::remove_dir_all(&backup);
     let _ = fs::remove_dir_all(&staging);
@@ -577,7 +584,7 @@ fn plan_chunk_groups(
             continue;
         }
         let wrapped = serde_json::to_vec_pretty(&serde_json::json!({
-            "schema_version": 2,
+            "schema_version": 3,
             "items": series
         }))?;
         // Each series serialized alone includes the same pretty-print nesting as
@@ -640,7 +647,7 @@ fn serialize_planned_chunks(
 
 fn chunk_json_bytes(items: &[Value]) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(serde_json::to_vec_pretty(&serde_json::json!({
-        "schema_version": 2,
+        "schema_version": 3,
         "items": items
     }))?)
 }
@@ -648,6 +655,7 @@ fn chunk_json_bytes(items: &[Value]) -> Result<Vec<u8>, Box<dyn Error>> {
 fn validate_staged_bundle(
     staging: &PathBuf,
     manifest: &Value,
+    expected_combinations: &[Value],
     expected_items: &[Vec<Value>],
 ) -> Result<(), Box<dyn Error>> {
     let on_disk_manifest: Value =
@@ -655,8 +663,134 @@ fn validate_staged_bundle(
     if &on_disk_manifest != manifest {
         return Err("Staged manifest does not match generated manifest".into());
     }
-    if manifest["schema_version"] != 2 {
+    if manifest["schema_version"] != 3 {
         return Err("Unexpected manifest schema version".into());
+    }
+    if manifest.get("combinations").is_some() {
+        return Err("Schema v3 manifest must not include combinations".into());
+    }
+    let dimensions = manifest["dimensions"]
+        .as_array()
+        .ok_or("Manifest omitted dimensions")?;
+    let dimension_ids = manifest["combination_index"]["dimension_ids"]
+        .as_array()
+        .ok_or("Manifest omitted combination_index.dimension_ids")?;
+    let ids: Vec<_> = dimension_ids
+        .iter()
+        .map(|id| id.as_str().ok_or("Invalid combination axis ID"))
+        .collect::<Result<_, _>>()?;
+    let mut unique_ids = BTreeSet::new();
+    if ids.iter().any(|id| !unique_ids.insert(*id)) {
+        return Err("Combination index repeats a dimension ID".into());
+    }
+    let filter_ids: Vec<_> = dimensions
+        .iter()
+        .filter(|d| d["role"] == "filter")
+        .map(|d| d["id"].as_str().ok_or("Dimension omitted ID"))
+        .collect::<Result<_, _>>()?;
+    let all_dimension_ids: Vec<_> = dimensions
+        .iter()
+        .map(|d| d["id"].as_str().ok_or("Dimension omitted ID"))
+        .collect::<Result<_, _>>()?;
+    if all_dimension_ids.iter().collect::<BTreeSet<_>>().len() != all_dimension_ids.len() {
+        return Err("Manifest repeats a dimension ID".into());
+    }
+    if ids.len() != filter_ids.len() || ids.iter().any(|id| !filter_ids.contains(id)) {
+        return Err(
+            "Combination index axes must contain every filter dimension exactly once".into(),
+        );
+    }
+    if ids
+        .iter()
+        .any(|id| dimensions.iter().find(|d| d["id"] == *id).is_none())
+    {
+        return Err("Combination index contains an unknown dimension".into());
+    }
+    if dimensions
+        .iter()
+        .any(|d| d["role"] == "asset_class" && ids.contains(&d["id"].as_str().unwrap_or("")))
+    {
+        return Err("Combination index must not contain the asset-class dimension".into());
+    }
+    let dimension_by_id: HashMap<_, _> = dimensions
+        .iter()
+        .map(|d| (d["id"].as_str().unwrap_or(""), d))
+        .collect();
+    let mut product = 1_usize;
+    for id in &ids {
+        let categories = dimension_by_id[id]["categories"]
+            .as_array()
+            .ok_or("Filter dimension omitted categories")?;
+        if categories.is_empty() {
+            return Err(format!("Dimension {id} has no categories").into());
+        }
+        let category_codes: Vec<_> = categories
+            .iter()
+            .map(|c| c["code"].as_str().ok_or("Category omitted code"))
+            .collect::<Result<_, _>>()?;
+        if category_codes.iter().collect::<BTreeSet<_>>().len() != category_codes.len() {
+            return Err(format!("Dimension {id} repeats a category code").into());
+        }
+        product = product
+            .checked_mul(categories.len())
+            .ok_or("Combination count overflow")?;
+    }
+    if manifest["combination_index"]["count"].as_u64() != Some(product as u64)
+        || expected_combinations.len() != product
+        || expected_items.len() != product
+    {
+        return Err("Combination index count does not match the axis product".into());
+    }
+    let category_lists: Vec<Vec<&str>> = ids
+        .iter()
+        .map(|id| {
+            dimension_by_id[id]["categories"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|category| category["code"].as_str().unwrap())
+                .collect()
+        })
+        .collect();
+    let mut expected_tuples = vec![Vec::<&str>::new()];
+    for categories in &category_lists {
+        let mut next = Vec::with_capacity(expected_tuples.len() * categories.len());
+        for tuple in &expected_tuples {
+            for code in categories {
+                let mut expanded = tuple.clone();
+                expanded.push(code);
+                next.push(expanded);
+            }
+        }
+        expected_tuples = next;
+    }
+    for (index, (combination, tuple)) in expected_combinations
+        .iter()
+        .zip(expected_tuples)
+        .enumerate()
+    {
+        let expected_id = ids
+            .iter()
+            .zip(&tuple)
+            .map(|(axis, code)| format!("{axis}={code}"))
+            .collect::<Vec<_>>()
+            .join("|");
+        if combination["id"].as_str() != Some(expected_id.as_str()) {
+            return Err(format!(
+                "Generated combination {index} does not match the declared cartesian order"
+            )
+            .into());
+        }
+        let combination_dims = combination["dimensions"]
+            .as_object()
+            .ok_or("Generated combination omitted dimensions")?;
+        if combination_dims.len() != ids.len()
+            || ids.iter().zip(&tuple).any(|(axis, code)| {
+                combination_dims.get(*axis).and_then(Value::as_str) != Some(code)
+            })
+        {
+            return Err(format!("Generated combination {index} has invalid axis codes").into());
+        }
     }
     let asset_dimension = manifest["dimensions"]
         .as_array()
@@ -682,21 +816,16 @@ fn validate_staged_bundle(
     if asset_dimension["display_category_codes"] != serde_json::json!(display_codes) {
         return Err("Manifest display categories do not match the official breakdown".into());
     }
-    let combinations = manifest["combinations"]
-        .as_array()
-        .ok_or("Generated manifest omitted combinations")?;
     let chunks = manifest["chunks"]
         .as_array()
         .ok_or("Generated manifest omitted chunks")?;
-    if combinations.len() != expected_items.len() {
-        return Err("Manifest combination count does not match generated values".into());
-    }
-
     let mut seen_combinations = BTreeSet::new();
     let mut seen_values = BTreeSet::new();
     let mut seen_item_records = BTreeMap::new();
     let mut item_counts_by_combination: HashMap<String, usize> = HashMap::new();
     let mut chunk_by_combination: HashMap<String, String> = HashMap::new();
+    let mut next_start_index = 0_usize;
+    let mut referenced_chunks = BTreeSet::new();
     for chunk_ref in chunks {
         let relative_path = chunk_ref["path"]
             .as_str()
@@ -707,22 +836,31 @@ fn validate_staged_bundle(
         if fs::metadata(staging.join(relative_path))?.len() > CHUNK_MAX_BYTES as u64 {
             return Err(format!("Chunk {relative_path} exceeds the size limit").into());
         }
+        if !referenced_chunks.insert(relative_path) {
+            return Err("Manifest repeats a chunk path".into());
+        }
+        let start = chunk_ref["start_index"]
+            .as_u64()
+            .ok_or("Chunk omitted start_index")? as usize;
+        let count = chunk_ref["count"].as_u64().ok_or("Chunk omitted count")? as usize;
+        if count == 0
+            || start != next_start_index
+            || start.checked_add(count).map_or(true, |end| end > product)
+        {
+            return Err("Chunk ranges overlap, have gaps, or exceed the combination index".into());
+        }
+        next_start_index += count;
         let chunk: Value = serde_json::from_slice(&fs::read(staging.join(relative_path))?)?;
-        if chunk["schema_version"] != 2 {
+        if chunk["schema_version"] != 3 {
             return Err(format!("Unexpected schema version in {relative_path}").into());
         }
         let item_rows = chunk["items"]
             .as_array()
             .ok_or("Chunk omitted items array")?;
-        let expected_ids: BTreeSet<_> = chunk_ref["combination_ids"]
-            .as_array()
-            .ok_or("Manifest chunk omitted combination_ids")?
+        let expected_ids: BTreeSet<_> = expected_combinations[start..start + count]
             .iter()
-            .filter_map(Value::as_str)
-            .collect();
-        if expected_ids.len() != chunk_ref["combination_ids"].as_array().unwrap().len() {
-            return Err(format!("Chunk {relative_path} repeats a combination ID").into());
-        }
+            .map(|c| c["id"].as_str().ok_or("Generated combination omitted ID"))
+            .collect::<Result<_, _>>()?;
         if chunk_ref["bytes"].as_u64() != Some(fs::metadata(staging.join(relative_path))?.len()) {
             return Err(
                 format!("Chunk byte size does not match manifest for {relative_path}").into(),
@@ -765,10 +903,8 @@ fn validate_staged_bundle(
             );
             actual_ids.insert(combination_id);
         }
-        if actual_ids != expected_ids {
-            return Err(
-                format!("Chunk {relative_path} does not match its combination list").into(),
-            );
+        if actual_ids != expected_ids || actual_ids.len() != count {
+            return Err(format!("Chunk {relative_path} does not match its range").into());
         }
         for combination_id in &expected_ids {
             if !seen_combinations.insert((*combination_id).to_owned()) {
@@ -780,16 +916,32 @@ fn validate_staged_bundle(
         }
     }
 
+    if next_start_index != product {
+        return Err("Chunk ranges do not cover the combination index".into());
+    }
+    let on_disk_chunk_paths: BTreeSet<_> = fs::read_dir(staging.join("items"))?
+        .map(|entry| entry.map(|entry| entry.file_name().to_string_lossy().into_owned()))
+        .collect::<Result<_, _>>()?;
+    let referenced_chunk_paths: BTreeSet<_> = referenced_chunks
+        .iter()
+        .map(|path| {
+            PathBuf::from(path)
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .into_owned()
+        })
+        .collect();
+    if on_disk_chunk_paths != referenced_chunk_paths {
+        return Err("Staged items directory contains missing or unreferenced chunks".into());
+    }
     let mut expected_value_count = 0;
     let mut expected_value_keys = BTreeSet::new();
-    for (index, combination) in combinations.iter().enumerate() {
+    for (index, combination) in expected_combinations.iter().enumerate() {
         let id = combination["id"]
             .as_str()
             .ok_or("Manifest combination omitted ID")?;
-        let status = combination["status"]
-            .as_str()
-            .ok_or("Manifest combination omitted status")?;
-        let file = combination["items_file"].as_str();
+        let status = "published";
         let actual_for_combo = item_counts_by_combination
             .get(id)
             .copied()
@@ -808,28 +960,9 @@ fn validate_staged_bundle(
             )
             .into());
         }
-        if status != "published" && !expected_items[index].is_empty() {
-            return Err(format!("Non-published combination {id} has generated values").into());
-        }
         if status == "published" {
             if !seen_combinations.contains(id) {
                 return Err(format!("Published combination {id} has no chunk reference").into());
-            }
-            let file = file.ok_or("Published combination omitted items_file")?;
-            if chunk_by_combination.get(id).map(String::as_str) != Some(file) {
-                return Err(format!("Combination {id} references an unregistered chunk").into());
-            }
-        } else {
-            if !combination["items_file"].is_null() {
-                return Err(
-                    format!("Non-published combination {id} must have null items_file").into(),
-                );
-            }
-            if seen_combinations.contains(id) || actual_for_combo != 0 {
-                return Err(format!(
-                    "Non-published combination {id} has a chunk reference or values"
-                )
-                .into());
             }
         }
         for expected_item in &expected_items[index] {
@@ -847,10 +980,7 @@ fn validate_staged_bundle(
         }
         expected_value_count += expected_for_combo;
     }
-    let published_count = combinations
-        .iter()
-        .filter(|combination| combination["status"] == "published")
-        .count();
+    let published_count = expected_combinations.len();
     if seen_combinations.len() != published_count {
         return Err("Manifest contains an unreferenced or duplicate combination".into());
     }
@@ -1348,13 +1478,16 @@ mod tests {
             std::env::temp_dir().join(format!("asset-distribution-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&directory);
         fs::create_dir_all(directory.join("items")).unwrap();
-        let series: Vec<_> = codes.iter().map(|code| serde_json::json!({"combination_id":"test", "asset_class_code":code, "count":1,"raw_value":"1","status":"observed","annotations":[]})).collect();
+        let series: Vec<_> = codes.iter().map(|code| serde_json::json!({"combination_id":"cat01=00", "asset_class_code":code, "count":1,"raw_value":"1","status":"observed","annotations":[]})).collect();
         let bytes = chunk_json_bytes(&series).unwrap();
-        let manifest = serde_json::json!({"schema_version":2,"dimensions":[{
+        let expected_combinations =
+            vec![serde_json::json!({"id":"cat01=00","dimensions":{"cat01":"00"}})];
+        let manifest = serde_json::json!({"schema_version":3,"dimensions":[{
             "id":"cat04", "categories":categories.iter().map(|category| serde_json::json!({"code":category.code,"label":category.label,"kind":category.kind})).collect::<Vec<_>>(),
             "display_category_codes":codes
-        }],"combinations":[{"id":"test","status":"published","items_file":"items/00000.json"}],
-        "chunks":[{"path":"items/00000.json","bytes":bytes.len(),"combination_ids":["test"]}]});
+        }, {"id":"cat01", "role":"filter", "categories":[{"code":"00"}]}],
+        "combination_index":{"dimension_ids":["cat01"],"count":1},
+        "chunks":[{"path":"items/00000.json","bytes":bytes.len(),"start_index":0,"count":1}]});
         let check = |candidate: &Value, items: &[Value], expected: &[Vec<Value>]| {
             let chunk = chunk_json_bytes(items).unwrap();
             let mut candidate = candidate.clone();
@@ -1365,14 +1498,33 @@ mod tests {
             )
             .unwrap();
             fs::write(directory.join("items/00000.json"), chunk).unwrap();
-            validate_staged_bundle(&directory, &candidate, expected)
+            validate_staged_bundle(&directory, &candidate, &expected_combinations, expected)
         };
         assert!(check(&manifest, &series, &[series.clone()]).is_ok());
-        for version in [1, 3] {
+        for version in [1, 2, 4] {
             let mut bad = manifest.clone();
             bad["schema_version"] = serde_json::json!(version);
             assert!(check(&bad, &series, &[series.clone()]).is_err());
         }
+        for invalid_axes in [
+            serde_json::json!(["cat01", "cat01"]),
+            serde_json::json!(["cat00"]),
+            serde_json::json!([]),
+            serde_json::json!(["cat01", "cat04"]),
+        ] {
+            let mut bad = manifest.clone();
+            bad["combination_index"]["dimension_ids"] = invalid_axes;
+            assert!(check(&bad, &series, &[series.clone()]).is_err());
+        }
+        for (start, count) in [(1, 1), (0, 2), (0, 0)] {
+            let mut bad = manifest.clone();
+            bad["chunks"][0]["start_index"] = serde_json::json!(start);
+            bad["chunks"][0]["count"] = serde_json::json!(count);
+            assert!(check(&bad, &series, &[series.clone()]).is_err());
+        }
+        let mut bad = manifest.clone();
+        bad["combination_index"]["count"] = serde_json::json!(2);
+        assert!(check(&bad, &series, &[series.clone()]).is_err());
         let mut bad = manifest.clone();
         bad["dimensions"][0]
             .as_object_mut()
@@ -1407,7 +1559,9 @@ mod tests {
         )
         .unwrap();
         fs::write(directory.join("items/00000.json"), old_bytes).unwrap();
-        assert!(validate_staged_bundle(&directory, &bad, &[series]).is_err());
+        assert!(
+            validate_staged_bundle(&directory, &bad, &expected_combinations, &[series]).is_err()
+        );
         fs::remove_dir_all(directory).unwrap();
     }
     #[test]
