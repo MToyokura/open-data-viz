@@ -126,6 +126,7 @@
       >
         <text x="110" y="18">産地都道府県</text>
         <text x={width - 110} y="18" text-anchor="end">主要消費地域</text>
+        <!-- prettier-ignore -->
         {#each graph.links as link (`${asSankeyNode(link.source).id}:${asSankeyNode(link.target).id}`)}
           {const source = $derived(asSankeyNode(link.source))}
           {const target = $derived(asSankeyNode(link.target))}

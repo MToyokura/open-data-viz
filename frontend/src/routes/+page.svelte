@@ -24,7 +24,8 @@
           >
         </li>
         <li>
-          <a href={`${VITE_ROOT_PATH}/workers_by_age_employment_type_education_sex`}
+          <a
+            href={`${VITE_ROOT_PATH}/workers_by_age_employment_type_education_sex`}
             >年齢階級，教育，雇用形態別雇用者数</a
           >
         </li>
