@@ -49,6 +49,7 @@ body {
   flex-direction: column;
   min-width: 0;
   margin: 0;
+  font-family: system-ui, sans-serif;
   color: var(--text-color);
   background: var(--surface-color);
 }

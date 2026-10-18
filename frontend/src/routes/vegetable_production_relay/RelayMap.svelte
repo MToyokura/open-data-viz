@@ -306,7 +306,6 @@
     box-sizing: border-box;
     height: var(--relay-map-height, min(68vh, 680px));
     min-height: var(--relay-map-min-height, 400px);
-    border: var(--border-default);
     border-radius: var(--relay-map-radius, var(--radius-md));
     background: var(--map-surface-color);
   }
