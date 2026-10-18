@@ -1,5 +1,6 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
+  import homeIcon from "#lib/assets/icons/home.svg";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import { onMount } from "svelte";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
@@ -365,7 +366,9 @@
 <div class="page-shell">
   <main class="page-content">
     <header class="page-heading">
-      <a class="home-link" href={`${VITE_ROOT_PATH}/`}>Home</a>
+      <a class="home-link" href={`${VITE_ROOT_PATH}/`} aria-label="Home">
+        <img src={homeIcon} alt="" />
+      </a>
       <h1>年齢階級，教育，雇用形態別雇用者数</h1>
     </header>
     <div class="workspace">
@@ -629,6 +632,11 @@
     justify-self: start;
     font-size: 0.8rem;
     color: inherit;
+  }
+  .home-link img {
+    display: block;
+    width: 24px;
+    height: 24px;
   }
   .workspace {
     display: grid;

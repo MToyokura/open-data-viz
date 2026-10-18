@@ -1,5 +1,6 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
+  import homeIcon from "#lib/assets/icons/home.svg";
   import { page } from "$app/state";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
 
@@ -15,6 +16,10 @@
         "/workers_by_age_employment_type_education_sex",
       ),
   );
+  const isHome = $derived(
+    page.url.pathname.replace(/\/+$/, "") ===
+      VITE_ROOT_PATH.replace(/\/+$/, ""),
+  );
 </script>
 
 <svelte:head>
@@ -25,9 +30,11 @@
   />
 </svelte:head>
 
-{#if !isWorkspace}
+{#if !isWorkspace && !isHome}
   <nav class="site-nav">
-    <a href={`${VITE_ROOT_PATH}/`}>Home</a>
+    <a href={`${VITE_ROOT_PATH}/`} aria-label="Home">
+      <img src={homeIcon} alt="" />
+    </a>
   </nav>
 {/if}
 
@@ -44,6 +51,12 @@
 <style>
   .site-nav {
     padding: var(--space-3) var(--page-content-padding);
+  }
+
+  .site-nav img {
+    display: block;
+    width: 24px;
+    height: 24px;
   }
 
   .site-footer {

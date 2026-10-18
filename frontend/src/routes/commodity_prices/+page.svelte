@@ -1,5 +1,6 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
+  import homeIcon from "#lib/assets/icons/home.svg";
   import { onMount, untrack } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import Spinner from "#lib/Spinner.svelte";
@@ -173,7 +174,9 @@
 <div class="page-shell">
   <main class="page-content">
     <header class="page-heading">
-      <a class="home-link" href={`${VITE_ROOT_PATH}/`}>Home</a>
+      <a class="home-link" href={`${VITE_ROOT_PATH}/`} aria-label="Home">
+        <img src={homeIcon} alt="" />
+      </a>
       <h1>主要品目の都市別小売価格</h1>
     </header>
     <div class="workspace">
@@ -295,6 +298,12 @@
     justify-self: start;
     font-size: 0.8rem;
     color: inherit;
+  }
+
+  .home-link img {
+    display: block;
+    width: 24px;
+    height: 24px;
   }
 
   .workspace {

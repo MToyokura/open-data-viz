@@ -1,5 +1,6 @@
 <script>
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import homeIcon from "#lib/assets/icons/home.svg";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import { onMount } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
@@ -408,7 +409,9 @@
 <div class="page-shell">
   <main class="page-content">
     <header class="page-heading">
-      <a class="home-link" href={`${VITE_ROOT_PATH}/`}>Home</a>
+      <a class="home-link" href={`${VITE_ROOT_PATH}/`} aria-label="Home">
+        <img src={homeIcon} alt="" />
+      </a>
       <h1>日本の純資産分布</h1>
     </header>
 
@@ -754,6 +757,11 @@
     justify-self: start;
     color: inherit;
     font-size: 0.8rem;
+  }
+  .home-link img {
+    display: block;
+    width: 24px;
+    height: 24px;
   }
   .workspace {
     display: grid;
