@@ -1,5 +1,8 @@
-<div class="reference ui-panel ui-panel--subtle">
-  <h2>出典情報等</h2>
+<script>
+  import ReferencePanel from "#lib/ReferencePanel.svelte";
+</script>
+
+<ReferencePanel title="出典情報等" marginTop="var(--space-8)">
   <table class="reference-table ui-table">
     <tbody>
       <tr>
@@ -49,23 +52,4 @@
       </tr>
     </tbody>
   </table>
-</div>
-
-<style>
-  .reference {
-    margin-top: var(--space-8);
-  }
-
-  .reference h2 {
-    margin-top: 0;
-    margin-bottom: var(--space-4);
-  }
-
-  .reference-table {
-    margin-top: var(--space-4);
-  }
-
-  .reference-table a {
-    word-break: break-all;
-  }
-</style>
+</ReferencePanel>

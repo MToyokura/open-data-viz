@@ -1,4 +1,5 @@
 <script>
+  import ChartViewControls from "#lib/ChartViewControls.svelte";
   import { onMount } from "svelte";
   /** @typedef {import("echarts").EChartsType} EChartsType */
   /** @typedef {import("echarts").EChartsOption} EChartsOption */
@@ -7,8 +8,19 @@
   let { chartData } = $props();
 
   /** @type {HTMLDivElement} */
+  let scrollContainer;
+  /** @type {HTMLDivElement} */
   let container;
   let chart = $state.raw(/** @type {EChartsType | null} */ (null));
+  let viewMode = $state(/** @type {"fit" | "scroll"} */ ("fit"));
+
+  /** @param {"fit" | "scroll"} mode */
+  function handleViewModeChange(mode) {
+    requestAnimationFrame(() => {
+      if (mode === "fit") scrollContainer.scrollLeft = 0;
+      chart?.resize();
+    });
+  }
 
   onMount(() => {
     let disposed = false;
@@ -37,33 +49,96 @@
 
   $effect(() => {
     const option = chartData;
-    if (chart) chart.setOption(option, { notMerge: true });
+    if (!chart) return;
+
+    const currentZoom = chart.getOption()?.dataZoom;
+    const nextZoom = Array.isArray(option.dataZoom)
+      ? option.dataZoom
+      : option.dataZoom
+        ? [option.dataZoom]
+        : [];
+    const zoomState = Array.isArray(currentZoom) ? currentZoom : [];
+
+    chart.setOption(
+      {
+        ...option,
+        dataZoom: nextZoom.map((zoom, index) => ({
+          ...zoom,
+          ...(zoomState[index]?.start != null
+            ? { start: zoomState[index].start }
+            : {}),
+          ...(zoomState[index]?.end != null
+            ? { end: zoomState[index].end }
+            : {}),
+        })),
+      },
+      { notMerge: true },
+    );
   });
 </script>
 
+<ChartViewControls bind:mode={viewMode} onchange={handleViewModeChange} />
 <div
-  id="chart-container"
-  bind:this={container}
-  role="img"
-  aria-label="価格の推移"
-></div>
+  class={[
+    "chart-scroll-container",
+    { "chart-scroll-container--fit": viewMode === "fit" },
+    { "chart-scroll-container--scroll": viewMode === "scroll" },
+  ]}
+  bind:this={scrollContainer}
+  role="region"
+  aria-label={viewMode === "fit"
+    ? "価格推移グラフ（画面幅表示）"
+    : "価格推移グラフ。左右にスクロールできます"}
+>
+  <div
+    id="chart-container"
+    bind:this={container}
+    role="img"
+    aria-label="価格の推移"
+  ></div>
+</div>
 
 <style>
-  #chart-container {
-    width: auto;
-    height: 60vh;
-    min-height: 320px;
+  .chart-scroll-container {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
     margin: var(--space-8) 0;
-    padding: var(--space-8) 0;
+    overflow-x: auto;
+    overflow-y: hidden;
     border: var(--border-default);
     border-radius: var(--radius-md);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chart-scroll-container--fit {
+    overflow-x: hidden;
+  }
+
+  .chart-scroll-container--scroll #chart-container {
+    width: 1400px;
+  }
+
+  #chart-container {
+    box-sizing: border-box;
+    width: 100%;
+    height: var(--chart-height, 60vh);
+    min-height: 320px;
+    padding: var(--space-8) 0;
   }
 
   @media (max-width: 48rem) {
     #chart-container {
       height: 55vh;
-      margin: var(--space-8) 0;
       padding: var(--space-4) 0;
+    }
+
+    .chart-scroll-container--scroll #chart-container {
+      width: 960px;
+    }
+
+    .chart-scroll-container--fit #chart-container {
+      width: 100%;
     }
   }
 </style>

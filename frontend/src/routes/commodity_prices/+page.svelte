@@ -1,7 +1,9 @@
 <script>
+  import LicenseLink from "#lib/LicenseLink.svelte";
+  import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
+  import { onMount, untrack } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import Spinner from "#lib/Spinner.svelte";
-  import { untrack } from "svelte";
   import LineChart from "./LineChart.svelte";
   import Reference from "./Reference.svelte";
   import Selectors from "./Selectors.svelte";
@@ -16,53 +18,151 @@
   const areaLookupResult = useAreaLookup();
 
   let selectedCat02Code = $state("");
-  let selectedAreaCode = $state("");
-  let commodityPrices = $state(/** @type {CommodityPrices[]} */ ([]));
-  let autoAddEnabled = $state(true);
-  let dataNotFound = $state(false);
-
-  let chartData = $derived(
-    commodityPrices.length > 0 ? transformData(commodityPrices) : null,
+  let selectedAreaCodesByCat02 = $state(
+    /** @type {Record<string, string[]>} */ ({}),
   );
+  let commodityPrices = $state(/** @type {CommodityPrices[]} */ ([]));
+  let dataNotFound = $state(false);
+  let isMobile = $state(false);
+  let isSelectorOpen = $state(true);
+  let isComparisonOpen = $state(true);
+  let fetchGeneration = 0;
+  /** @type {Record<string, Promise<CommodityPrices | undefined>>} */
+  let inFlightRequests = Object.create(null);
 
-  // Fetch data when the selected area and cat02 code change
+  onMount(() => {
+    const mobileQuery = window.matchMedia("(max-width: 50rem)");
+    const updateViewport = () => {
+      isMobile = mobileQuery.matches;
+      isSelectorOpen = !isMobile;
+      isComparisonOpen = !isMobile || selectedCombinations.length === 0;
+    };
+
+    updateViewport();
+    mobileQuery.addEventListener("change", updateViewport);
+    return () => mobileQuery.removeEventListener("change", updateViewport);
+  });
+
+  let selectedCommodityPrices = $derived.by(() => {
+    const selectedSeries = Object.entries(selectedAreaCodesByCat02).flatMap(
+      ([cat02Code, areaCodes]) =>
+        areaCodes.map((areaCode) => `${cat02Code}:${areaCode}`),
+    );
+    return commodityPrices.filter((item) =>
+      selectedSeries.includes(`${item.cat02_code}:${item.area_code}`),
+    );
+  });
+  let chartData = $derived(
+    selectedCommodityPrices.length > 0
+      ? transformData(selectedCommodityPrices)
+      : null,
+  );
+  let selectedCombinations = $derived.by(() => {
+    const cat02Lookup = cat02LookupResult.cat02Lookup ?? [];
+    const areaLookup = areaLookupResult.areaLookup ?? [];
+    return Object.entries(selectedAreaCodesByCat02).flatMap(
+      ([cat02Code, areaCodes]) => {
+        const cat02 = cat02Lookup.find((item) => item.cat02_code === cat02Code);
+        return areaCodes.flatMap((areaCode) => {
+          const area = areaLookup.find((item) => item.area_code === areaCode);
+          return cat02 && area
+            ? [
+                {
+                  cat02Code,
+                  areaCode,
+                  cat02Name: cat02.cat02_name,
+                  areaName: area.area_name,
+                },
+              ]
+            : [];
+        });
+      },
+    );
+  });
+
+  // Fetch data when the selected items and areas change
   $effect(() => {
-    if (
-      selectedCat02Code &&
-      selectedAreaCode &&
-      untrack(() => autoAddEnabled)
-    ) {
-      fetchAndAddData();
+    const selectedAreaCodes = selectedAreaCodesByCat02[selectedCat02Code] ?? [];
+    const generation = ++fetchGeneration;
+    dataNotFound = false;
+
+    if (selectedCat02Code && selectedAreaCodes.length > 0) {
+      untrack(() =>
+        fetchAndAddData(selectedCat02Code, selectedAreaCodes, generation),
+      );
     }
   });
 
-  async function fetchAndAddData() {
-    if (selectedCat02Code && selectedAreaCode) {
-      const data = await fetchCommodityPrices({
-        cat02Code: selectedCat02Code,
-        areaCode: selectedAreaCode,
-      });
+  /**
+   * @param {string} cat02Code
+   * @param {string[]} selectedAreaCodes
+   * @param {number} generation
+   */
+  async function fetchAndAddData(cat02Code, selectedAreaCodes, generation) {
+    /** @type {Record<string, true>} */
+    const cachedKeys = Object.create(null);
+    commodityPrices.forEach((item) => {
+      cachedKeys[`${item.cat02_code}:${item.area_code}`] = true;
+    });
+    const expectedResults = selectedAreaCodes.filter(
+      (areaCode) => !cachedKeys[`${cat02Code}:${areaCode}`],
+    ).length;
+    const results = await Promise.all(
+      selectedAreaCodes.map((areaCode) => {
+        const key = `${cat02Code}:${areaCode}`;
+        if (cachedKeys[key]) return Promise.resolve(undefined);
 
-      if (!data) {
-        dataNotFound = true;
-        return;
-      }
+        let request = inFlightRequests[key];
+        if (!request) {
+          request = fetchCommodityPrices({ cat02Code, areaCode });
+          inFlightRequests[key] = request;
+          void request.then(() => {
+            if (inFlightRequests[key] === request) delete inFlightRequests[key];
+          });
+        }
+        return request;
+      }),
+    );
 
-      if (data) {
-        dataNotFound = false;
-        commodityPrices.push(data);
-      }
-    }
+    if (generation !== fetchGeneration) return;
+
+    const foundData = results.filter((data) => data !== undefined);
+    dataNotFound = foundData.length < expectedResults;
+    /** @type {Record<string, true>} */
+    const existingKeys = Object.create(null);
+    commodityPrices.forEach((item) => {
+      existingKeys[`${item.cat02_code}:${item.area_code}`] = true;
+    });
+    commodityPrices.push(
+      ...foundData.filter((item) => {
+        const key = `${item.cat02_code}:${item.area_code}`;
+        if (existingKeys[key]) return false;
+        existingKeys[key] = true;
+        return true;
+      }),
+    );
   }
 
-  function handleClear() {
+  function handleReset() {
+    fetchGeneration += 1;
+    inFlightRequests = Object.create(null);
+    selectedAreaCodesByCat02 = {};
     commodityPrices = [];
     dataNotFound = false;
   }
 
-  /** @param {CommodityPrices} dataToRemove */
-  function handleRemove(dataToRemove) {
-    commodityPrices = commodityPrices.filter((item) => item !== dataToRemove);
+  /** @param {string} cat02Code @param {string} areaCode */
+  function handleRemove(cat02Code, areaCode) {
+    const selectedAreaCodes = selectedAreaCodesByCat02[cat02Code] ?? [];
+    const remainingAreaCodes = selectedAreaCodes.filter(
+      (code) => code !== areaCode,
+    );
+    selectedAreaCodesByCat02 = { ...selectedAreaCodesByCat02 };
+    if (remainingAreaCodes.length > 0) {
+      selectedAreaCodesByCat02[cat02Code] = remainingAreaCodes;
+    } else {
+      delete selectedAreaCodesByCat02[cat02Code];
+    }
   }
 </script>
 
@@ -70,121 +170,99 @@
   <title>主要品目の都市別小売価格 | Open Data Viz</title>
 </svelte:head>
 
-<div class="page-shell">
+<div class="visualization-page visualization-page--chart-first">
   <main class="page-content">
-    <h1>主要品目の都市別小売価格</h1>
-    <div>
-      {#if cat02LookupResult.isLoading || areaLookupResult.isLoading}
-        <Spinner />
-      {:else if cat02LookupResult.error || areaLookupResult.error}
-        <p>Error loading lookup data</p>
-      {:else if cat02LookupResult.cat02Lookup && areaLookupResult.areaLookup}
-        <Selectors
-          bind:autoAddEnabled
-          bind:selectedCat02Code
-          bind:selectedAreaCode
-          cat02Lookup={cat02LookupResult.cat02Lookup}
-          areaLookup={areaLookupResult.areaLookup}
-          {fetchAndAddData}
-        />
-        {#if dataNotFound}
-          <p class="data-not-found">データが見つかりませんでした</p>
-        {/if}
-        {#if commodityPrices.length > 0}
-          <section class="added-items" aria-label="追加済みのデータ">
-            <h2>追加済み</h2>
-            <ul>
-              {#each commodityPrices as item (item)}
-                <li>
-                  <span>{item.cat02_name}【{item.area_name}】</span>
-                  <button
-                    type="button"
-                    class="delete-button"
-                    aria-label="{item.cat02_name}【{item.area_name}】を削除"
-                    onclick={() => handleRemove(item)}
-                    ><img src={deleteIcon} alt="" aria-hidden="true" /></button
-                  >
-                </li>
-              {/each}
-            </ul>
+    <WorkspaceHeader title="主要品目の都市別小売価格" />
+    <div class="workspace">
+      <aside class="details-column" aria-label="比較条件">
+        {#if cat02LookupResult.isLoading || areaLookupResult.isLoading}
+          <Spinner />
+        {:else if cat02LookupResult.error || areaLookupResult.error}
+          <p>Error loading lookup data</p>
+        {:else if cat02LookupResult.cat02Lookup && areaLookupResult.areaLookup}
+          <section class="control-panel" aria-label="品目と地域">
+            <details class="selector-panel" bind:open={isSelectorOpen}>
+              <summary>品目・地域を選択</summary>
+              <div class="selector-panel-content">
+                <Selectors
+                  bind:selectedCat02Code
+                  bind:selectedAreaCodesByCat02
+                  cat02Lookup={cat02LookupResult.cat02Lookup}
+                  areaLookup={areaLookupResult.areaLookup}
+                />
+              </div>
+            </details>
+          </section>
+          <section class="comparison-panel" aria-label="比較中のデータ">
+            <details class="added-items" bind:open={isComparisonOpen}>
+              <summary>
+                <h2>比較中 <span>{selectedCombinations.length}系列</span></h2>
+              </summary>
+              <fieldset class="selected-list">
+                <legend>選択中一覧</legend>
+                {#if selectedCombinations.length > 0}
+                  <ul>
+                    {#each selectedCombinations as item (`${item.cat02Code}:${item.areaCode}`)}
+                      <li>
+                        <span>{item.cat02Name}【{item.areaName}】</span>
+                        <button
+                          type="button"
+                          class="icon-button"
+                          aria-label="{item.cat02Name}【{item.areaName}】を削除"
+                          onclick={() =>
+                            handleRemove(item.cat02Code, item.areaCode)}
+                          ><img
+                            src={deleteIcon}
+                            alt=""
+                            aria-hidden="true"
+                          /></button
+                        >
+                      </li>
+                    {/each}
+                  </ul>
+                {:else}
+                  <p class="empty-comparison">選択されていません。</p>
+                {/if}
+              </fieldset>
+              <button onclick={handleReset} class="reset-button"
+                >リセット</button
+              >
+              {#if dataNotFound}
+                <p class="data-not-found">データが見つかりませんでした</p>
+              {/if}
+            </details>
           </section>
         {/if}
-        <button onclick={handleClear} class="reset-button">リセット</button>
-      {/if}
+        <Reference />
+        <LicenseLink />
+      </aside>
 
-      {#if chartData}
-        <LineChart {chartData} />
-      {/if}
+      <section class="chart-panel" aria-label="価格推移グラフ">
+        {#if chartData}
+          <LineChart {chartData} />
+        {:else}
+          <div class="empty-chart">
+            <h2>価格の推移を比較</h2>
+            <p>品目と地域を選ぶと、ここにグラフが表示されます。</p>
+          </div>
+        {/if}
+      </section>
     </div>
-
-    <Reference />
   </main>
 </div>
 
 <style>
+  .chart-panel {
+    --chart-height: calc(100dvh - 12rem);
+  }
+
   .data-not-found {
     color: var(--danger-color);
   }
 
-  .added-items {
-    max-width: 32rem;
-    margin-top: var(--space-4);
-  }
-
-  .added-items h2 {
-    margin: 0 0 var(--space-2);
-    font-size: 1rem;
-  }
-
-  .added-items ul {
-    display: flex;
-    flex-direction: column;
-    max-height: 12rem;
-    margin: 0;
-    padding: 0;
-    overflow-y: auto;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    list-style: none;
-  }
-
-  .added-items li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: var(--border-default);
-  }
-
-  .added-items li:last-child {
-    border-bottom: 0;
-  }
-
-  .delete-button {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-1);
-    border: 0;
-    border-radius: var(--radius-round);
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .delete-button:hover {
-    background: var(--surface-hover-color);
-  }
-
-  .delete-button img {
-    display: block;
-    width: 24px;
-    height: 24px;
-  }
-
-  .reset-button {
-    display: block;
-    margin-top: var(--space-4);
+  @media (max-width: 50rem) {
+    .chart-panel {
+      --chart-height: 55vh;
+    }
   }
 </style>
