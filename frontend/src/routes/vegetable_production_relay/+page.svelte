@@ -477,6 +477,7 @@
     min-height: 0;
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(24rem, 1fr);
+    grid-template-areas: "details map";
     gap: 0;
     overflow: hidden;
   }
@@ -490,13 +491,15 @@
   .map-column {
     position: relative;
     overflow: hidden;
+    grid-area: map;
   }
   .map-view {
     height: 100%;
     position: relative;
   }
   .details-column {
-    border-left: var(--border-default);
+    grid-area: details;
+    border-right: var(--border-default);
   }
   .page-heading {
     display: grid;
@@ -725,6 +728,7 @@
     .details-column {
       overflow: visible;
       border-left: 0;
+      border-right: 0;
     }
     .cc-icons {
       margin-right: var(--space-4);
