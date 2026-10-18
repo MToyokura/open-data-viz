@@ -1,5 +1,4 @@
 //! Build the small runtime catalogue only from complete schema-2 product splits.
-use super::aggregation::ensure_split_from_legacy;
 use serde::Serialize;
 use serde_json::Value;
 use std::{
@@ -253,23 +252,6 @@ fn validate_split(output_dir: &Path, key: &str, data: &Value) -> Result<()> {
 }
 
 pub fn generate(output_dir: &Path) -> Result<PathBuf> {
-    // Existing v1 files may be reused by the upstream generation pipeline.
-    // Materialize missing sidecars from them before validating the v2 index.
-    for entry in fs::read_dir(output_dir)? {
-        let entry = entry?;
-        if !entry.file_type()?.is_file() {
-            continue;
-        }
-        let name = entry.file_name();
-        let name = name.to_string_lossy();
-        if !name.ends_with(".json") || name.ends_with(".summary.json") || name == "products.json" {
-            continue;
-        }
-        let key = &name[..name.len() - ".json".len()];
-        if !output_dir.join(format!("{key}.summary.json")).exists() {
-            ensure_split_from_legacy(&entry.path())?;
-        }
-    }
     let mut products = BTreeMap::new();
     for entry in fs::read_dir(output_dir)? {
         let entry = entry?;

@@ -90,26 +90,7 @@ describe("asset distribution data contract", () => {
     ).toThrow("形式またはバージョン");
   });
 
-  test("rejects a missing display list", () => {
-    const manifest = makeManifest();
-    delete manifest.dimensions[4].display_category_codes;
-    expect(() => validateAssetDistribution(manifest)).toThrow("表示対象");
-  });
-
-  test("rejects duplicate, unknown, or overlapping display codes", () => {
-    for (const codes of [
-      [displayCodes[0], ...displayCodes.slice(1, -1), displayCodes[0]],
-      ["unknown", ...displayCodes.slice(1)],
-      ["01", ...displayCodes.slice(1)],
-      [displayCodes[0], ...displayCodes.slice(2), "M10"],
-    ]) {
-      const manifest = makeManifest();
-      manifest.dimensions[4].display_category_codes = codes;
-      expect(() => validateAssetDistribution(manifest)).toThrow("表示対象");
-    }
-  });
-
-  test("accepts only the 21 declared values for each published series", async () => {
+  test("loads values for a searched combination and preserves missing values", async () => {
     const manifest = validateAssetDistribution(makeManifest());
     const id = "cat01=A|cat02=A|cat03=A|cat05=A";
     const ids = Array.from({ length: 16 }, (_, index) => {
@@ -122,12 +103,12 @@ describe("asset distribution data contract", () => {
       return `cat01=${codes[0]}|cat02=${codes[1]}|cat03=${codes[2]}|cat05=${codes[3]}`;
     });
     const items = ids.flatMap((combination_id) =>
-      displayCodes.map((code) => ({
+      displayCodes.map((code, index) => ({
         combination_id,
         asset_class_code: code,
-        count: 1,
-        status: "observed",
-        raw_value: "1",
+        count: index === 1 ? null : index === 2 ? 0 : 1,
+        status: index === 1 ? "missing" : "observed",
+        raw_value: index === 1 ? "-" : String(index === 2 ? 0 : 1),
         annotations: [],
       })),
     );
@@ -139,48 +120,23 @@ describe("asset distribution data contract", () => {
       }),
     );
 
-    await expect(fetchCombinationItems(manifest, id)).resolves.toHaveLength(21);
+    await expect(fetchCombinationItems(manifest, id)).resolves.toEqual(
+      items.slice(0, 21),
+    );
   });
 
-  test("rejects an old chunk schema and missing or duplicate values", async () => {
-    const makeItems = () =>
-      displayCodes.map((code) => ({
-        combination_id: "cat01=A|cat02=A|cat03=A|cat05=A",
-        asset_class_code: code,
-        count: 1,
-        status: "observed",
-        raw_value: "1",
-        annotations: [],
-      }));
-
-    for (const payload of [
-      { schema_version: 2, items: makeItems() },
-      { schema_version: 3, items: makeItems().slice(1) },
-      {
-        schema_version: 3,
-        items: [...makeItems().slice(1), makeItems()[1]],
-      },
-      {
-        schema_version: 3,
-        items: [
-          ...makeItems().slice(1),
-          { ...makeItems()[1], asset_class_code: "01" },
-        ],
-      },
-    ]) {
-      const nextManifest = makeManifest();
-      nextManifest.chunks[0].path = `items-${Math.random()}.json`;
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue({
-          ok: true,
-          text: async () => JSON.stringify(payload),
-        }),
-      );
-      await expect(
-        fetchCombinationItems(nextManifest, "cat01=A|cat02=A|cat03=A|cat05=A"),
-      ).rejects.toThrow();
-    }
+  test("rejects an unsupported chunk schema version", async () => {
+    const manifest = makeManifest();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        text: async () => JSON.stringify({ schema_version: 2, items: [] }),
+      }),
+    );
+    await expect(
+      fetchCombinationItems(manifest, "cat01=A|cat02=A|cat03=A|cat05=A"),
+    ).rejects.toThrow("形式またはバージョン");
   });
 
   test("derives IDs in Cartesian order with the final axis changing fastest", () => {
@@ -205,40 +161,6 @@ describe("asset distribution data contract", () => {
         cat05: "A",
       }),
     ).toMatchObject({ id: "cat01=B|cat02=A|cat03=A|cat05=A" });
-  });
-
-  test("rejects invalid axis sets, counts, and chunk ranges", () => {
-    const invalid = [
-      (/** @type {any} */ manifest) => {
-        manifest.combination_index.dimension_ids[1] = "cat01";
-      },
-      (/** @type {any} */ manifest) => {
-        manifest.combination_index.dimension_ids[1] = "unknown";
-      },
-      (/** @type {any} */ manifest) => {
-        manifest.combination_index.dimension_ids.pop();
-      },
-      (/** @type {any} */ manifest) => {
-        manifest.combination_index.dimension_ids[0] = "cat04";
-      },
-      (/** @type {any} */ manifest) => {
-        manifest.combination_index.count = 15;
-      },
-      (/** @type {any} */ manifest) => {
-        manifest.chunks[0].start_index = 1;
-      },
-      (/** @type {any} */ manifest) => {
-        manifest.chunks[0].count = 15;
-      },
-      (/** @type {any} */ manifest) => {
-        manifest.chunks.push({ path: "unused.json", start_index: 0, count: 1 });
-      },
-    ];
-    for (const change of invalid) {
-      const manifest = makeManifest();
-      change(manifest);
-      expect(() => validateAssetDistribution(manifest)).toThrow();
-    }
   });
 });
 

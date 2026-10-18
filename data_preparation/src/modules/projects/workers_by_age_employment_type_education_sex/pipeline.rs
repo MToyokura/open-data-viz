@@ -123,17 +123,19 @@ fn safe_api_error(endpoint: &str, error: &(dyn Error + 'static)) -> String {
 
 /// Fetches and preserves the complete metadata and paged data response. This
 /// acquisition stage is useful on its own and forms the input to normalization.
-/// It writes each page independently so a failed later request does not erase
-/// earlier evidence or require restarting from page one.
+/// Each acquisition replaces the prior capture. A failed request may leave an
+/// incomplete capture, which must be fetched again before transforming.
 pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
-    fs::create_dir_all(OUTPUT_DIR_META)?;
-    fs::create_dir_all(OUTPUT_DIR_RAW)?;
-    let raw_staging = PathBuf::from(format!("{OUTPUT_DIR_RAW}.staging"));
-    let meta_staging = PathBuf::from(format!("{OUTPUT_DIR_META}.staging"));
-    let _ = fs::remove_dir_all(&raw_staging);
-    let _ = fs::remove_dir_all(&meta_staging);
-    fs::create_dir_all(&raw_staging)?;
-    fs::create_dir_all(&meta_staging)?;
+    let raw_dir = PathBuf::from(OUTPUT_DIR_RAW);
+    let meta_dir = PathBuf::from(OUTPUT_DIR_META);
+    if raw_dir.exists() {
+        fs::remove_dir_all(&raw_dir)?;
+    }
+    if meta_dir.exists() {
+        fs::remove_dir_all(&meta_dir)?;
+    }
+    fs::create_dir_all(&raw_dir)?;
+    fs::create_dir_all(&meta_dir)?;
     let acquired_at = current_utc_timestamp()?;
 
     let metadata = get_meta_info(
@@ -148,11 +150,11 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     let mut metadata: Value = serde_json::from_str(&metadata)?;
     redact_app_id(&mut metadata);
     fs::write(
-        meta_staging.join("get_meta_info.json"),
+        meta_dir.join("get_meta_info.json"),
         serde_json::to_vec_pretty(&metadata)?,
     )?;
     fs::write(
-        meta_staging.join("acquisition.json"),
+        meta_dir.join("acquisition.json"),
         serde_json::json!({"fetched_at": acquired_at}).to_string(),
     )?;
 
@@ -209,7 +211,7 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
         } else if page_total > 0 {
             return Err(format!("e-Stat returned an empty page at {start_position}").into());
         }
-        let page_path = raw_staging.join(format!("get_stats_data_{start_position:010}.json"));
+        let page_path = raw_dir.join(format!("get_stats_data_{start_position:010}.json"));
         redact_app_id(&mut parsed);
         fs::write(page_path, serde_json::to_vec_pretty(&parsed)?)?;
         println!("Fetched records beginning at {start_position}: {page_count}");
@@ -223,40 +225,7 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     }
 
     println!("Acquisition pages saved; normalizing captured data");
-    // Promote only a complete capture. Keep previous data available for rollback
-    // if a later filesystem operation fails.
-    let raw_target = PathBuf::from(OUTPUT_DIR_RAW);
-    let meta_target = PathBuf::from(OUTPUT_DIR_META);
-    let raw_backup = PathBuf::from(format!("{}.previous", raw_target.display()));
-    let meta_backup = PathBuf::from(format!("{}.previous", meta_target.display()));
-    let _ = fs::remove_dir_all(&raw_backup);
-    let _ = fs::remove_dir_all(&meta_backup);
-    fs::rename(&raw_target, &raw_backup)?;
-    if let Err(error) = fs::rename(&raw_staging, &raw_target) {
-        let _ = fs::rename(&raw_backup, &raw_target);
-        return Err(error.into());
-    }
-    if let Err(error) = fs::rename(&meta_target, &meta_backup) {
-        let _ = fs::remove_dir_all(&raw_target);
-        let _ = fs::rename(&raw_backup, &raw_target);
-        return Err(error.into());
-    }
-    if let Err(error) = fs::rename(&meta_staging, &meta_target) {
-        let _ = fs::rename(&meta_backup, &meta_target);
-        let _ = fs::remove_dir_all(&raw_target);
-        let _ = fs::rename(&raw_backup, &raw_target);
-        return Err(error.into());
-    }
-    if let Err(error) = transform() {
-        let _ = fs::remove_dir_all(&raw_target);
-        let _ = fs::rename(&raw_backup, &raw_target);
-        let _ = fs::remove_dir_all(&meta_target);
-        let _ = fs::rename(&meta_backup, &meta_target);
-        return Err(error);
-    }
-    let _ = fs::remove_dir_all(raw_backup);
-    let _ = fs::remove_dir_all(meta_backup);
-    Ok(())
+    transform()
 }
 
 fn current_utc_timestamp() -> Result<String, Box<dyn Error>> {
@@ -373,9 +342,15 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let transformed_staging = PathBuf::from(format!("{OUTPUT_DIR_TRANSFORMED}.staging"));
-    let _ = fs::remove_dir_all(&transformed_staging);
-    fs::create_dir_all(&transformed_staging)?;
+    let transformed_target = PathBuf::from(OUTPUT_DIR_TRANSFORMED);
+    if transformed_target.exists() {
+        fs::remove_dir_all(&transformed_target)?;
+    }
+    fs::create_dir_all(&transformed_target)?;
+    let options_target = PathBuf::from(OUTPUT_DIR_META).join("options.json");
+    if options_target.exists() {
+        fs::remove_file(&options_target)?;
+    }
     let mut series = Vec::with_capacity(groups.len());
     for ((age_code, employment_type_code, education_code, sex_code), mut values) in groups {
         values.sort_by(|left, right| left.year.cmp(&right.year));
@@ -395,7 +370,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             time_value_pairs: values,
         };
         fs::write(
-            transformed_staging.join(&path),
+            transformed_target.join(&path),
             serde_json::to_vec_pretty(&document)?,
         )?;
         series.push(SeriesReference {
@@ -457,39 +432,12 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
         series,
     };
     for item in &options.series {
-        if !transformed_staging.join(&item.path).is_file() {
+        if !transformed_target.join(&item.path).is_file() {
             return Err(format!("Series index points to a missing file: {}", item.path).into());
         }
     }
     let options_bytes = serde_json::to_vec_pretty(&options)?;
-    let transformed_target = PathBuf::from(OUTPUT_DIR_TRANSFORMED);
-    let transformed_backup = PathBuf::from(format!("{}.previous", transformed_target.display()));
-    let options_target = PathBuf::from(OUTPUT_DIR_META).join("options.json");
-    let options_staging = PathBuf::from(OUTPUT_DIR_META).join("options.json.staging");
-    fs::write(&options_staging, options_bytes)?;
-    let _ = fs::remove_dir_all(&transformed_backup);
-    let had_transformed = transformed_target.exists();
-    if had_transformed {
-        fs::rename(&transformed_target, &transformed_backup)?;
-    }
-    if let Err(error) = fs::rename(&transformed_staging, &transformed_target) {
-        if had_transformed {
-            let _ = fs::rename(&transformed_backup, &transformed_target);
-        }
-        let _ = fs::remove_file(&options_staging);
-        return Err(error.into());
-    }
-    if let Err(error) = fs::rename(&options_staging, &options_target) {
-        let _ = fs::remove_dir_all(&transformed_target);
-        if had_transformed {
-            let _ = fs::rename(&transformed_backup, &transformed_target);
-        }
-        let _ = fs::remove_file(&options_staging);
-        return Err(error.into());
-    }
-    if had_transformed {
-        let _ = fs::remove_dir_all(transformed_backup);
-    }
+    fs::write(&options_target, options_bytes)?;
     Ok(())
 }
 
