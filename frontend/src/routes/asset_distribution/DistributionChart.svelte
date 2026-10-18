@@ -62,7 +62,7 @@
     grid: {
       left: orientation === "horizontal" ? 18 : 56,
       right: orientation === "horizontal" ? 56 : 24,
-      top: 24,
+      top: orientation === "vertical" ? 48 : 24,
       bottom:
         orientation === "vertical"
           ? series.length > 1
