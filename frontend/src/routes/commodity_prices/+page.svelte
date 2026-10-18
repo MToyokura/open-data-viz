@@ -1,10 +1,9 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
-  import homeIcon from "#lib/assets/icons/home.svg";
+  import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import { onMount, untrack } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import Spinner from "#lib/Spinner.svelte";
-  import { VITE_ROOT_PATH } from "#lib/paths.js";
   import LineChart from "./LineChart.svelte";
   import Reference from "./Reference.svelte";
   import Selectors from "./Selectors.svelte";
@@ -171,14 +170,9 @@
   <title>主要品目の都市別小売価格 | Open Data Viz</title>
 </svelte:head>
 
-<div class="page-shell">
+<div class="visualization-page visualization-page--chart-first">
   <main class="page-content">
-    <header class="page-heading">
-      <a class="home-link" href={`${VITE_ROOT_PATH}/`} aria-label="Home">
-        <img src={homeIcon} alt="" />
-      </a>
-      <h1>主要品目の都市別小売価格</h1>
-    </header>
+    <WorkspaceHeader title="主要品目の都市別小売価格" />
     <div class="workspace">
       <aside class="details-column" aria-label="比較条件">
         {#if cat02LookupResult.isLoading || areaLookupResult.isLoading}
@@ -258,263 +252,17 @@
 </div>
 
 <style>
-  .page-shell {
-    min-width: 0;
-    height: 100dvh;
-    min-height: 0;
-    overflow-x: clip;
-  }
-
-  .page-content {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    height: 100%;
-    min-width: 0;
-    min-height: 0;
-    max-width: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .page-heading {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: var(--space-4) var(--space-6);
-    border-bottom: var(--border-default);
-  }
-
-  .page-heading h1 {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: center;
-    margin: 0;
-    font-size: 1.25rem;
-  }
-
-  .home-link {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-    font-size: 0.8rem;
-    color: inherit;
-  }
-
-  .home-link img {
-    display: block;
-    width: 24px;
-    height: 24px;
-  }
-
-  .workspace {
-    display: grid;
-    grid-template-columns: minmax(20rem, 0.42fr) minmax(0, 1fr);
-    grid-template-areas: "details chart";
-    width: 100%;
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .details-column,
   .chart-panel {
-    min-width: 0;
-    min-height: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
-  }
-
-  .details-column {
-    grid-area: details;
-    padding: var(--space-4) var(--space-6);
-    border-right: var(--border-default);
-  }
-
-  .chart-panel {
-    grid-area: chart;
-    padding: var(--space-4);
     --chart-height: calc(100dvh - 12rem);
-  }
-
-  .control-panel,
-  .comparison-panel {
-    margin-bottom: var(--space-4);
-  }
-
-  .selector-panel > summary {
-    display: none;
-  }
-
-  .selector-panel-content {
-    display: block;
-  }
-
-  .empty-chart {
-    display: grid;
-    min-height: 24rem;
-    place-content: center;
-    padding: var(--space-6);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-muted-color);
-    text-align: center;
-  }
-
-  .empty-chart h2 {
-    margin: 0 0 var(--space-2);
-    font-size: 1.25rem;
-  }
-
-  .empty-chart p {
-    margin: 0;
   }
 
   .data-not-found {
     color: var(--danger-color);
   }
 
-  .added-items {
-    margin: 0;
-  }
-
-  .added-items > summary {
-    display: none;
-  }
-
-  .added-items h2 {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-2);
-    margin: 0 0 var(--space-2);
-    font-size: 1rem;
-  }
-
-  .added-items h2 span {
-    color: #555;
-    font-size: 0.875rem;
-    font-weight: normal;
-  }
-
-  .empty-comparison {
-    margin: 0;
-    padding: var(--space-3);
-    color: #555;
-  }
-
-  .selected-list {
-    min-inline-size: 0;
-    margin: 0;
-    padding: 0;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-  }
-
-  .selected-list legend {
-    margin-inline: var(--space-3);
-    padding-inline: var(--space-1);
-    font-weight: 600;
-  }
-
-  .added-items ul {
-    display: flex;
-    flex-direction: column;
-    max-height: 12rem;
-    margin: 0.25rem 0 0;
-    padding: 0;
-    overflow-y: auto;
-    list-style: none;
-  }
-
-  .added-items li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: var(--border-default);
-  }
-
-  .added-items li:last-child {
-    border-bottom: 0;
-  }
-
-  .reset-button {
-    display: block;
-    margin-top: var(--space-4);
-  }
-
   @media (max-width: 50rem) {
-    .page-shell {
-      height: auto;
-    }
-
-    .page-content {
-      height: auto;
-      min-height: 0;
-      display: block;
-    }
-
-    .workspace {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      min-width: 0;
-    }
-
-    .details-column,
     .chart-panel {
-      overflow: visible;
-    }
-
-    .details-column {
-      border-right: 0;
-      border-bottom: var(--border-default);
-      padding: var(--space-4);
-    }
-
-    .chart-panel {
-      order: -1;
-      width: 100%;
-      max-width: 100%;
-      box-sizing: border-box;
-      overflow-x: clip;
       --chart-height: 55vh;
-    }
-
-    .selector-panel > summary {
-      display: list-item;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .selector-panel-content {
-      padding-top: var(--space-4);
-    }
-
-    .added-items > summary {
-      display: list-item;
-      cursor: pointer;
-    }
-
-    .added-items > summary h2 {
-      display: inline-flex;
-      margin-bottom: 0;
-    }
-
-    .added-items[open] > summary h2 {
-      margin-bottom: var(--space-2);
-    }
-
-    .page-heading {
-      padding: var(--space-3) var(--space-4);
-    }
-
-    .page-heading h1 {
-      font-size: 1.1rem;
-    }
-
-    .empty-chart {
-      min-height: 16rem;
     }
   }
 </style>

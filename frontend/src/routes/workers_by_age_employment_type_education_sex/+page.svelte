@@ -1,9 +1,8 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
-  import homeIcon from "#lib/assets/icons/home.svg";
+  import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import { onMount } from "svelte";
-  import { VITE_ROOT_PATH } from "#lib/paths.js";
   import Spinner from "#lib/Spinner.svelte";
   import BarChart from "./BarChart.svelte";
   import { fetchOptions, fetchSeries } from "./utils/fetchData.js";
@@ -363,14 +362,9 @@
   <title>年齢階級，教育，雇用形態別雇用者数 | Open Data Viz</title>
 </svelte:head>
 
-<div class="page-shell">
+<div class="visualization-page visualization-page--workers">
   <main class="page-content">
-    <header class="page-heading">
-      <a class="home-link" href={`${VITE_ROOT_PATH}/`} aria-label="Home">
-        <img src={homeIcon} alt="" />
-      </a>
-      <h1>年齢階級，教育，雇用形態別雇用者数</h1>
-    </header>
+    <WorkspaceHeader title="年齢階級，教育，雇用形態別雇用者数" />
     <div class="workspace">
       <aside class="details-column" aria-label="比較条件">
         {#if optionsLoading}<Spinner />
@@ -596,83 +590,6 @@
 </div>
 
 <style>
-  .page-shell {
-    min-width: 0;
-    height: 100dvh;
-    min-height: 0;
-    overflow-x: clip;
-  }
-  .page-content {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    height: 100%;
-    min-width: 0;
-    min-height: 0;
-    max-width: none;
-    margin: 0;
-    padding: 0;
-  }
-  .page-heading {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: var(--space-4) var(--space-6);
-    border-bottom: var(--border-default);
-  }
-  .page-heading h1 {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: center;
-    margin: 0;
-    font-size: 1.25rem;
-  }
-  .home-link {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-    font-size: 0.8rem;
-    color: inherit;
-  }
-  .home-link img {
-    display: block;
-    width: 24px;
-    height: 24px;
-  }
-  .workspace {
-    display: grid;
-    grid-template-columns: minmax(20rem, 0.42fr) minmax(0, 1fr);
-    grid-template-areas: "details chart";
-    width: 100%;
-    min-width: 0;
-    min-height: 0;
-  }
-  .details-column,
-  .chart-panel {
-    min-width: 0;
-    min-height: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
-  }
-  .details-column {
-    grid-area: details;
-    padding: var(--space-4) var(--space-6);
-    border-right: var(--border-default);
-  }
-  .chart-panel {
-    grid-area: chart;
-    padding: var(--space-4);
-  }
-  .control-panel,
-  .comparison-panel {
-    margin-bottom: var(--space-4);
-  }
-  .selector-panel > summary,
-  .added-items > summary {
-    display: none;
-  }
-  .selector-panel-content {
-    display: block;
-  }
   .intro {
     margin-top: 0;
   }
@@ -684,27 +601,9 @@
     border-radius: var(--radius-md);
   }
   .series-condition-list > legend,
-  .compare-options > legend,
-  .selected-list > legend {
+  .compare-options > legend {
     padding-inline: var(--space-1);
     font-weight: 600;
-  }
-  .empty-chart {
-    display: grid;
-    min-height: 24rem;
-    place-content: center;
-    padding: var(--space-6);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-muted-color);
-    text-align: center;
-  }
-  .empty-chart h2 {
-    margin: 0 0 var(--space-2);
-    font-size: 1.25rem;
-  }
-  .empty-chart p {
-    margin: 0;
   }
   .selectors {
     display: grid;
@@ -757,65 +656,6 @@
     width: max-content;
     margin-top: var(--space-4);
   }
-  .added-items {
-    margin: 0;
-  }
-  .added-items h2 {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-2);
-    margin: 0 0 var(--space-2);
-    font-size: 1rem;
-  }
-  .added-items h2 span {
-    color: #555;
-    font-size: 0.875rem;
-    font-weight: normal;
-  }
-  .selected-list {
-    min-inline-size: 0;
-    margin: 0;
-    padding: 0;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-  }
-  .selected-list legend {
-    margin-inline: var(--space-3);
-    padding-inline: var(--space-1);
-  }
-  .added-items ul {
-    display: flex;
-    flex-direction: column;
-    max-height: 16rem;
-    overflow-y: auto;
-    margin: 0.25rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-  .added-items li {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: var(--border-default);
-  }
-  .added-items li:last-child {
-    border-bottom: 0;
-  }
-  .added-items li > span:first-child {
-    flex: 1 1 12rem;
-  }
-  .empty-comparison {
-    margin: 0;
-    padding: var(--space-3);
-    color: #555;
-  }
-  .reset-button {
-    display: block;
-    margin-top: var(--space-4);
-  }
   .error {
     color: var(--danger-color);
   }
@@ -840,62 +680,5 @@
   }
   .notes {
     margin-top: 0;
-  }
-  @media (max-width: 50rem) {
-    .page-shell {
-      height: auto;
-    }
-    .page-content {
-      display: block;
-      height: auto;
-      min-height: 0;
-    }
-    .workspace {
-      display: flex;
-      flex-direction: column;
-    }
-    .details-column,
-    .chart-panel {
-      overflow: visible;
-    }
-    .details-column {
-      order: 1;
-      padding: var(--space-4);
-      border-right: 0;
-      border-bottom: var(--border-default);
-    }
-    .chart-panel {
-      order: 0;
-      width: 100%;
-      box-sizing: border-box;
-      overflow-x: clip;
-    }
-    .selector-panel > summary,
-    .added-items > summary {
-      display: list-item;
-      cursor: pointer;
-    }
-    .selector-panel > summary {
-      font-weight: 600;
-    }
-    .selector-panel-content {
-      padding-top: var(--space-4);
-    }
-    .added-items > summary h2 {
-      display: inline-flex;
-      margin-bottom: 0;
-    }
-    .added-items[open] > summary h2 {
-      margin-bottom: var(--space-2);
-    }
-    .page-heading {
-      padding: var(--space-3) var(--space-4);
-    }
-    .page-heading h1 {
-      font-size: 1.1rem;
-    }
-    .empty-chart {
-      min-height: 16rem;
-    }
   }
 </style>

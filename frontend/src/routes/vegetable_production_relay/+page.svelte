@@ -1,8 +1,7 @@
 <script>
   import ReferencePanel from "#lib/ReferencePanel.svelte";
-  import homeIcon from "#lib/assets/icons/home.svg";
+  import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
-  import { VITE_ROOT_PATH } from "#lib/paths.js";
   /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import VegetableSankey from "./VegetableSankey.svelte";
   import { aggregateSankey } from "./utils/aggregateSankey.js";
@@ -175,12 +174,7 @@
 
 <div class="page-shell">
   <main class="page-content">
-    <header class="page-heading">
-      <a class="home-link" href={`${VITE_ROOT_PATH}/`} aria-label="Home">
-        <img src={homeIcon} alt="" />
-      </a>
-      <h1>野菜の産地リレー</h1>
-    </header>
+    <WorkspaceHeader title="野菜の産地リレー" />
 
     {#if aggregation}
       <div class="workspace">
@@ -505,37 +499,6 @@
     padding: var(--space-4) var(--space-6);
     border-right: var(--border-default);
   }
-  .page-heading {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: var(--space-4) var(--space-6);
-    border-bottom: var(--border-default);
-  }
-  .page-heading h1 {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: center;
-    margin: 0;
-    font-size: 1.25rem;
-  }
-  .page-heading::after {
-    content: "";
-    grid-column: 3;
-    grid-row: 1;
-  }
-  .home-link {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-    font-size: 0.8rem;
-    color: inherit;
-  }
-  .home-link img {
-    display: block;
-    width: 24px;
-    height: 24px;
-  }
   .map-heading {
     position: absolute;
     top: var(--space-4);
@@ -726,12 +689,6 @@
       padding: var(--space-4);
       border-left: 0;
       border-right: 0;
-    }
-    .page-heading {
-      padding: var(--space-3) var(--space-4);
-    }
-    .page-heading h1 {
-      font-size: 1.1rem;
     }
     .details-column > section {
       padding: var(--space-4);
