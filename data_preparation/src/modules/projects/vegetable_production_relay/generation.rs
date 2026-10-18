@@ -336,6 +336,13 @@ fn value_string<'a>(value: &'a Value, key: &str) -> Result<&'a str> {
         .ok_or_else(|| fail(format!("missing or invalid {key}")))
 }
 
+fn is_product_key(key: &str) -> bool {
+    key.starts_with("veg-")
+        && key.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
+        })
+}
+
 fn timestamp() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -354,6 +361,26 @@ pub fn generate_product_data(inventory: &Value) -> Result<()> {
     let data_dir = Path::new(OUTPUT_DIR);
     fs::create_dir_all(data_dir)?;
 
+    // Clear relay-owned output, including products removed from the inventory
+    // since the previous run. Leave unrelated files in this directory intact.
+    for entry in fs::read_dir(data_dir)? {
+        let entry = entry?;
+        let name = entry.file_name();
+        let name = name.to_string_lossy();
+        if name == "products.json" {
+            fs::remove_file(entry.path())?;
+        } else if entry.file_type()?.is_dir() && is_product_key(&name) {
+            fs::remove_dir_all(entry.path())?;
+        } else if entry.file_type()?.is_file() {
+            let key = name
+                .strip_suffix(".summary.json")
+                .or_else(|| name.strip_suffix(".json"));
+            if key.is_some_and(is_product_key) {
+                fs::remove_file(entry.path())?;
+            }
+        }
+    }
+
     for product in products {
         let key = value_string(product, "key")?;
         let label = value_string(product, "label")?;
@@ -367,10 +394,7 @@ pub fn generate_product_data(inventory: &Value) -> Result<()> {
         if !mapping_path.is_file() {
             return Err(fail(format!("{key}: temporal mapping is missing")));
         }
-        let mapping_sha = sha256(&fs::read(&mapping_path)?);
-
         let mut normalized_paths = Vec::new();
-        let mut normalized_hashes = Vec::new();
         let unique = timestamp();
         for year in YEARS {
             let observation_run = product
@@ -396,56 +420,10 @@ pub fn generate_product_data(inventory: &Value) -> Result<()> {
                 &mapping_path,
                 &output_dir,
             )?;
-            normalized_hashes.push(sha256(&fs::read(&output)?));
             normalized_paths.push(output);
         }
 
         let product_json = data_dir.join(format!("{key}.json"));
-        if product_json.exists() {
-            let existing = read_json(&product_json)?;
-            let existing_years = existing
-                .get("years")
-                .and_then(Value::as_array)
-                .ok_or_else(|| fail(format!("{key}: existing output has no yearly data")))?;
-            if existing.get("commodity").and_then(Value::as_str) != Some(key)
-                || !matches!(
-                    existing.get("status").and_then(Value::as_str),
-                    Some("valid" | "incomplete")
-                )
-                || existing_years.len() != YEARS.len()
-            {
-                return Err(fail(format!(
-                    "{key}: existing output is not a usable product file"
-                )));
-            }
-            let same_mapping = existing_years.iter().all(|year| {
-                year.get("temporal_mapping_sha256").and_then(Value::as_str)
-                    == Some(mapping_sha.as_str())
-            });
-            let same_inputs =
-                existing_years
-                    .iter()
-                    .zip(&normalized_hashes)
-                    .all(|(year, input_hash)| {
-                        year.get("normalized_input_sha256").and_then(Value::as_str)
-                            == Some(input_hash.as_str())
-                    });
-            if existing.get("commodity_label").and_then(Value::as_str) == Some(label)
-                && same_mapping
-                && same_inputs
-            {
-                println!(
-                    "kept existing {}",
-                    product_json
-                        .file_name()
-                        .unwrap_or_default()
-                        .to_string_lossy()
-                );
-                continue;
-            }
-            fs::remove_file(&product_json)?;
-        }
-
         aggregation::run_2021_2023_product(
             &normalized_paths[0],
             &normalized_paths[1],

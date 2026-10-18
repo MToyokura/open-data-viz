@@ -63,6 +63,8 @@ export ESTAT_APP_ID="取得したアプリケーションID"
 cargo run -- vegetable-relay
 ```
 
+取得済みの検証済みcaptureは再利用します。配信用データは実行ごとに原本とmappingから再生成されます。生成に失敗した場合は出力が不完全な状態になり得るため、原因を修正して再実行してください。
+
 生成の仕組み、調査コマンド、ファイル形式、データの解釈は[野菜リレーの実験・調査記録](inspections/vegetable_production_relay/README.md)を参照してください。
 
 ## 都道府県データ

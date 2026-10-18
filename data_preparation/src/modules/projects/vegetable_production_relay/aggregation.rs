@@ -257,34 +257,12 @@ fn write_split_product(candidate: &AggregationCandidate, output_path: &Path) -> 
     // codes. This is generation-side provenance, not fetched by the page.
     write_json_atomic(&detail_root.join("audit.json"), candidate)?;
     // Publish the versioned summary only after all details and audit exist.
-    // The original product JSON remains available for the existing frontend
-    // throughout rollout. A later deployment can retire it independently.
     write_json_atomic(
         &output_dir.join(format!("{}.summary.json", candidate.commodity)),
         &summary,
     )?;
     write_json_atomic(output_path, candidate)?;
     Ok(())
-}
-
-/// Materialize the v2 sidecars from a verified, previously generated v1 file.
-/// This lets the index builder upgrade cached products without repeating the
-/// e-Stat acquisition and monthly aggregation. The v1 file stays available.
-pub fn ensure_split_from_legacy(path: &Path) -> Result<()> {
-    let bytes = fs::read(path)?;
-    let candidate: AggregationCandidate = serde_json::from_slice(&bytes)?;
-    if candidate.schema_version != 1
-        || candidate.years.len() != 3
-        || !matches!(candidate.status.as_str(), "valid" | "incomplete")
-        || candidate.commodity.is_empty()
-        || !candidate.commodity.bytes().all(|byte| {
-            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
-        })
-        || path.file_stem().and_then(|name| name.to_str()) != Some(candidate.commodity.as_str())
-    {
-        return Err(fail("legacy product artifact is invalid"));
-    }
-    write_split_product(&candidate, path)
 }
 
 #[derive(Debug)]
