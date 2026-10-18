@@ -23,18 +23,27 @@
   let loading = $state(true);
   let error = $state("");
   let selections = $state(/** @type {Record<string, string>} */ ({}));
+  let mode = $state(/** @type {"add"|"compare"} */ ("add"));
   let compareDimensionId = $state("");
   let compareSetId = $state("");
   let compareCodes = $state(/** @type {string[]} */ ([]));
   let normalCombinations = $state.raw(
     /** @type {import("./utils/data.js").Combination[]} */ ([]),
   );
+  let normalSnapshot = $state.raw(
+    /** @type {{ selections: Record<string, string>, combinations: import("./utils/data.js").Combination[] }|null} */ (
+      null
+    ),
+  );
+  let removedCompareLabels = $state(/** @type {string[]} */ ([]));
+  let comparisonSelectionNotice = $state("");
   let seriesItems = $state.raw(
     /** @type {Record<string, import("./utils/data.js").DistributionItem[]>} */ ({}),
   );
   let seriesLoading = $state(false);
-  let seriesError = $state("");
-  let seriesLoadGeneration = 0;
+  let seriesFailures = $state.raw(/** @type {Record<string, string>} */ ({}));
+  /** @type {Record<string, Promise<import("./utils/data.js").DistributionItem[]>|undefined>} */
+  let inFlightSeries = Object.create(null);
   let orientation = $state(
     /** @type {"vertical"|"horizontal"} */ ("horizontal"),
   );
@@ -72,8 +81,14 @@
       (set) => set.id === compareSetId,
     ),
   );
-  const comparisonMode = $derived(
-    Boolean(comparisonDimension && comparisonSet),
+  const comparisonMode = $derived(mode === "compare");
+  const selectedNormalCombination = $derived.by(() =>
+    combinationFor(selections),
+  );
+  const selectedCombinationAlreadyAdded = $derived(
+    normalCombinations.some(
+      (combination) => combination.id === selectedNormalCombination?.id,
+    ),
   );
 
   /** @param {Record<string, string>} codes */
@@ -125,6 +140,9 @@
               combination?.reason ?? "この条件の組み合わせはデータにありません",
           };
     }
+    if (dimension.id !== compareDimensionId) {
+      return { available: true, reason: "" };
+    }
     const published = [];
     const unavailable = [];
     for (const compareCode of comparisonSet?.category_codes ?? []) {
@@ -156,18 +174,14 @@
         combinationFor({ ...selections, [dimension.id]: code })?.status ===
         "published",
     ).length;
-    return published >= 2
-      ? { available: true, reason: "" }
-      : {
-          available: false,
-          reason: "この条件では比較に必要な公表系列が2つありません",
-        };
+    return { available: true, reason: `利用可能 ${published}` };
   }
 
   const activeCombinations = $derived.by(() => {
     if (!data)
       return /** @type {import("./utils/data.js").Combination[]} */ ([]);
     if (!comparisonMode) return normalCombinations;
+    if (!comparisonDimension || !comparisonSet) return [];
     const combinations = (comparisonSet?.category_codes ?? [])
       .filter((code) => compareCodes.includes(code))
       .map((code) =>
@@ -187,40 +201,40 @@
       (comparisonMode && (!comparisonSet || !comparisonDimension))
     )
       return /** @type {DisplaySeries[]} */ ([]);
-    if (activeCombinations.some((combination) => !seriesItems[combination.id]))
-      return /** @type {DisplaySeries[]} */ ([]);
-    return activeCombinations.map((combination) => {
-      const code = combination.dimensions[compareDimensionId];
-      const categoryLabel = comparisonMode
-        ? (comparisonDimension?.categories.find(
-            (category) => category.code === code,
-          )?.label ??
-          code ??
-          "")
-        : "選択条件";
-      const items = seriesItems[combination.id];
-      if (!items)
-        throw new Error(`階級別データがありません: ${combination.id}`);
-      const itemsByCode = new Map(
-        items.map((item) => [item.asset_class_code, item]),
-      );
-      const rows = assetCategories.map((category) => {
-        const item = itemsByCode.get(category.code);
-        if (!item)
-          throw new Error(
-            `階級別データがありません: ${combination.id} / ${category.code}`,
-          );
-        return {
-          code: category.code,
-          label: displayCategoryLabel(category.label),
-          count: item.count,
-          status: item.status,
-          raw_value: item.raw_value,
-          annotations: item.annotations,
-        };
-      });
-      return { key: combination.id, label: categoryLabel, rows };
-    });
+    return activeCombinations
+      .filter((combination) => seriesItems[combination.id])
+      .map((combination) => {
+        const code = combination.dimensions[compareDimensionId];
+        const categoryLabel = comparisonMode
+          ? (comparisonDimension?.categories.find(
+              (category) => category.code === code,
+            )?.label ??
+            code ??
+            "")
+          : "選択条件";
+        const items = seriesItems[combination.id];
+        if (!items) return null;
+        const itemsByCode = new Map(
+          items.map((item) => [item.asset_class_code, item]),
+        );
+        const rows = assetCategories.map((category) => {
+          const item = itemsByCode.get(category.code);
+          if (!item)
+            throw new Error(
+              `階級別データがありません: ${combination.id} / ${category.code}`,
+            );
+          return {
+            code: category.code,
+            label: displayCategoryLabel(category.label),
+            count: item.count,
+            status: item.status,
+            raw_value: item.raw_value,
+            annotations: item.annotations,
+          };
+        });
+        return { key: combination.id, label: categoryLabel, rows };
+      })
+      .filter((series) => series !== null);
   });
   const unavailableRows = $derived(
     currentSeries.flatMap((series) =>
@@ -236,14 +250,24 @@
         })),
     ),
   );
+  const availableComparisonCodes = $derived.by(() => {
+    if (!comparisonDimension || !comparisonSet) return [];
+    return comparisonSet.category_codes.filter(
+      (code) =>
+        combinationFor({ ...selections, [compareDimensionId]: code })
+          ?.status === "published",
+    );
+  });
   const noComparableSeries = $derived(
-    comparisonMode && activeCombinations.length < 2,
+    comparisonMode &&
+      Boolean(comparisonDimension) &&
+      availableComparisonCodes.length < 2,
   );
 
   async function loadData() {
     loading = true;
     error = "";
-    seriesError = "";
+    seriesFailures = {};
     seriesItems = {};
     normalCombinations = [];
     try {
@@ -269,84 +293,123 @@
   $effect(() => {
     const manifest = data;
     const combinations = activeCombinations;
-    const generation = ++seriesLoadGeneration;
-    seriesError = "";
     const missing = combinations.filter(
-      (combination) => !seriesItems[combination.id],
+      (combination) =>
+        !seriesItems[combination.id] && !seriesFailures[combination.id],
     );
-    if (!manifest || missing.length === 0) {
-      seriesLoading = false;
-      return;
+    if (manifest) {
+      for (const combination of missing) {
+        const id = combination.id;
+        if (inFlightSeries[id]) continue;
+        const request = fetchCombinationItems(manifest, id);
+        inFlightSeries[id] = request;
+        void request
+          .then((items) => {
+            seriesItems = { ...seriesItems, [id]: items };
+          })
+          .catch((cause) => {
+            seriesFailures = {
+              ...seriesFailures,
+              [id]:
+                cause instanceof Error
+                  ? cause.message
+                  : "系列データの読み込みに失敗しました",
+            };
+          })
+          .finally(() => {
+            if (inFlightSeries[id] === request) delete inFlightSeries[id];
+            seriesLoading = activeCombinations.some((active) =>
+              Boolean(inFlightSeries[active.id]),
+            );
+          });
+      }
     }
-    seriesLoading = true;
-    void Promise.all(
-      missing.map(async (combination) => [
-        combination.id,
-        await fetchCombinationItems(manifest, combination.id),
-      ]),
-    )
-      .then((loaded) => {
-        if (generation !== seriesLoadGeneration) return;
-        seriesItems = { ...seriesItems, ...Object.fromEntries(loaded) };
-      })
-      .catch((cause) => {
-        if (generation !== seriesLoadGeneration) return;
-        seriesError =
-          cause instanceof Error
-            ? cause.message
-            : "系列データの読み込みに失敗しました";
-      })
-      .finally(() => {
-        if (generation === seriesLoadGeneration) seriesLoading = false;
-      });
+    seriesLoading = combinations.some((combination) =>
+      Boolean(inFlightSeries[combination.id]),
+    );
   });
 
-  function retrySeries() {
+  /** @param {string} [retryId] */
+  function retrySeries(retryId) {
     const activeIds = new Set(
-      activeCombinations.map((combination) => combination.id),
+      retryId
+        ? [retryId]
+        : activeCombinations.map((combination) => combination.id),
     );
     seriesItems = Object.fromEntries(
       Object.entries(seriesItems).filter(([id]) => !activeIds.has(id)),
+    );
+    seriesFailures = Object.fromEntries(
+      Object.entries(seriesFailures).filter(([id]) => !activeIds.has(id)),
     );
   }
 
   function startComparison() {
     if (!comparisonDimension || !comparisonSet) return;
-    compareCodes = comparisonSet.category_codes.filter(
-      (code) => candidateStatus(comparisonDimension, code, true).available,
-    );
+    compareCodes = availableComparisonCodes;
+    comparisonSelectionNotice = `利用可能な区分を全選択しました（${compareCodes.length}系列）。`;
   }
 
   /** @param {string} id */
   function setCompareDimension(id) {
+    removedCompareLabels = [];
     compareDimensionId = id;
     const dimension = filterDimensions.find((item) => item.id === id);
-    compareSetId = dimension?.comparison_sets?.[0]?.id ?? "";
+    const sets = dimension?.comparison_sets ?? [];
+    compareSetId =
+      sets.find(
+        (set) =>
+          set.category_codes.filter(
+            (code) =>
+              combinationFor({ ...selections, [id]: code })?.status ===
+              "published",
+          ).length >= 2,
+      )?.id ??
+      sets[0]?.id ??
+      "";
     startComparison();
   }
 
   /** @param {string} id */
   function setCompareSet(id) {
+    removedCompareLabels = [];
     compareSetId = id;
     startComparison();
   }
 
-  function endComparison() {
+  /** @param {"add"|"compare"} nextMode */
+  function setMode(nextMode) {
+    if (nextMode === mode) return;
+    if (nextMode === "compare") {
+      normalSnapshot = {
+        selections: { ...selections },
+        combinations: [...normalCombinations],
+      };
+      mode = "compare";
+      compareDimensionId = "";
+      compareSetId = "";
+      compareCodes = [];
+      removedCompareLabels = [];
+      comparisonSelectionNotice = "";
+      return;
+    }
+    if (normalSnapshot) {
+      selections = { ...normalSnapshot.selections };
+      normalCombinations = [...normalSnapshot.combinations];
+    }
+    mode = "add";
     compareDimensionId = "";
     compareSetId = "";
     compareCodes = [];
-    if (combinationFor(selections)?.status !== "published" && data) {
-      selections = Object.fromEntries(
-        filterDimensions.map((dimension) => [
-          dimension.id,
-          dimension.default_code ?? "",
-        ]),
-      );
-    }
+    removedCompareLabels = [];
+    comparisonSelectionNotice = "";
+    normalSnapshot = null;
   }
 
   /** @param {string} code */
   function toggleCompareCode(code) {
+    removedCompareLabels = [];
+    comparisonSelectionNotice = "";
     compareCodes = compareCodes.includes(code)
       ? compareCodes.filter((item) => item !== code)
       : [...compareCodes, code];
@@ -354,6 +417,8 @@
 
   /** @param {string} code */
   function removeComparisonCode(code) {
+    removedCompareLabels = [];
+    comparisonSelectionNotice = "";
     compareCodes = compareCodes.filter((item) => item !== code);
   }
 
@@ -371,20 +436,43 @@
   /** @param {string} dimensionId @param {string} code */
   function changeSelection(dimensionId, code) {
     selections = { ...selections, [dimensionId]: code };
-    if (!comparisonMode) {
-      const combination = combinationFor(selections);
-      if (
-        combination?.status === "published" &&
-        !normalCombinations.some((item) => item.id === combination.id)
-      ) {
-        normalCombinations = [...normalCombinations, combination];
-      }
+    if (comparisonMode) {
+      comparisonSelectionNotice = "";
+      const previouslySelected = [...compareCodes];
+      const available = new Set(
+        (comparisonSet?.category_codes ?? []).filter(
+          (compareCode) =>
+            combinationFor({ ...selections, [compareDimensionId]: compareCode })
+              ?.status === "published",
+        ),
+      );
+      const removed = previouslySelected.filter((item) => !available.has(item));
+      compareCodes = previouslySelected.filter((item) => available.has(item));
+      removedCompareLabels = removed.map(
+        (item) =>
+          comparisonDimension?.categories.find(
+            (category) => category.code === item,
+          )?.label ?? item,
+      );
     }
   }
 
+  function addSelectedSeries() {
+    const combination = selectedNormalCombination;
+    if (
+      !combination ||
+      combination.status !== "published" ||
+      selectedCombinationAlreadyAdded
+    )
+      return;
+    normalCombinations = [...normalCombinations, combination];
+  }
+
   function clearSeries() {
-    if (comparisonMode) compareCodes = [];
-    else normalCombinations = [];
+    if (comparisonMode) {
+      compareCodes = [];
+      comparisonSelectionNotice = "";
+    } else normalCombinations = [];
   }
 
   onMount(() => {
@@ -426,51 +514,33 @@
         {:else if data && assetDimension}
           <section class="control-panel" aria-label="世帯属性の選択">
             <details class="selector-panel" bind:open={isSelectorOpen}>
-              <summary>世帯属性・比較条件</summary>
+              <summary
+                >{mode === "compare"
+                  ? "属性を比較"
+                  : "系列を追加"}：条件と区分</summary
+              >
               <div class="selector-panel-content">
-                <fieldset class="series-condition-list">
-                  <legend>系列の条件</legend>
-                  <p class="intro">
-                    属性別・純資産額階級別の世帯数（2024年）。条件を変えると、その条件の系列がグラフに追加されます。
-                  </p>
-                  <section class="selectors" aria-label="世帯属性">
-                    {#each filterDimensions as dimension (dimension.id)}
-                      <label>
-                        {dimension.label}
-                        <select
-                          value={selections[dimension.id]}
-                          disabled={comparisonMode &&
-                            dimension.id === compareDimensionId}
-                          onchange={(event) =>
-                            changeSelection(
-                              dimension.id,
-                              event.currentTarget.value,
-                            )}
-                        >
-                          {#each dimension.categories.toSorted((a, b) => a.order - b.order) as category (category.code)}
-                            {@const availability = candidateStatus(
-                              dimension,
-                              category.code,
-                            )}
-                            <option
-                              value={category.code}
-                              disabled={!availability.available}
-                              title={availability.reason}
-                              >{category.label}{availability.available
-                                ? ""
-                                : `（利用不可: ${availability.reason}）`}</option
-                            >
-                          {/each}
-                        </select>
-                        {#if comparisonMode && dimension.id === compareDimensionId}
-                          <span class="hint"
-                            >比較中はこの軸の単一区分条件を使いません。</span
-                          >
-                        {/if}
-                      </label>
-                    {/each}
-                  </section>
-                  <section class="comparison-controls" aria-label="属性比較">
+                <div class="mode-switch" role="group" aria-label="表示モード">
+                  <button
+                    type="button"
+                    class:active={mode === "add"}
+                    aria-pressed={mode === "add"}
+                    onclick={() => setMode("add")}>系列を追加</button
+                  >
+                  <button
+                    type="button"
+                    class:active={mode === "compare"}
+                    aria-pressed={mode === "compare"}
+                    onclick={() => setMode("compare")}>属性を比較</button
+                  >
+                </div>
+                <p class="mode-description">
+                  {#if mode === "add"}属性条件を選び、「系列に追加」を押すとグラフに追加されます。{:else}比較する属性の区分を並べます。ほかの属性は全系列に共通する固定条件です。終了すると比較開始前の条件と系列に戻ります。{/if}
+                </p>
+                {#if mode === "compare"}<section
+                    class="comparison-controls"
+                    aria-label="属性比較"
+                  >
                     <label>
                       比較する属性
                       <select
@@ -478,15 +548,22 @@
                         onchange={(event) =>
                           event.currentTarget.value
                             ? setCompareDimension(event.currentTarget.value)
-                            : endComparison()}
+                            : ((compareDimensionId = ""),
+                              (compareSetId = ""),
+                              (compareCodes = []),
+                              (removedCompareLabels = []),
+                              (comparisonSelectionNotice = ""))}
                       >
-                        <option value="">比較しない</option>
+                        <option value="">属性を選択してください</option>
                         {#each filterDimensions.filter((dimension) => dimension.comparison_sets?.length) as dimension (dimension.id)}
                           <option value={dimension.id}>{dimension.label}</option
                           >
                         {/each}
                       </select>
                     </label>
+                    {#if !comparisonDimension}<p class="hint" role="status">
+                        比較する属性を選んでください。
+                      </p>{/if}
                     {#if comparisonDimension}
                       <label>
                         区分集合
@@ -500,49 +577,113 @@
                               comparisonDimension,
                               set,
                             )}
-                            <option
-                              value={set.id}
-                              disabled={!availability.available}
-                              title={availability.reason}
-                              >{set.label}{availability.available
-                                ? ""
-                                : `（利用不可: ${availability.reason}）`}</option
+                            <option value={set.id} title={availability.reason}
+                              >{set.label}（{availability.reason}区分）</option
                             >
                           {/each}
                         </select>
                       </label>
                     {/if}
-                  </section>
-                  {#if comparisonSet && comparisonDimension}
-                    <fieldset class="compare-options">
-                      <legend>比較する区分</legend>
-                      {#each comparisonSet.category_codes as code (code)}
-                        {@const category = comparisonDimension.categories.find(
-                          (item) => item.code === code,
-                        )}
-                        {@const availability = candidateStatus(
-                          comparisonDimension,
-                          code,
-                          true,
-                        )}
-                        <label class:unavailable={!availability.available}>
-                          <input
-                            type="checkbox"
-                            checked={compareCodes.includes(code)}
-                            disabled={!availability.available}
-                            onchange={() => toggleCompareCode(code)}
-                          />
-                          {category?.label ?? code}{availability.available
-                            ? ""
-                            : ` — ${availability.reason}`}
-                        </label>
-                      {/each}
-                    </fieldset>
-                    {#if noComparableSeries}
+                    {#if comparisonSet && comparisonDimension}
+                      <fieldset class="compare-options">
+                        <legend>比較する区分</legend>
+                        {#each comparisonSet.category_codes as code (code)}
+                          {@const category =
+                            comparisonDimension.categories.find(
+                              (item) => item.code === code,
+                            )}
+                          {@const availability = candidateStatus(
+                            comparisonDimension,
+                            code,
+                            true,
+                          )}
+                          <label class:unavailable={!availability.available}>
+                            <input
+                              type="checkbox"
+                              checked={compareCodes.includes(code)}
+                              disabled={!availability.available}
+                              onchange={() => toggleCompareCode(code)}
+                            />
+                            {category?.label ?? code}{availability.available
+                              ? ""
+                              : ` — ${availability.reason}`}
+                          </label>
+                        {/each}
+                      </fieldset>
                       <p class="hint" role="status">
-                        比較に必要な公表系列数を満たしていません。区分や他の条件を変更してください。
+                        {comparisonSelectionNotice ||
+                          `利用可能な区分：${availableComparisonCodes.length}件／選択中の比較系列：${compareCodes.length}件`}
                       </p>
+                      {#if removedCompareLabels.length}<p
+                          class="hint"
+                          role="status"
+                        >
+                          {removedCompareLabels.join(
+                            "、",
+                          )}：共通条件の変更により選択を解除しました。
+                        </p>{/if}
+                      {#if noComparableSeries}
+                        <p class="hint" role="status">
+                          利用可能な区分が{availableComparisonCodes.length}件です。{#if compareCodes.length === 0}比較する区分を選んでください。{:else if compareCodes.length === 1}比較には2系列以上を選択してください。{/if}条件や区分集合を変更できます。
+                        </p>
+                      {/if}
                     {/if}
+                  </section>{/if}
+                <fieldset class="series-condition-list">
+                  <legend
+                    >{mode === "compare"
+                      ? "比較の固定条件"
+                      : "系列の条件"}</legend
+                  >
+                  <p class="intro">
+                    {mode === "compare"
+                      ? "比較する属性以外の条件を、すべての比較系列に適用します。"
+                      : "属性別・純資産額階級別の世帯数（2024年）。条件を選び、系列を追加してください。"}
+                  </p>
+                  <section class="selectors" aria-label="世帯属性">
+                    {#each filterDimensions as dimension (dimension.id)}
+                      {#if !(comparisonMode && dimension.id === compareDimensionId)}
+                        <label>
+                          {dimension.label}
+                          <select
+                            value={selections[dimension.id]}
+                            onchange={(event) =>
+                              changeSelection(
+                                dimension.id,
+                                event.currentTarget.value,
+                              )}
+                          >
+                            {#each dimension.categories.toSorted((a, b) => a.order - b.order) as category (category.code)}
+                              {@const availability = candidateStatus(
+                                dimension,
+                                category.code,
+                              )}
+                              <option
+                                value={category.code}
+                                disabled={!availability.available}
+                                title={availability.reason}
+                                >{category.label}{availability.available
+                                  ? ""
+                                  : `（利用不可: ${availability.reason}）`}</option
+                              >
+                            {/each}
+                          </select>
+                        </label>
+                      {/if}
+                    {/each}
+                  </section>
+                  {#if mode === "add"}
+                    <button
+                      type="button"
+                      class="add-series-button"
+                      disabled={selectedNormalCombination?.status !==
+                        "published" || selectedCombinationAlreadyAdded}
+                      onclick={addSelectedSeries}
+                    >
+                      {selectedCombinationAlreadyAdded
+                        ? "この条件は追加済み"
+                        : "系列に追加"}
+                    </button>
                   {/if}
                 </fieldset>
                 <label class="orientation">
@@ -562,7 +703,7 @@
             <details class="added-items" bind:open={isComparisonOpen}>
               <summary
                 ><h2>
-                  {comparisonMode ? "比較中" : "表示中の系列"}
+                  {comparisonMode ? "属性を比較" : "系列を追加"}・表示中
                   <span>{activeCombinations.length}系列</span>
                 </h2></summary
               >
@@ -574,6 +715,20 @@
                       {@const label = displaySeriesLabel(combination)}
                       <li>
                         <span>{label}</span>
+                        {#if seriesFailures[combination.id]}
+                          <span class="error" role="alert"
+                            >{seriesFailures[combination.id]}</span
+                          >
+                          <button
+                            type="button"
+                            onclick={() => retrySeries(combination.id)}
+                            >再試行</button
+                          >
+                        {:else if !seriesItems[combination.id]}
+                          <span class="hint" role="status">取得中…</span>
+                        {:else}
+                          <span class="hint">取得済み</span>
+                        {/if}
                         <button
                           type="button"
                           class="icon-button"
@@ -590,7 +745,7 @@
                   </ul>
                 {:else}
                   <p class="empty-comparison">
-                    比較できる公表系列がありません。
+                    {#if comparisonMode && !comparisonDimension}比較する属性を選んでください。{:else if comparisonMode && compareCodes.length === 0}比較する区分を選んでください。{:else}表示系列がありません。{/if}
                   </p>
                 {/if}
               </fieldset>
@@ -679,15 +834,22 @@
           <div class="empty-chart">
             <p class="error">データを読み込めませんでした。</p>
           </div>
-        {:else if seriesError}
-          <div class="empty-chart error" role="alert">
-            <p>{seriesError}</p>
-            <button onclick={retrySeries}>再試行</button>
-          </div>
         {:else if currentSeries.length > 0 || seriesLoading}
           <h2 class="chart-title">純資産額階級別の世帯数</h2>
-          {#if comparisonMode}<p class="hint">
-              属性の比較中です。選択軸の単一区分条件は使っていません。
+          {#if comparisonMode}<p class="hint" role="status">
+              {#if comparisonDimension}「{comparisonDimension.label}」の「{comparisonSet?.label}」を比較中です。固定条件：{filterDimensions
+                  .filter((dimension) => dimension.id !== compareDimensionId)
+                  .map(
+                    (dimension) =>
+                      `${dimension.label} ${dimension.categories.find((category) => category.code === selections[dimension.id])?.label ?? selections[dimension.id]}`,
+                  )
+                  .join("・")}。{:else}比較する属性を選んでください。{/if}
+            </p>{/if}
+          {#if comparisonMode && compareCodes.length === 1}<p
+              class="hint"
+              role="status"
+            >
+              比較には2系列以上を選択してください。
             </p>{/if}
           <DistributionChart
             categories={assetCategories}
@@ -715,7 +877,13 @@
         {:else}
           <div class="empty-chart">
             <h2>純資産分布を比較</h2>
-            <p>世帯属性を選ぶと、ここにグラフが表示されます。</p>
+            <p>
+              {comparisonMode && !comparisonDimension
+                ? "比較する属性を選んでください。"
+                : comparisonMode && compareCodes.length === 0
+                  ? "比較する区分を選んでください。"
+                  : "世帯属性を選ぶと、ここにグラフが表示されます。"}
+            </p>
             {#if !comparisonMode && data}<p class="hint" role="status">
                 表示できる公表系列がありません。
               </p>{/if}
@@ -741,6 +909,47 @@
   }
   .intro {
     margin-top: 0;
+  }
+  .mode-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+  .mode-switch button {
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-color);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  .mode-switch button.active {
+    border-color: var(--focus-color);
+    background: var(--surface-muted-color);
+    font-weight: 700;
+  }
+  .mode-description {
+    margin: var(--space-2) 0 var(--space-4);
+  }
+  .add-series-button {
+    min-height: 2.75rem;
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--focus-color);
+    border-radius: var(--radius-md);
+    background: var(--focus-color);
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .add-series-button:disabled {
+    border: var(--border-default);
+    background: var(--surface-muted-color);
+    color: var(--text-muted-color);
+    cursor: not-allowed;
   }
   .selectors {
     display: grid;

@@ -23,8 +23,11 @@
   );
   let normalItems = $state(/** @type {Item[]} */ ([]));
   let comparisonItems = $state(/** @type {Item[]} */ ([]));
+  let mode = $state(/** @type {"add"|"compare"} */ ("add"));
   let comparisonDimension = $state(/** @type {DimensionKey|""} */ (""));
   let comparisonCodes = $state(/** @type {string[]} */ ([]));
+  let removedComparisonLabels = $state(/** @type {string[]} */ ([]));
+  let comparisonSelectionNotice = $state("");
   let normalSnapshot = $state(
     /** @type {{selections:Record<DimensionKey,string>}|null} */ (null),
   );
@@ -42,12 +45,16 @@
   ];
 
   const selectedIndex = $derived(findIndex(selections));
-  const isDataMissing = $derived(
-    Boolean(
-      options && selections.age && !selectedIndex && !comparisonDimension,
-    ),
+  const selectedNormalItemKey = $derived(
+    selectedIndex ? createItem(selectedIndex).key : "",
   );
-  const items = $derived(comparisonDimension ? comparisonItems : normalItems);
+  const selectedNormalItemAlreadyAdded = $derived(
+    normalItems.some((item) => item.key === selectedNormalItemKey),
+  );
+  const isDataMissing = $derived(
+    Boolean(options && selections.age && !selectedIndex && mode === "add"),
+  );
+  const items = $derived(mode === "compare" ? comparisonItems : normalItems);
   const displayItems = $derived(
     items.map((item) => ({
       key: item.key,
@@ -183,7 +190,7 @@
   }
 
   /** @param {Item} item @param {boolean} comparing */
-  async function startFetch(item, comparing = Boolean(comparisonDimension)) {
+  async function startFetch(item, comparing = mode === "compare") {
     const requestId = ++serial;
     const key = item.key;
     updateItems(comparing, (list) =>
@@ -259,12 +266,18 @@
     void startFetch(item, false);
   }
 
+  function addSelectedNormalSeries() {
+    if (selectedIndex && !selectedNormalItemAlreadyAdded)
+      addNormalItem(selectedIndex);
+  }
+
   /** @param {string} key */
   function removeItem(key) {
-    if (comparisonDimension) {
+    if (mode === "compare") {
+      comparisonSelectionNotice = "";
       const dimension = comparisonDimension;
       const item = comparisonItems.find((current) => current.key === key);
-      if (item)
+      if (item && dimension)
         comparisonCodes = comparisonCodes.filter(
           (code) => code !== codeForDimension(item.index, dimension),
         );
@@ -272,7 +285,8 @@
     } else normalItems = normalItems.filter((item) => item.key !== key);
   }
   function clearItems() {
-    if (comparisonDimension) {
+    if (mode === "compare") {
+      comparisonSelectionNotice = "";
       comparisonCodes = [];
       comparisonItems = [];
     } else normalItems = [];
@@ -303,41 +317,71 @@
   /** @param {DimensionKey} key @param {string} value */
   function changeSelection(key, value) {
     selections[key] = value;
-    if (!comparisonDimension) {
-      if (selectedIndex) addNormalItem(selectedIndex);
+    if (mode === "add") {
       return;
     }
-    if (key === comparisonDimension) return;
+    if (!comparisonDimension) return;
+    comparisonSelectionNotice = "";
+    const dimension = comparisonDimension;
+    if (key === dimension) return;
     const available = new Set(
       availableComparisonChoices.map((choice) => choice.code),
     );
+    const removed = comparisonCodes.filter((code) => !available.has(code));
     comparisonCodes = comparisonCodes.filter((code) => available.has(code));
+    removedComparisonLabels = removed.map((code) =>
+      dimensionName(dimension, code),
+    );
     syncComparisonItems();
   }
 
   /** @param {DimensionKey|""} dimension */
   function setComparison(dimension) {
+    if (mode !== "compare") return;
+    removedComparisonLabels = [];
+    comparisonSelectionNotice = "";
+    comparisonDimension = dimension;
     if (!dimension) {
-      if (normalSnapshot) selections = { ...normalSnapshot.selections };
-      comparisonDimension = "";
       comparisonCodes = [];
       comparisonItems = [];
-      normalSnapshot = null;
       return;
     }
-    if (!comparisonDimension)
-      normalSnapshot = { selections: { ...selections } };
-    comparisonDimension = dimension;
     comparisonCodes =
       options?.dimensions[dimension]
         .filter((choice) => comparisonIndex(dimension, choice.code))
         .map((choice) => choice.code) ?? [];
+    comparisonSelectionNotice = `利用可能な区分を全選択しました（${comparisonCodes.length}系列）。`;
     comparisonItems = [];
     syncComparisonItems();
   }
 
+  /** @param {"add"|"compare"} nextMode */
+  function setMode(nextMode) {
+    if (nextMode === mode) return;
+    if (nextMode === "compare") {
+      normalSnapshot = { selections: { ...selections } };
+      mode = "compare";
+      comparisonDimension = "";
+      comparisonCodes = [];
+      comparisonItems = [];
+      removedComparisonLabels = [];
+      comparisonSelectionNotice = "";
+      return;
+    }
+    if (normalSnapshot) selections = { ...normalSnapshot.selections };
+    mode = "add";
+    comparisonDimension = "";
+    comparisonCodes = [];
+    comparisonItems = [];
+    removedComparisonLabels = [];
+    comparisonSelectionNotice = "";
+    normalSnapshot = null;
+  }
+
   /** @param {string} code */
   function toggleComparisonCode(code) {
+    removedComparisonLabels = [];
+    comparisonSelectionNotice = "";
     comparisonCodes = comparisonCodes.includes(code)
       ? comparisonCodes.filter((selected) => selected !== code)
       : [...comparisonCodes, code];
@@ -376,34 +420,33 @@
         {:else if options}
           <section class="control-panel" aria-label="系列の条件">
             <details class="selector-panel" bind:open={isSelectorOpen}>
-              <summary>条件を選択</summary>
+              <summary
+                >{mode === "compare"
+                  ? "属性を比較"
+                  : "系列を追加"}：{items.length}系列</summary
+              >
               <div class="selector-panel-content">
-                <fieldset class="series-condition-list">
-                  <legend>系列の条件</legend>
-                  <p class="intro">
-                    年齢階級・就業状態（雇用形態）・教育・性別を選び、年次推移を比較できます。
-                  </p>
-                  <section class="selectors" aria-label="系列の条件">
-                    {#each dimensionLabels as dimension (dimension.key)}
-                      <label
-                        >{dimension.title}
-                        <select
-                          value={selections[dimension.key]}
-                          disabled={comparisonDimension === dimension.key}
-                          onchange={(event) =>
-                            changeSelection(
-                              dimension.key,
-                              event.currentTarget.value,
-                            )}
-                        >
-                          {#each options.dimensions[dimension.key] as choice (choice.code)}<option
-                              value={choice.code}>{choice.name}</option
-                            >{/each}
-                        </select>
-                      </label>
-                    {/each}
-                  </section>
-                  <section class="comparison-controls" aria-label="属性比較">
+                <div class="mode-switch" role="group" aria-label="表示モード">
+                  <button
+                    type="button"
+                    class:active={mode === "add"}
+                    aria-pressed={mode === "add"}
+                    onclick={() => setMode("add")}>系列を追加</button
+                  >
+                  <button
+                    type="button"
+                    class:active={mode === "compare"}
+                    aria-pressed={mode === "compare"}
+                    onclick={() => setMode("compare")}>属性を比較</button
+                  >
+                </div>
+                <p class="mode-description">
+                  {#if mode === "add"}条件を選び、「系列に追加」を押すとグラフに表示されます。{:else}選んだ属性の区分を比較します。ほかの条件は全系列に共通して適用されます。比較を終了すると開始前の条件と系列に戻ります。{/if}
+                </p>
+                {#if mode === "compare"}<section
+                    class="comparison-controls"
+                    aria-label="属性比較"
+                  >
                     <div class="comparison-attribute">
                       <span>属性を比較</span>
                       <select
@@ -416,7 +459,7 @@
                             ),
                           )}
                       >
-                        <option value="">比較しない</option>
+                        <option value="">属性を選択してください</option>
                         {#each dimensionLabels as dimension (dimension.key)}
                           <option value={dimension.key}
                             >{dimension.title}</option
@@ -454,15 +497,86 @@
                       </fieldset>
                       {#if availableComparisonChoices.length === 0}
                         <p class="empty" role="status">
-                          この固定条件で比較できる系列はありません。
+                          利用可能な区分は0件です。固定条件を変更してください。
                         </p>
-                      {:else if comparisonCodes.length <= 1}
+                      {:else if comparisonCodes.length === 0}
                         <p class="empty" role="status">
-                          比較グラフには2区分以上が必要です。追加で選択できる区分を選んでください。
+                          比較する区分を選んでください。
+                        </p>
+                      {:else if comparisonCodes.length === 1}
+                        <p class="empty" role="status">
+                          比較には2系列以上を選択してください。
                         </p>
                       {/if}
+                      {#if availableComparisonChoices.length === 1}<p
+                          class="empty"
+                          role="status"
+                        >
+                          この固定条件で利用可能な区分は1件です。比較できるデータが不足しています。
+                        </p>{/if}
+                      <p class="muted" role="status">
+                        {comparisonSelectionNotice ||
+                          `利用可能な区分：${availableComparisonChoices.length}件／選択中の比較系列：${comparisonCodes.length}件`}
+                      </p>
+                      {#if removedComparisonLabels.length}<p
+                          class="muted"
+                          role="status"
+                        >
+                          {removedComparisonLabels.join(
+                            "、",
+                          )}：共通条件の変更により選択を解除しました。
+                        </p>{/if}
                     {/if}
+                  </section>{/if}
+                <fieldset class="series-condition-list">
+                  <legend
+                    >{mode === "compare"
+                      ? "比較の固定条件"
+                      : "系列の条件"}</legend
+                  >
+                  <p class="intro">
+                    {mode === "compare"
+                      ? "比較する属性以外の条件を、すべての比較系列に適用します。"
+                      : "年齢階級・就業状態（雇用形態）・教育・性別を選び、系列を追加してください。"}
+                  </p>
+                  <section class="selectors" aria-label="系列の条件">
+                    {#each dimensionLabels as dimension (dimension.key)}
+                      <label
+                        >{dimension.title}
+                        <select
+                          value={selections[dimension.key]}
+                          disabled={mode === "compare" &&
+                            comparisonDimension === dimension.key}
+                          onchange={(event) =>
+                            changeSelection(
+                              dimension.key,
+                              event.currentTarget.value,
+                            )}
+                        >
+                          {#each options.dimensions[dimension.key] as choice (choice.code)}<option
+                              value={choice.code}>{choice.name}</option
+                            >{/each}
+                        </select>
+                        {#if mode === "compare" && comparisonDimension === dimension.key}<span
+                            class="muted"
+                            >この属性の区分を比較します（選択欄の値は比較に使いません）。</span
+                          >{/if}
+                      </label>
+                    {/each}
                   </section>
+                  {#if mode === "add"}
+                    <button
+                      type="button"
+                      class="add-series-button"
+                      disabled={!selectedIndex ||
+                        selectedNormalItemAlreadyAdded}
+                      onclick={addSelectedNormalSeries}
+                    >
+                      {selectedNormalItemAlreadyAdded
+                        ? "この条件は追加済み"
+                        : "系列に追加"}
+                    </button>
+                  {/if}
                   {#if isDataMissing}<p class="empty">
                       該当するデータがありません。
                     </p>{/if}
@@ -481,12 +595,17 @@
           <section class="comparison-panel" aria-label="比較中のデータ">
             <details class="added-items" bind:open={isComparisonOpen}>
               <summary
-                ><h2>比較する系列 <span>{items.length}系列</span></h2></summary
+                ><h2>
+                  {mode === "compare" ? "比較系列" : "表示中の系列"}
+                  <span>{items.length}系列</span>
+                </h2></summary
               >
               <fieldset class="selected-list">
                 <legend>選択中一覧</legend>
                 {#if items.length === 0}
-                  <p class="empty-comparison">系列が追加されていません。</p>
+                  <p class="empty-comparison">
+                    {#if mode === "compare" && !comparisonDimension}比較する属性を選んでください。{:else if mode === "compare"}比較する区分を選んでください。{:else}系列が追加されていません。{/if}
+                  </p>
                 {/if}
                 <ul>
                   {#each items as item (item.key)}<li>
@@ -504,6 +623,9 @@
                       {:else if item.data?.time_value_pairs.every((row) => row.value === null)}<span
                           class="muted"
                           >数値を表示できる年がありません（すべて欠損）</span
+                        >
+                      {:else if item.status === "loaded"}<span class="muted"
+                          >取得済み</span
                         >{/if}
                       <button
                         class="icon-button"
@@ -576,12 +698,38 @@
         <LicenseLink />
       </aside>
       <section class="chart-panel" aria-label="雇用者数の年次推移">
-        {#if items.length && (!comparisonDimension || comparisonCodes.length > 1)}
+        {#if items.length && (mode === "add" || comparisonCodes.length > 0)}
+          {#if mode === "compare" && comparisonDimension}<p
+              class="muted"
+              role="status"
+            >
+              比較属性：{dimensionLabels.find(
+                (item) => item.key === comparisonDimension,
+              )?.title}。固定条件：{dimensionLabels
+                .filter((item) => item.key !== comparisonDimension)
+                .map(
+                  (item) =>
+                    `${item.title} ${dimensionName(item.key, selections[item.key])}`,
+                )
+                .join("・")}
+            </p>{/if}
+          {#if mode === "compare" && comparisonCodes.length === 1}<p
+              class="empty"
+              role="status"
+            >
+              比較には2系列以上を選択してください。
+            </p>{/if}
           <BarChart items={displayItems} {orientation} />
         {:else}
           <div class="empty-chart">
             <h2>雇用者数の推移を比較</h2>
-            <p>表示する条件を選ぶと、ここにグラフが表示されます。</p>
+            <p>
+              {mode === "compare" && !comparisonDimension
+                ? "比較する属性を選んでください。"
+                : mode === "compare"
+                  ? "比較する区分を選ぶと、ここにグラフが表示されます。"
+                  : "表示する条件を選ぶと、ここにグラフが表示されます。"}
+            </p>
           </div>
         {/if}
       </section>
@@ -592,6 +740,47 @@
 <style>
   .intro {
     margin-top: 0;
+  }
+  .mode-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+  .mode-switch button {
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-color);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  .mode-switch button.active {
+    border-color: var(--focus-color);
+    background: var(--surface-muted-color);
+    font-weight: 700;
+  }
+  .mode-description {
+    margin: var(--space-2) 0 var(--space-4);
+  }
+  .add-series-button {
+    min-height: 2.75rem;
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--focus-color);
+    border-radius: var(--radius-md);
+    background: var(--focus-color);
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .add-series-button:disabled {
+    border: var(--border-default);
+    background: var(--surface-muted-color);
+    color: var(--text-muted-color);
+    cursor: not-allowed;
   }
   .series-condition-list {
     min-inline-size: 0;
