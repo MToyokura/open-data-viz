@@ -21,6 +21,71 @@ export function validateOptions(data) {
   }
   if (!Array.isArray(options.series))
     throw new Error("系列一覧の形式が正しくありません");
+  const expectedEducation =
+    /** @type {[string, string, string, string|null][]} */ ([
+      ["00", "総数", "1", null],
+      ["01", "うち在学中", "2", null],
+      ["02", "小学・中学・高校", "3", null],
+      ["03", "短大・高専", "3", "02"],
+      ["04", "大学・大学院", "3", "02"],
+      ["05", "うち卒業", "2", null],
+      ["06", "小学・中学・高校・旧中", "3", "05"],
+      ["07", "短大・高専", "3", "05"],
+      ["08", "大学・大学院", "3", "05"],
+      ["09", "大学", "3", "05"],
+      ["10", "大学院", "3", "05"],
+    ]);
+  const education = options.dimensions.education;
+  if (
+    education.length !== expectedEducation.length ||
+    education.some(
+      (
+        /** @type {import("../constants/types.js").DimensionOption} */ item,
+        /** @type {number} */ index,
+      ) => {
+        const [code, name, level, parent] = expectedEducation[index];
+        return (
+          item.code !== code ||
+          item.name !== name ||
+          item.order !== index ||
+          item.api_level !== level ||
+          (item.api_parent_code ?? null) !== parent
+        );
+      },
+    )
+  )
+    throw new Error("教育区分の公式メタデータが想定と異なります");
+  const flattened = /** @type {string[]} */ ([]);
+  /** @param {import("../constants/types.js").DisplayNode[]} nodes */
+  const collect = (nodes) => {
+    for (const node of nodes) {
+      flattened.push(node.code);
+      collect(node.children ?? []);
+    }
+  };
+  collect(options.education_display_hierarchy ?? []);
+  if (
+    flattened.length !== expectedEducation.length ||
+    new Set(flattened).size !== flattened.length ||
+    expectedEducation.some(([code]) => !flattened.includes(code))
+  )
+    throw new Error("教育区分の画面表示階層が不完全です");
+  if (
+    !Array.isArray(options.education_comparison_sets) ||
+    JSON.stringify(
+      options.education_comparison_sets.map(
+        (
+          /** @type {import("../constants/types.js").EducationComparisonSet} */ set,
+        ) => [set.id, set.category_codes],
+      ),
+    ) !==
+      JSON.stringify([
+        ["education-status", ["01", "05"]],
+        ["enrolled-categories", ["02", "03", "04"]],
+        ["graduated-categories", ["06", "07", "08", "09", "10"]],
+      ])
+  )
+    throw new Error("教育区分の比較集合が想定と異なります");
   if (!options.metadata || typeof options.metadata.stats_data_id !== "string")
     throw new Error("メタデータの形式が正しくありません");
   for (const item of options.series) {

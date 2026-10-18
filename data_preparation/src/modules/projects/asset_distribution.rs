@@ -176,6 +176,8 @@ struct Category {
     label: String,
     kind: String,
     order: usize,
+    api_level: Option<String>,
+    api_parent_code: Option<String>,
 }
 
 #[derive(Clone)]
@@ -232,7 +234,12 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
                 label: name,
                 kind,
                 order: category_order,
+                api_level: attr(item, "@level").map(str::to_owned),
+                api_parent_code: attr(item, "@parentCode").map(str::to_owned),
             });
+        }
+        if id == &"cat02" {
+            validate_education_categories(&categories)?;
         }
         let total_code = if id == &"cat04" {
             None
@@ -255,7 +262,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             vec![
                 make_set(
                     "education-status",
-                    "在学中・卒業",
+                    "在学中・卒業者全体",
                     categories
                         .iter()
                         .filter(|c| c.label == "在学中" || c.label == "卒業")
@@ -263,7 +270,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
                 ),
                 make_set(
                     "graduated-subgroups",
-                    "卒業者の学歴",
+                    "卒業者の学歴内訳",
                     categories
                         .iter()
                         .filter(|c| {
@@ -686,6 +693,41 @@ fn validate_distribution_bundle(
     if all_dimension_ids.iter().collect::<BTreeSet<_>>().len() != all_dimension_ids.len() {
         return Err("Manifest repeats a dimension ID".into());
     }
+    if let Some(education_dimension) = dimensions
+        .iter()
+        .find(|dimension| dimension["id"] == "cat02")
+    {
+        let education_categories = education_dimension["categories"]
+            .as_array()
+            .ok_or("Manifest omitted cat02 categories")?
+            .iter()
+            .enumerate()
+            .map(|(order, category)| Category {
+                code: category["code"].as_str().unwrap_or_default().to_owned(),
+                label: category["label"].as_str().unwrap_or_default().to_owned(),
+                kind: category["kind"].as_str().unwrap_or_default().to_owned(),
+                order,
+                api_level: category["api_level"].as_str().map(str::to_owned),
+                api_parent_code: category["api_parent_code"].as_str().map(str::to_owned),
+            })
+            .collect::<Vec<_>>();
+        validate_education_categories(&education_categories)?;
+        if education_dimension["display_hierarchy"]
+            != serde_json::json!({
+                "standalone_codes": ["0", "1"],
+                "groups": [{"code": "2", "children": ["21", "22", "23"]}]
+            })
+            || education_dimension["comparison_sets"]
+                != serde_json::json!([
+                    {"id":"education-status","label":"在学中・卒業者全体","category_codes":["1","2"]},
+                    {"id":"graduated-subgroups","label":"卒業者の学歴内訳","category_codes":["21","22","23"]}
+                ])
+        {
+            return Err(
+                "Education display hierarchy or comparison sets changed unexpectedly".into(),
+            );
+        }
+    }
     if ids.len() != filter_ids.len() || ids.iter().any(|id| !filter_ids.contains(id)) {
         return Err(
             "Combination index axes must contain every filter dimension exactly once".into(),
@@ -800,6 +842,8 @@ fn validate_distribution_bundle(
                 label: required_attr(category, "label")?.to_owned(),
                 kind: required_attr(category, "kind")?.to_owned(),
                 order,
+                api_level: None,
+                api_parent_code: None,
             })
         })
         .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
@@ -1046,13 +1090,50 @@ fn dimension_json(d: &Dimension) -> Value {
     let mut dimension = serde_json::json!({
         "id": d.id, "label": d.label, "role": d.role, "order": d.order,
         "total_code": d.total_code, "default_code": d.total_code,
-        "categories": d.categories.iter().map(|c| serde_json::json!({"code":c.code,"label":c.label,"kind":c.kind,"order":c.order})).collect::<Vec<_>>(),
+        "categories": d.categories.iter().map(|c| serde_json::json!({"code":c.code,"label":c.label,"kind":c.kind,"order":c.order,"api_level":c.api_level,"api_parent_code":c.api_parent_code})).collect::<Vec<_>>(),
         "comparison_sets": d.comparison_sets
     });
     if d.role == "asset_class" {
         dimension["display_category_codes"] = serde_json::json!(d.display_category_codes);
     }
+    if d.id == "cat02" {
+        dimension["display_hierarchy"] = serde_json::json!({
+            "standalone_codes": ["0", "1"],
+            "groups": [{"code": "2", "children": ["21", "22", "23"]}]
+        });
+    }
     dimension
+}
+
+fn validate_education_categories(categories: &[Category]) -> Result<(), Box<dyn Error>> {
+    let expected = [
+        ("0", "平均", "1", None),
+        ("1", "在学中", "1", None),
+        ("2", "卒業", "1", None),
+        ("21", "小学校・中学校", "2", Some("2")),
+        ("22", "高校程度", "2", Some("2")),
+        ("23", "短大程度以上", "2", Some("2")),
+    ];
+    if categories.len() != expected.len() {
+        return Err(format!("学歴区分の数が変わりました: {}", categories.len()).into());
+    }
+    for (index, (category, (code, label, level, parent))) in
+        categories.iter().zip(expected).enumerate()
+    {
+        if category.order != index
+            || category.code != code
+            || category.label != label
+            || category.api_level.as_deref() != Some(level)
+            || category.api_parent_code.as_deref() != parent
+        {
+            return Err(format!(
+                "想定外の全国家計構造調査学歴区分: {} ({})",
+                category.code, category.label
+            )
+            .into());
+        }
+    }
+    Ok(())
 }
 
 fn cartesian_codes(dimensions: &[&Dimension]) -> Vec<Vec<(String, String)>> {
@@ -1138,7 +1219,16 @@ fn write_inspection_samples(
         serde_json::to_vec_pretty(metadata)?,
     )?;
     let mut chosen = Vec::new();
-    let age_code = metadata_category_code(class_objs, "cat01", "35歳未満")?;
+    let education_codes: BTreeSet<String> = class_objs
+        .iter()
+        .find(|dimension| attr(dimension, "@id") == Some("cat02"))
+        .map(|dimension| {
+            as_items(&dimension["CLASS"])
+                .into_iter()
+                .filter_map(|category| attr(category, "@code").map(str::to_owned))
+                .collect()
+        })
+        .ok_or("Metadata omitted cat02 education classifications")?;
     for path in raw_paths {
         let page: Value = serde_json::from_slice(&fs::read(path)?)?;
         let stat = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];
@@ -1149,7 +1239,7 @@ fn write_inspection_samples(
             {
                 continue;
             }
-            let total = ["cat01", "cat02", "cat03", "cat05"].iter().all(|id| {
+            let total = ["cat01", "cat03", "cat05"].iter().all(|id| {
                 let Some(dimension) = class_objs
                     .iter()
                     .find(|dimension| attr(dimension, "@id") == Some(id))
@@ -1163,29 +1253,14 @@ fn write_inspection_samples(
                     return false;
                 };
                 attr(row, &format!("@{id}")) == attr(category, "@code")
-            });
-            let age_subgroup = attr(row, "@cat01") == Some(age_code.as_str())
-                && ["cat02", "cat03", "cat05"].iter().all(|id| {
-                    let Some(dimension) = class_objs
-                        .iter()
-                        .find(|dimension| attr(dimension, "@id") == Some(id))
-                    else {
-                        return false;
-                    };
-                    let Some(category) = as_items(&dimension["CLASS"])
-                        .into_iter()
-                        .find(|category| attr(category, "@name") == Some("平均"))
-                    else {
-                        return false;
-                    };
-                    attr(row, &format!("@{id}")) == attr(category, "@code")
-                });
-            if total || age_subgroup {
+            }) && attr(row, "@cat02")
+                .is_some_and(|code| education_codes.contains(code));
+            if total {
                 chosen.push((*row).clone());
             }
         }
     }
-    let sample = serde_json::json!({"sample_note": "Actual e-Stat VALUE records extracted from the complete capture; two full 36-category series (overall and age-under-35) are retained.", "source_total_number": 243432, "selected_value_count": chosen.len(), "GET_STATS_DATA": {"STATISTICAL_DATA": {"DATA_INF": {"NOTE": [{"@char":"-","$":"該当数字がない"},{"@char":"X","$":"集計世帯数が少ないため秘匿しているもの"}], "VALUE": chosen}}}});
+    let sample = serde_json::json!({"sample_note": "Actual e-Stat VALUE records extracted from the complete capture; all six education categories and the 36 asset-class values for average age, average disposable income, and average household size are retained.", "source_total_number": 243432, "selected_value_count": chosen.len(), "GET_STATS_DATA": {"STATISTICAL_DATA": {"DATA_INF": {"NOTE": [{"@char":"-","$":"該当数字がない"},{"@char":"X","$":"集計世帯数が少ないため秘匿しているもの"}], "VALUE": chosen}}}});
     fs::write(
         samples.join("stats_data.json"),
         serde_json::to_vec_pretty(&sample)?,
@@ -1194,7 +1269,7 @@ fn write_inspection_samples(
         let bytes = fs::read(path)?;
         Ok(format!("{:x}", Sha256::digest(bytes)))
     };
-    let manifest = serde_json::json!({
+    let mut manifest = serde_json::json!({
         "captured_at_utc": current_utc_timestamp(), "stats_data_id": STATS_DATA_ID,
         "filters": {"tab":measure_code,"area":area_code,"time":year_code},
         "result_total_number":243432,"pages":raw_paths.len(),"sample_value_count":chosen.len(),
@@ -1204,10 +1279,16 @@ fn write_inspection_samples(
         },
         "output_counts": {"combinations":output["combinations"].as_array().map(Vec::len),"items":output["items"].as_array().map(Vec::len)}
     });
-    fs::write(
-        inspection.join("capture_manifest.json"),
-        serde_json::to_vec_pretty(&manifest)?,
-    )?;
+    let manifest_path = inspection.join("capture_manifest.json");
+    if manifest_path.exists() {
+        let previous: Value = serde_json::from_slice(&fs::read(&manifest_path)?)?;
+        for key in ["official_crosscheck", "negative_asset_crosscheck"] {
+            if let Some(value) = previous.get(key) {
+                manifest[key] = value.clone();
+            }
+        }
+    }
+    fs::write(manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
     Ok(())
 }
 
@@ -1330,6 +1411,14 @@ mod tests {
                 label: category["@name"].as_str().unwrap().to_owned(),
                 kind: classify_category("cat04", category["@name"].as_str().unwrap()),
                 order,
+                api_level: category
+                    .get("@level")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
+                api_parent_code: category
+                    .get("@parentCode")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
             })
             .collect()
     }

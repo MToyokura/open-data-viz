@@ -1,27 +1,27 @@
 {
   "GET_STATS_DATA": {
-    "RESULT": {
-      "STATUS": 1,
-      "ERROR_MSG": "正常に終了しましたが、該当データはありませんでした。",
-      "DATE": "2026-10-17T12:38:12.306+09:00"
-    },
     "PARAMETER": {
+      "DATA_FORMAT": "J",
       "LANG": "J",
-      "STATS_DATA_ID": "0003006608",
+      "LIMIT": 3,
+      "METAGET_FLG": "N",
       "NARROWING_COND": {
-        "CODE_TAB_SELECT": "06",
+        "CODE_AREA_SELECT": "00000",
         "CODE_CAT01_SELECT": 20,
         "CODE_CAT02_SELECT": "02",
         "CODE_CAT03_SELECT": "03",
         "CODE_CAT04_SELECT": 10,
         "CODE_CAT05_SELECT": 2,
-        "CODE_AREA_SELECT": "00000",
+        "CODE_TAB_SELECT": "06",
         "CODE_TIME_SELECT": 2002000000
       },
-      "DATA_FORMAT": "J",
       "START_POSITION": 1,
-      "LIMIT": 3,
-      "METAGET_FLG": "N"
+      "STATS_DATA_ID": "0003006608"
+    },
+    "RESULT": {
+      "DATE": "2026-10-18T18:59:05.352+09:00",
+      "ERROR_MSG": "正常に終了しましたが、該当データはありませんでした。",
+      "STATUS": 1
     },
     "STATISTICAL_DATA": {
       "RESULT_INF": {
@@ -29,46 +29,46 @@
       },
       "TABLE_INF": {
         "@id": "0003006608",
-        "STAT_NAME": {
-          "@code": "00200531",
-          "$": "労働力調査"
+        "COLLECT_AREA": "全国",
+        "CYCLE": "年次",
+        "DESCRIPTION": {
+          "TABULATION_SUB_CATEGORY_EXPLANATION1": "労働力調査では結果を算出するための基礎となる人口（ベンチマーク人口）として推計人口を用いています。<br />1982年から5年ごとに算出の基礎となるベンチマーク人口の基準を切り替えており、それぞれ切替えに伴う変動があります。<br />長期時系列表や速報では、2005年10月から2021年12月までの期間を含む数値を、基準切替え後のベンチマーク人口に基づいて遡及又は補正した時系列接続用数値に置き換えて掲載しています。<br />結果原表及びデータベース収録の数値は、公表当時の数値です。<br />このため、当該期間は、長期時系列表の数値とデータベースの数値とで異なる場合があります。"
         },
         "GOV_ORG": {
-          "@code": "00200",
-          "$": "総務省"
+          "$": "総務省",
+          "@code": "00200"
         },
-        "STATISTICS_NAME": "労働力調査 詳細集計　全都道府県 全国 年次",
-        "TITLE": {
-          "@no": "1-5-1",
-          "$": "年齢階級，教育，雇用形態別雇用者数(2002年～)"
-        },
-        "CYCLE": "年次",
-        "SURVEY_DATE": 0,
-        "OPEN_DATE": "2026-02-13",
-        "SMALL_AREA": 0,
-        "COLLECT_AREA": "全国",
         "MAIN_CATEGORY": {
-          "@code": "03",
-          "$": "労働・賃金"
+          "$": "労働・賃金",
+          "@code": "03"
         },
-        "SUB_CATEGORY": {
-          "@code": "01",
-          "$": "労働力"
-        },
+        "OPEN_DATE": "2026-02-13",
         "OVERALL_TOTAL_NUMBER": 78918,
-        "UPDATED_DATE": "2026-09-01",
+        "SMALL_AREA": 0,
+        "STATISTICS_NAME": "労働力調査 詳細集計　全都道府県 全国 年次",
         "STATISTICS_NAME_SPEC": {
           "TABULATION_CATEGORY": "労働力調査",
           "TABULATION_SUB_CATEGORY1": "詳細集計　全都道府県",
           "TABULATION_SUB_CATEGORY2": "全国",
           "TABULATION_SUB_CATEGORY3": "年次"
         },
-        "DESCRIPTION": {
-          "TABULATION_SUB_CATEGORY_EXPLANATION1": "労働力調査では結果を算出するための基礎となる人口（ベンチマーク人口）として推計人口を用いています。<br />1982年から5年ごとに算出の基礎となるベンチマーク人口の基準を切り替えており、それぞれ切替えに伴う変動があります。<br />長期時系列表や速報では、2005年10月から2021年12月までの期間を含む数値を、基準切替え後のベンチマーク人口に基づいて遡及又は補正した時系列接続用数値に置き換えて掲載しています。<br />結果原表及びデータベース収録の数値は、公表当時の数値です。<br />このため、当該期間は、長期時系列表の数値とデータベースの数値とで異なる場合があります。"
+        "STAT_NAME": {
+          "$": "労働力調査",
+          "@code": "00200531"
+        },
+        "SUB_CATEGORY": {
+          "$": "労働力",
+          "@code": "01"
+        },
+        "SURVEY_DATE": 0,
+        "TITLE": {
+          "$": "年齢階級，教育，雇用形態別雇用者数(2002年～)",
+          "@no": "1-5-1"
         },
         "TITLE_SPEC": {
           "TABLE_NAME": "年齢階級，教育，雇用形態別雇用者数(2002年～)"
         },
+        "UPDATED_DATE": "2026-09-01",
         "releaseCount": 31
       }
     }

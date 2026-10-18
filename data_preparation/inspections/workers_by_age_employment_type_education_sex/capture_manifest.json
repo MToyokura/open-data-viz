@@ -1,105 +1,113 @@
 {
-  "capturedAtUtc": "2026-10-17T03:38:10+00:00",
-  "tableId": "0003006608",
+  "capturedAtUtc": "2026-10-18T09:59:03+00:00",
+  "credentialHandling": "ESTAT_APP_ID is read from the environment; appId values in all saved JSON are replaced by [REDACTED].",
+  "educationValueExamples": {
+    "recordCount": 20,
+    "sample": "samples/education_value_examples.json",
+    "years": [
+      "2024",
+      "2025"
+    ]
+  },
   "endpoints": {
     "getMetaInfo": {
-      "url": "https://api.e-stat.go.jp/rest/3.0/app/json/getMetaInfo",
       "params": {
-        "statsDataId": "0003006608",
+        "explanationGetFlg": "Y",
         "lang": "J",
-        "explanationGetFlg": "Y"
+        "statsDataId": "0003006608"
       },
-      "sample": "samples/meta_info.json"
+      "sample": "samples/meta_info.json",
+      "url": "https://api.e-stat.go.jp/rest/3.0/app/json/getMetaInfo"
     },
     "getStatsData": {
-      "url": "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData",
-      "pages": [
-        {
-          "startPosition": 1,
-          "limit": 3,
-          "sample": "samples/stats_data_start_1_limit_3.json"
-        },
-        {
-          "startPosition": 4,
-          "limit": 3,
-          "sample": "samples/stats_data_start_4_limit_3.json"
-        }
-      ],
       "fixedParams": {
-        "statsDataId": "0003006608",
-        "metaGetFlg": "N"
-      },
-      "singleFiltered": {
-        "params": {
-          "startPosition": 1,
-          "limit": 3,
-          "metaGetFlg": "N",
-          "cdTab": "06",
-          "cdCat01": "00",
-          "cdCat02": "02",
-          "cdCat03": "00",
-          "cdCat04": "00",
-          "cdCat05": "0",
-          "cdArea": "00000",
-          "cdTime": "2002000000"
-        },
-        "sample": "samples/stats_data_single_filtered.json"
+        "metaGetFlg": "N",
+        "statsDataId": "0003006608"
       },
       "noDataFiltered": {
         "params": {
-          "startPosition": 1,
-          "limit": 3,
-          "metaGetFlg": "N",
-          "cdTab": "06",
+          "cdArea": "00000",
           "cdCat01": "20",
           "cdCat02": "02",
           "cdCat03": "03",
           "cdCat04": "10",
           "cdCat05": "2",
-          "cdArea": "00000",
-          "cdTime": "2002000000"
+          "cdTab": "06",
+          "cdTime": "2002000000",
+          "limit": "3",
+          "metaGetFlg": "N",
+          "startPosition": "1"
         },
         "sample": "samples/stats_data_no_data_filtered.json"
       },
-      "specialValue": {
+      "pages": [
+        {
+          "limit": 3,
+          "sample": "samples/stats_data_start_1_limit_3.json",
+          "startPosition": 1
+        },
+        {
+          "limit": 3,
+          "sample": "samples/stats_data_start_4_limit_3.json",
+          "startPosition": 4
+        }
+      ],
+      "singleFiltered": {
         "params": {
-          "startPosition": 1,
-          "limit": 1,
-          "metaGetFlg": "N",
-          "cdTab": "06",
+          "cdArea": "00000",
           "cdCat01": "00",
           "cdCat02": "02",
           "cdCat03": "00",
           "cdCat04": "00",
           "cdCat05": "0",
+          "cdTab": "06",
+          "cdTime": "2002000000",
+          "limit": "3",
+          "metaGetFlg": "N",
+          "startPosition": "1"
+        },
+        "sample": "samples/stats_data_single_filtered.json"
+      },
+      "specialValue": {
+        "params": {
           "cdArea": "00000",
-          "cdTime": "2011000000"
+          "cdCat01": "00",
+          "cdCat02": "02",
+          "cdCat03": "00",
+          "cdCat04": "00",
+          "cdCat05": "0",
+          "cdTab": "06",
+          "cdTime": "2011000000",
+          "limit": "1",
+          "metaGetFlg": "N",
+          "startPosition": "1"
         },
         "sample": "samples/stats_data_special_value.json"
       },
+      "url": "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData",
       "zeroValue": {
         "params": {
-          "startPosition": 1,
-          "limit": 1,
-          "metaGetFlg": "N",
-          "cdTab": "06",
+          "cdArea": "00000",
           "cdCat01": "00",
           "cdCat02": "02",
           "cdCat03": "03",
           "cdCat04": "02",
           "cdCat05": "0",
-          "cdArea": "00000",
-          "cdTime": "2003000000"
+          "cdTab": "06",
+          "cdTime": "2003000000",
+          "limit": "1",
+          "metaGetFlg": "N",
+          "startPosition": "1"
         },
         "sample": "samples/stats_data_zero_value.json"
       }
     }
   },
-  "credentialHandling": "ESTAT_APP_ID is read from the environment; appId values in all saved JSON are replaced with [REDACTED].",
   "fullValueScan": {
-    "sample": "samples/special_value_scan.json",
-    "recordCount": 78918,
+    "pageCount": 8,
     "pageLimit": 10000,
-    "pageCount": 8
-  }
+    "recordCount": 78918,
+    "sample": "samples/special_value_scan.json"
+  },
+  "tableId": "0003006608"
 }
