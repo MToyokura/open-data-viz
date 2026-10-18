@@ -512,7 +512,7 @@
                           >数値を表示できる年がありません（すべて欠損）</span
                         >{/if}
                       <button
-                        class="delete-button"
+                        class="icon-button"
                         aria-label={`${item.label}を削除`}
                         onclick={() => removeItem(item.key)}
                         ><img src={deleteIcon} alt="" /></button
@@ -811,25 +811,6 @@
     margin: 0;
     padding: var(--space-3);
     color: #555;
-  }
-  .delete-button {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-1);
-    border: 0;
-    border-radius: var(--radius-round);
-    background: transparent;
-    cursor: pointer;
-  }
-  .delete-button:hover {
-    background: var(--surface-hover-color);
-  }
-  .delete-button img {
-    display: block;
-    width: 24px;
-    height: 24px;
   }
   .reset-button {
     display: block;

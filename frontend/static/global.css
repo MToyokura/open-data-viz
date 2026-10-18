@@ -139,6 +139,31 @@ button {
   cursor: pointer;
 }
 
+.icon-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+}
+
+.icon-button:not(:disabled):hover {
+  background: var(--surface-hover-color);
+}
+
+.icon-button img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
 input[type="checkbox"],
 input[type="range"] {
   accent-color: var(--focus-color);

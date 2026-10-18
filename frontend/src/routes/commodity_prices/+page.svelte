@@ -213,7 +213,7 @@
                         <span>{item.cat02Name}【{item.areaName}】</span>
                         <button
                           type="button"
-                          class="delete-button"
+                          class="icon-button"
                           aria-label="{item.cat02Name}【{item.areaName}】を削除"
                           onclick={() =>
                             handleRemove(item.cat02Code, item.areaCode)}
@@ -436,28 +436,6 @@
 
   .added-items li:last-child {
     border-bottom: 0;
-  }
-
-  .delete-button {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-1);
-    border: 0;
-    border-radius: var(--radius-round);
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .delete-button:hover {
-    background: var(--surface-hover-color);
-  }
-
-  .delete-button img {
-    display: block;
-    width: 24px;
-    height: 24px;
   }
 
   .reset-button {
