@@ -1,10 +1,17 @@
 <script>
   import { onMount } from "svelte";
+  import Spinner from "#lib/Spinner.svelte";
 
   /** @typedef {{ code: string, label: string, count: number|null, status: string, raw_value: string, annotations: string[] }} ChartRow */
   /** @typedef {{ key: string, label: string, rows: ChartRow[] }} ChartSeries */
-  /** @type {{ categories: { code: string, label: string }[], series: ChartSeries[] }} */
-  let { categories, series } = $props();
+  /** @type {{ categories: { code: string, label: string }[], series: ChartSeries[], loading?: boolean, loadingMessage?: string, placeholderSeriesCount?: number }} */
+  let {
+    categories,
+    series,
+    loading = false,
+    loadingMessage = "グラフを読み込んでいます…",
+    placeholderSeriesCount = 1,
+  } = $props();
   /** @type {HTMLDivElement} */
   let container;
   let chart = $state.raw(
@@ -80,7 +87,7 @@
   }));
 
   const chartHeight = $derived(
-    `${Math.max(360, categories.length * (series.length > 1 ? 52 : 42) + 100)}px`,
+    `${Math.max(360, categories.length * ((loading ? placeholderSeriesCount : series.length) > 1 ? 52 : 42) + 100)}px`,
   );
 
   onMount(() => {
@@ -107,21 +114,55 @@
   });
 </script>
 
-<div
-  bind:this={container}
-  class="chart"
-  style:height={chartHeight}
-  role="img"
-  aria-label="純資産額階級別世帯数の横棒グラフ"
-></div>
+<div class="chart-stage" style:height={chartHeight}>
+  <div
+    bind:this={container}
+    class="chart"
+    role="img"
+    aria-label="純資産額階級別世帯数の横棒グラフ"
+    aria-busy={loading}
+    aria-hidden={loading}
+  ></div>
+  {#if loading}
+    <div class="chart-placeholder" role="status">
+      <span aria-hidden="true"><Spinner /></span>
+      <p class="placeholder-message">{loadingMessage}</p>
+    </div>
+  {/if}
+</div>
 
 <style>
   .chart {
     box-sizing: border-box;
     width: 100%;
-    min-height: 360px;
-    margin: var(--space-4) 0;
+    height: 100%;
     border: var(--border-default);
     border-radius: var(--radius-md);
+  }
+
+  .chart-stage {
+    position: relative;
+    width: 100%;
+    margin: var(--space-4) 0;
+  }
+
+  .chart-placeholder {
+    box-sizing: border-box;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: 28px 24px;
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-surface, #fff);
+  }
+
+  .placeholder-message {
+    margin: 0;
+    color: var(--color-text-muted, #6b7280);
+    font-size: 0.9rem;
   }
 </style>

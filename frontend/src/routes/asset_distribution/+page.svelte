@@ -456,16 +456,11 @@
         {/if}
       </section>
 
-      {#if seriesLoading}<p class="hint" role="status">
-          {comparisonMode
-            ? "比較系列"
-            : "選択中の系列"}データを読み込んでいます…
-        </p>{/if}
       {#if seriesError}<div class="error" role="alert">
           <p>{seriesError}</p>
           <button onclick={retrySeries}>再試行</button>
         </div>{/if}
-      {#if currentSeries.length > 0}
+      {#if currentSeries.length > 0 || (seriesLoading && !seriesError)}
         <h2 class="chart-title">純資産額階級別の世帯数</h2>
         {#if comparisonMode}<p class="hint">
             属性の比較中です。選択軸の単一区分条件は使っていません。
@@ -473,6 +468,9 @@
         <DistributionChart
           categories={assetCategories}
           series={currentSeries}
+          loading={seriesLoading}
+          loadingMessage={`${comparisonMode ? "比較系列" : "選択中の系列"}データを読み込んでいます…`}
+          placeholderSeriesCount={Math.max(1, activeCombinations.length)}
         />
         {#if unavailableRows.length}
           <section class="value-states" aria-label="秘匿・欠損値">
