@@ -71,16 +71,26 @@ mapfile -d '' files < <(find "$PUBLISH_DIR" -type f \( -name '*.json' -o -name '
 (( ${#files[@]} > 0 )) || { echo "No publishable files were collected" >&2; exit 1; }
 printf 'Publishing %d files:\n' "${#files[@]}"
 for file in "${files[@]}"; do
-  relative="${file#"$PUBLISH_DIR"/}"
-  case "$relative" in
-    *.geojson) content_type=application/geo+json ;;
-    *.json) content_type=application/json ;;
-  esac
   gzip -n -6 -c "$file" > "$file.gz"
   mv "$file.gz" "$file"
-  gcloud storage cp "$file" "$GCS_BUCKET/$relative" \
-    --content-type="$content_type" \
-    --content-encoding=gzip \
-    --cache-control='public, max-age=300, no-transform'
-  printf '  %s\n' "$relative"
 done
+
+printf 'Syncing JSON files to %s...\n' "$GCS_BUCKET"
+gcloud storage rsync "$PUBLISH_DIR" "$GCS_BUCKET" \
+  --recursive \
+  --checksums-only \
+  --exclude='.*\.geojson$' \
+  --content-type=application/json \
+  --content-encoding=gzip \
+  --cache-control='public, max-age=300, no-transform'
+
+printf 'Syncing GeoJSON files to %s...\n' "$GCS_BUCKET"
+gcloud storage rsync "$PUBLISH_DIR" "$GCS_BUCKET" \
+  --recursive \
+  --checksums-only \
+  --exclude='.*\.json$' \
+  --content-type=application/geo+json \
+  --content-encoding=gzip \
+  --cache-control='public, max-age=300, no-transform'
+
+echo 'Publishing complete.'
