@@ -1,6 +1,9 @@
 <script>
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import { onMount } from "svelte";
+  import CcIcon from "#lib/CcIcon.svelte";
+  import CcZeroIcon from "#lib/CcZeroIcon.svelte";
+  import { VITE_ROOT_PATH } from "#lib/paths.js";
   import Spinner from "#lib/Spinner.svelte";
   import BarChart from "./BarChart.svelte";
   import { fetchOptions, fetchSeries } from "./utils/fetchData.js";
@@ -27,6 +30,9 @@
     /** @type {{selections:Record<DimensionKey,string>}|null} */ (null),
   );
   let orientation = $state(/** @type {"vertical"|"horizontal"} */ ("vertical"));
+  let isMobile = $state(false);
+  let isSelectorOpen = $state(true);
+  let isComparisonOpen = $state(true);
   let serial = 0;
   /** @type {{key:DimensionKey,title:string}[]} */
   const dimensionLabels = [
@@ -254,18 +260,6 @@
     void startFetch(item, false);
   }
 
-  function addSeries() {
-    if (
-      !selectedIndex ||
-      !options ||
-      optionsLoading ||
-      optionsError ||
-      comparisonDimension
-    )
-      return;
-    addNormalItem(selectedIndex);
-  }
-
   /** @param {string} key */
   function removeItem(key) {
     if (comparisonDimension) {
@@ -310,7 +304,11 @@
   /** @param {DimensionKey} key @param {string} value */
   function changeSelection(key, value) {
     selections[key] = value;
-    if (!comparisonDimension || key === comparisonDimension) return;
+    if (!comparisonDimension) {
+      if (selectedIndex) addNormalItem(selectedIndex);
+      return;
+    }
+    if (key === comparisonDimension) return;
     const available = new Set(
       availableComparisonChoices.map((choice) => choice.code),
     );
@@ -348,214 +346,373 @@
   }
 
   onMount(() => {
+    const mobileQuery = window.matchMedia("(max-width: 50rem)");
+    const updateViewport = () => {
+      isMobile = mobileQuery.matches;
+      isSelectorOpen = !isMobile;
+      isComparisonOpen = !isMobile || items.length === 0;
+    };
+    updateViewport();
+    mobileQuery.addEventListener("change", updateViewport);
     void loadOptions();
+    return () => mobileQuery.removeEventListener("change", updateViewport);
   });
 </script>
 
-<svelte:head
-  ><title>年齢階級，教育，雇用形態別雇用者数 | Open Data Viz</title
-  ></svelte:head
->
+<svelte:head>
+  <title>年齢階級，教育，雇用形態別雇用者数 | Open Data Viz</title>
+</svelte:head>
 
 <div class="page-shell">
   <main class="page-content">
-    <h1>年齢階級，教育，雇用形態別雇用者数</h1>
-    <p>
-      年齢階級・就業状態（雇用形態）・教育・性別を選び、年次推移を比較できます。
-    </p>
-
-    {#if optionsLoading}<Spinner />
-    {:else if optionsError}
-      <div class="error" role="alert">
-        <p>{optionsError}</p>
-        <button onclick={loadOptions}>再試行</button>
-      </div>
-    {:else if options}
-      <section class="selectors" aria-label="系列の条件">
-        {#each dimensionLabels as dimension (dimension.key)}
-          <label
-            >{dimension.title}
-            <select
-              value={selections[dimension.key]}
-              disabled={comparisonDimension === dimension.key}
-              onchange={(event) =>
-                changeSelection(dimension.key, event.currentTarget.value)}
-            >
-              {#each options.dimensions[dimension.key] as choice (choice.code)}<option
-                  value={choice.code}>{choice.name}</option
-                >{/each}
-            </select>
-          </label>
-        {/each}
-      </section>
-      <section class="comparison-controls" aria-label="属性比較">
-        <div class="comparison-attribute">
-          <span>属性を比較</span>
-          <select
-            aria-label="比較する属性"
-            value={comparisonDimension}
-            onchange={(event) =>
-              setComparison(
-                /** @type {DimensionKey|""} */ (event.currentTarget.value),
-              )}
-          >
-            <option value="">比較しない</option>
-            {#each dimensionLabels as dimension (dimension.key)}
-              <option value={dimension.key}>{dimension.title}</option>
-            {/each}
-          </select>
-        </div>
-        {#if comparisonDimension}
-          <p class="muted">
-            比較中に変更した固定条件は、比較を終了すると元に戻ります。
-          </p>
-          <fieldset class="compare-options">
-            <legend
-              >{dimensionLabels.find((item) => item.key === comparisonDimension)
-                ?.title}の区分</legend
-            >
-            {#each comparisonChoices as choice (choice.code)}
-              <label class:unavailable={!choice.index}>
-                <input
-                  type="checkbox"
-                  checked={comparisonCodes.includes(choice.code)}
-                  disabled={!choice.index}
-                  title={choice.index ? "" : "この条件の系列はありません"}
-                  onchange={() => toggleComparisonCode(choice.code)}
-                />
-                {dimensionName(comparisonDimension, choice.code)}
-                {#if !choice.index}<span class="muted"
-                    >— この条件の系列はありません</span
-                  >{/if}
-              </label>
-            {/each}
-          </fieldset>
-          {#if availableComparisonChoices.length === 0}
-            <p class="empty" role="status">
-              この固定条件で比較できる系列はありません。
-            </p>
-          {:else if comparisonCodes.length <= 1}
-            <p class="empty" role="status">
-              比較グラフには2区分以上が必要です。追加で選択できる区分を選んでください。
-            </p>
-          {/if}
+    <header class="page-heading">
+      <a class="home-link" href={`${VITE_ROOT_PATH}/`}>Home</a>
+      <h1>年齢階級，教育，雇用形態別雇用者数</h1>
+    </header>
+    <div class="workspace">
+      <aside class="details-column" aria-label="比較条件">
+        {#if optionsLoading}<Spinner />
+        {:else if optionsError}
+          <div class="error" role="alert">
+            <p>{optionsError}</p>
+            <button onclick={loadOptions}>再試行</button>
+          </div>
+        {:else if options}
+          <section class="control-panel" aria-label="系列の条件">
+            <details class="selector-panel" bind:open={isSelectorOpen}>
+              <summary>条件を選択</summary>
+              <div class="selector-panel-content">
+                <fieldset class="series-condition-list">
+                  <legend>系列の条件</legend>
+                  <p class="intro">
+                    年齢階級・就業状態（雇用形態）・教育・性別を選び、年次推移を比較できます。
+                  </p>
+                  <section class="selectors" aria-label="系列の条件">
+                    {#each dimensionLabels as dimension (dimension.key)}
+                      <label
+                        >{dimension.title}
+                        <select
+                          value={selections[dimension.key]}
+                          disabled={comparisonDimension === dimension.key}
+                          onchange={(event) =>
+                            changeSelection(
+                              dimension.key,
+                              event.currentTarget.value,
+                            )}
+                        >
+                          {#each options.dimensions[dimension.key] as choice (choice.code)}<option
+                              value={choice.code}>{choice.name}</option
+                            >{/each}
+                        </select>
+                      </label>
+                    {/each}
+                  </section>
+                  <section class="comparison-controls" aria-label="属性比較">
+                    <div class="comparison-attribute">
+                      <span>属性を比較</span>
+                      <select
+                        aria-label="比較する属性"
+                        value={comparisonDimension}
+                        onchange={(event) =>
+                          setComparison(
+                            /** @type {DimensionKey|""} */ (
+                              event.currentTarget.value
+                            ),
+                          )}
+                      >
+                        <option value="">比較しない</option>
+                        {#each dimensionLabels as dimension (dimension.key)}
+                          <option value={dimension.key}
+                            >{dimension.title}</option
+                          >
+                        {/each}
+                      </select>
+                    </div>
+                    {#if comparisonDimension}
+                      <p class="muted">
+                        比較中に変更した固定条件は、比較を終了すると元に戻ります。
+                      </p>
+                      <fieldset class="compare-options">
+                        <legend
+                          >{dimensionLabels.find(
+                            (item) => item.key === comparisonDimension,
+                          )?.title}の区分</legend
+                        >
+                        {#each comparisonChoices as choice (choice.code)}
+                          <label class:unavailable={!choice.index}>
+                            <input
+                              type="checkbox"
+                              checked={comparisonCodes.includes(choice.code)}
+                              disabled={!choice.index}
+                              title={choice.index
+                                ? ""
+                                : "この条件の系列はありません"}
+                              onchange={() => toggleComparisonCode(choice.code)}
+                            />
+                            {dimensionName(comparisonDimension, choice.code)}
+                            {#if !choice.index}<span class="muted"
+                                >— この条件の系列はありません</span
+                              >{/if}
+                          </label>
+                        {/each}
+                      </fieldset>
+                      {#if availableComparisonChoices.length === 0}
+                        <p class="empty" role="status">
+                          この固定条件で比較できる系列はありません。
+                        </p>
+                      {:else if comparisonCodes.length <= 1}
+                        <p class="empty" role="status">
+                          比較グラフには2区分以上が必要です。追加で選択できる区分を選んでください。
+                        </p>
+                      {/if}
+                    {/if}
+                  </section>
+                  {#if isDataMissing}<p class="empty">
+                      該当するデータがありません。
+                    </p>{/if}
+                </fieldset>
+                <label class="orientation"
+                  >グラフの向き
+                  <select bind:value={orientation}
+                    ><option value="vertical">縦棒</option><option
+                      value="horizontal">横棒</option
+                    ></select
+                  >
+                </label>
+              </div>
+            </details>
+          </section>
+          <section class="comparison-panel" aria-label="比較中のデータ">
+            <details class="added-items" bind:open={isComparisonOpen}>
+              <summary
+                ><h2>比較する系列 <span>{items.length}系列</span></h2></summary
+              >
+              <fieldset class="selected-list">
+                <legend>選択中一覧</legend>
+                {#if items.length === 0}
+                  <p class="empty-comparison">系列が追加されていません。</p>
+                {/if}
+                <ul>
+                  {#each items as item (item.key)}<li>
+                      <span>{item.label}</span>
+                      {#if item.status === "loading"}<span class="muted"
+                          >取得中…</span
+                        >
+                      {:else if item.status === "error"}<span
+                          class="error"
+                          role="alert"
+                          >{item.error}<button onclick={() => startFetch(item)}
+                            >再試行</button
+                          ></span
+                        >
+                      {:else if item.data?.time_value_pairs.every((row) => row.value === null)}<span
+                          class="muted"
+                          >数値を表示できる年がありません（すべて欠損）</span
+                        >{/if}
+                      <button
+                        class="delete-button"
+                        aria-label={`${item.label}を削除`}
+                        onclick={() => removeItem(item.key)}
+                        ><img src={deleteIcon} alt="" /></button
+                      >
+                    </li>{/each}
+                </ul>
+              </fieldset>
+              <button
+                class="reset-button"
+                onclick={clearItems}
+                disabled={items.length === 0}>すべて消去</button
+              >
+            </details>
+          </section>
         {/if}
-      </section>
-      <div class="actions">
-        <button
-          onclick={addSeries}
-          disabled={!selectedIndex || Boolean(comparisonDimension)}
-          >系列を追加</button
-        >
-        <label class="orientation"
-          >グラフの向き
-          <select bind:value={orientation}
-            ><option value="vertical">縦棒</option><option value="horizontal"
-              >横棒</option
-            ></select
-          >
-        </label>
-        <button
-          class="secondary"
-          onclick={clearItems}
-          disabled={items.length === 0}>すべて消去</button
-        >
-      </div>
-      {#if isDataMissing}<p class="empty">該当するデータがありません。</p>{/if}
-      {#if items.length}
-        <section class="added-items" aria-label="追加した系列">
-          <h2>比較する系列</h2>
-          <ul>
-            {#each items as item (item.key)}<li>
-                <span>{item.label}</span>
-                {#if item.status === "loading"}<span class="muted">取得中…</span
-                  >
-                {:else if item.status === "error"}<span
-                    class="error"
-                    role="alert"
-                    >{item.error}<button onclick={() => startFetch(item)}
-                      >再試行</button
-                    ></span
-                  >
-                {:else if item.data?.time_value_pairs.every((row) => row.value === null)}<span
-                    class="muted"
-                    >数値を表示できる年がありません（すべて欠損）</span
-                  >{/if}
-                <button
-                  class="delete-button"
-                  aria-label={`${item.label}を削除`}
-                  onclick={() => removeItem(item.key)}
-                  ><img src={deleteIcon} alt="" /></button
-                >
-              </li>{/each}
+        <section class="reference ui-panel ui-panel--subtle">
+          <h2>データ利用上の注意</h2>
+          <ul class="notes">
+            <li>
+              推計人口の基準切り替えに伴い、時系列に変動が生じる場合があります。また、データベース収録値は時系列接続用の補正値と異なることがあります。
+            </li>
+            <li>
+              2011年以前の「非正規の職員・従業員」は、データベース収録値と遡及集計された結果表の値が異なる場合があります。
+            </li>
+            {#each dataNotes as note (note)}
+              <li>{note}</li>
+            {/each}
           </ul>
+          <h2>出典情報</h2>
+          <table class="reference-table ui-table">
+            <tbody>
+              <tr
+                ><th>統計表ID</th><td
+                  ><a
+                    href="https://www.e-stat.go.jp/dbview?sid=0003006608"
+                    target="_blank"
+                    rel="noopener noreferrer">0003006608（e-Stat）</a
+                  ></td
+                ></tr
+              >
+              <tr><th>統計名</th><td>労働力調査</td></tr>
+              <tr
+                ><th>表題</th><td
+                  >{options?.metadata.title ??
+                    "年齢階級，教育，雇用形態別雇用者数"}</td
+                ></tr
+              >
+              <tr
+                ><th>単位・対象期間</th><td
+                  >{options
+                    ? `${options.metadata.unit}・${options.metadata.period}`
+                    : ""}</td
+                ></tr
+              >
+              <tr
+                ><th>労働力調査について</th><td
+                  ><a
+                    href="https://www.stat.go.jp/data/roudou/"
+                    target="_blank"
+                    rel="noopener noreferrer">総務省統計局 労働力調査</a
+                  ></td
+                ></tr
+              >
+            </tbody>
+          </table>
         </section>
-        {#if !comparisonDimension || comparisonCodes.length > 1}
+        <a
+          class="cc-icons"
+          href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="CC0"
+        >
+          <CcIcon size="2rem" />
+          <CcZeroIcon size="2rem" />
+        </a>
+      </aside>
+      <section class="chart-panel" aria-label="雇用者数の年次推移">
+        {#if items.length && (!comparisonDimension || comparisonCodes.length > 1)}
           <BarChart items={displayItems} {orientation} />
+        {:else}
+          <div class="empty-chart">
+            <h2>雇用者数の推移を比較</h2>
+            <p>表示する条件を選ぶと、ここにグラフが表示されます。</p>
+          </div>
         {/if}
-      {/if}
-    {/if}
-
-    <section class="reference ui-panel ui-panel--subtle">
-      <h2>データ利用上の注意</h2>
-      <ul class="notes">
-        <li>
-          推計人口の基準切り替えに伴い、時系列に変動が生じる場合があります。また、データベース収録値は時系列接続用の補正値と異なることがあります。
-        </li>
-        <li>
-          2011年以前の「非正規の職員・従業員」は、データベース収録値と遡及集計された結果表の値が異なる場合があります。
-        </li>
-        {#each dataNotes as note (note)}
-          <li>{note}</li>
-        {/each}
-      </ul>
-      <h2>出典情報</h2>
-      <table class="reference-table ui-table">
-        <tbody>
-          <tr
-            ><th>統計表ID</th><td
-              ><a
-                href="https://www.e-stat.go.jp/dbview?sid=0003006608"
-                target="_blank"
-                rel="noopener noreferrer">0003006608（e-Stat）</a
-              ></td
-            ></tr
-          >
-          <tr><th>統計名</th><td>労働力調査</td></tr>
-          <tr
-            ><th>表題</th><td
-              >{options?.metadata.title ??
-                "年齢階級，教育，雇用形態別雇用者数"}</td
-            ></tr
-          >
-          <tr
-            ><th>単位・対象期間</th><td
-              >{options
-                ? `${options.metadata.unit}・${options.metadata.period}`
-                : ""}</td
-            ></tr
-          >
-          <tr
-            ><th>労働力調査について</th><td
-              ><a
-                href="https://www.stat.go.jp/data/roudou/"
-                target="_blank"
-                rel="noopener noreferrer">総務省統計局 労働力調査</a
-              ></td
-            ></tr
-          >
-        </tbody>
-      </table>
-    </section>
+      </section>
+    </div>
   </main>
 </div>
 
 <style>
+  .page-shell {
+    min-width: 0;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: clip;
+  }
+  .page-content {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  .page-heading {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: var(--space-4) var(--space-6);
+    border-bottom: var(--border-default);
+  }
+  .page-heading h1 {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .home-link {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    font-size: 0.8rem;
+    color: inherit;
+  }
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(20rem, 0.42fr) minmax(0, 1fr);
+    grid-template-areas: "details chart";
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+  .details-column,
+  .chart-panel {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .details-column {
+    grid-area: details;
+    padding: var(--space-4) var(--space-6);
+    border-right: var(--border-default);
+  }
+  .chart-panel {
+    grid-area: chart;
+    padding: var(--space-4);
+  }
+  .control-panel,
+  .comparison-panel {
+    margin-bottom: var(--space-4);
+  }
+  .selector-panel > summary,
+  .added-items > summary {
+    display: none;
+  }
+  .selector-panel-content {
+    display: block;
+  }
+  .intro {
+    margin-top: 0;
+  }
+  .series-condition-list {
+    min-inline-size: 0;
+    margin: 0;
+    padding: var(--space-3);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+  }
+  .series-condition-list > legend,
+  .compare-options > legend,
+  .selected-list > legend {
+    padding-inline: var(--space-1);
+    font-weight: 600;
+  }
+  .empty-chart {
+    display: grid;
+    min-height: 24rem;
+    place-content: center;
+    padding: var(--space-6);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted-color);
+    text-align: center;
+  }
+  .empty-chart h2 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.25rem;
+  }
+  .empty-chart p {
+    margin: 0;
+  }
   .selectors {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-    gap: var(--space-4);
-    margin: var(--space-6) 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
   }
   .selectors label,
   .orientation,
@@ -564,7 +721,7 @@
     gap: var(--space-2);
   }
   .comparison-controls {
-    margin: var(--space-6) 0;
+    margin: var(--space-4) 0;
   }
   .comparison-attribute {
     max-width: 24rem;
@@ -596,37 +753,46 @@
     min-width: 0;
     padding: var(--space-2);
   }
-  .actions {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-  }
   .orientation {
     grid-auto-flow: column;
     align-items: center;
-  }
-  .secondary {
-    margin-left: auto;
+    width: max-content;
+    margin-top: var(--space-4);
   }
   .added-items {
-    max-width: 55rem;
-    margin-top: var(--space-6);
+    margin: 0;
   }
-  .added-items h2,
-  .reference h2 {
-    margin: 0 0 var(--space-3);
-    font-size: 1.1rem;
+  .added-items h2 {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-2);
+    font-size: 1rem;
+  }
+  .added-items h2 span {
+    color: #555;
+    font-size: 0.875rem;
+    font-weight: normal;
+  }
+  .selected-list {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+  }
+  .selected-list legend {
+    margin-inline: var(--space-3);
+    padding-inline: var(--space-1);
   }
   .added-items ul {
     display: flex;
     flex-direction: column;
     max-height: 16rem;
     overflow-y: auto;
-    margin: 0;
+    margin: 0.25rem 0 0;
     padding: 0;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
     list-style: none;
   }
   .added-items li {
@@ -643,9 +809,16 @@
   .added-items li > span:first-child {
     flex: 1 1 12rem;
   }
+  .empty-comparison {
+    margin: 0;
+    padding: var(--space-3);
+    color: #555;
+  }
   .delete-button {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
+    justify-content: center;
     padding: var(--space-1);
     border: 0;
     border-radius: var(--radius-round);
@@ -656,8 +829,13 @@
     background: var(--surface-hover-color);
   }
   .delete-button img {
+    display: block;
     width: 24px;
     height: 24px;
+  }
+  .reset-button {
+    display: block;
+    margin-top: var(--space-4);
   }
   .error {
     color: var(--danger-color);
@@ -674,15 +852,89 @@
   .reference {
     margin-top: var(--space-8);
   }
-  .notes {
-    margin-top: 0;
+  .reference h2 {
+    margin: 0 0 var(--space-3);
+    font-size: 1.1rem;
   }
   .reference-table a {
     word-break: break-all;
   }
-  @media (max-width: 40rem) {
-    .secondary {
-      margin-left: 0;
+  .cc-icons {
+    display: flex;
+    justify-content: end;
+    gap: var(--space-1);
+    width: max-content;
+    margin: var(--space-4) 0 var(--space-4) auto;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: #111;
+  }
+  .cc-icons :global(svg) {
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+  }
+  .cc-icons:hover :global(svg) {
+    opacity: 1;
+  }
+  .notes {
+    margin-top: 0;
+  }
+  @media (max-width: 50rem) {
+    .page-shell {
+      height: auto;
+    }
+    .page-content {
+      display: block;
+      height: auto;
+      min-height: 0;
+    }
+    .workspace {
+      display: flex;
+      flex-direction: column;
+    }
+    .details-column,
+    .chart-panel {
+      overflow: visible;
+    }
+    .details-column {
+      order: 1;
+      padding: var(--space-4);
+      border-right: 0;
+      border-bottom: var(--border-default);
+    }
+    .chart-panel {
+      order: 0;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: clip;
+    }
+    .selector-panel > summary,
+    .added-items > summary {
+      display: list-item;
+      cursor: pointer;
+    }
+    .selector-panel > summary {
+      font-weight: 600;
+    }
+    .selector-panel-content {
+      padding-top: var(--space-4);
+    }
+    .added-items > summary h2 {
+      display: inline-flex;
+      margin-bottom: 0;
+    }
+    .added-items[open] > summary h2 {
+      margin-bottom: var(--space-2);
+    }
+    .page-heading {
+      padding: var(--space-3) var(--space-4);
+    }
+    .page-heading h1 {
+      font-size: 1.1rem;
+    }
+    .empty-chart {
+      min-height: 16rem;
     }
   }
 </style>

@@ -6,8 +6,20 @@
   /** @type {{ items: DisplaySeries[], orientation: "vertical"|"horizontal" }} */
   let { items, orientation } = $props();
   /** @type {HTMLDivElement} */
+  let scrollContainer;
+  /** @type {HTMLDivElement} */
   let container;
   let chart = $state.raw(/** @type {EChartsType|null} */ (null));
+  let viewMode = $state(/** @type {"fit"|"scroll"} */ ("fit"));
+
+  /** @param {"fit"|"scroll"} mode */
+  function setViewMode(mode) {
+    viewMode = mode;
+    requestAnimationFrame(() => {
+      if (mode === "fit") scrollContainer.scrollLeft = 0;
+      chart?.resize();
+    });
+  }
 
   let years = $derived(
     [
@@ -117,26 +129,98 @@
   });
 </script>
 
+<div class="chart-view-controls" role="group" aria-label="グラフの表示方法">
+  <button
+    type="button"
+    class={[
+      "chart-view-button",
+      { "chart-view-button--active": viewMode === "fit" },
+    ]}
+    aria-pressed={viewMode === "fit"}
+    onclick={() => setViewMode("fit")}>画面幅表示</button
+  >
+  <button
+    type="button"
+    class={[
+      "chart-view-button",
+      { "chart-view-button--active": viewMode === "scroll" },
+    ]}
+    aria-pressed={viewMode === "scroll"}
+    onclick={() => setViewMode("scroll")}>スクロール表示</button
+  >
+</div>
 <div
-  bind:this={container}
-  class="chart"
-  role="img"
-  aria-label="雇用者数の年次推移"
-></div>
+  class={[
+    "chart-scroll-container",
+    { "chart-scroll-container--fit": viewMode === "fit" },
+    { "chart-scroll-container--scroll": viewMode === "scroll" },
+  ]}
+  bind:this={scrollContainer}
+  role="region"
+  aria-label={viewMode === "fit"
+    ? "雇用者数グラフ（画面幅表示）"
+    : "雇用者数グラフ。左右にスクロールできます"}
+>
+  <div
+    bind:this={container}
+    class="chart"
+    role="img"
+    aria-label="雇用者数の年次推移"
+  ></div>
+</div>
 
 <style>
+  .chart-view-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+  .chart-view-button {
+    padding: var(--space-1) var(--space-3);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-color);
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .chart-view-button--active {
+    border-color: var(--focus-color);
+    background: var(--surface-muted-color);
+    font-weight: 600;
+  }
+  .chart-scroll-container {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    margin: var(--space-4) 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    -webkit-overflow-scrolling: touch;
+  }
+  .chart-scroll-container--fit {
+    overflow-x: hidden;
+  }
+  .chart-scroll-container--scroll .chart {
+    width: 1400px;
+  }
   .chart {
     width: 100%;
     height: 62vh;
     min-height: 360px;
-    margin: var(--space-6) 0;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
   }
   @media (max-width: 48rem) {
     .chart {
       height: 55vh;
       min-height: 320px;
+    }
+    .chart-scroll-container--scroll .chart {
+      width: 960px;
+    }
+    .chart-scroll-container--fit .chart {
+      width: 100%;
     }
   }
 </style>

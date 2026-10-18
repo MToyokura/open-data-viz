@@ -112,6 +112,7 @@
 
   .item-selector legend {
     padding: 0 var(--space-1);
+    font-weight: 600;
   }
 
   .search-label {
@@ -149,6 +150,7 @@
 
   .area-selector legend {
     padding: 0 var(--space-1);
+    font-weight: 600;
   }
 
   .area-options {

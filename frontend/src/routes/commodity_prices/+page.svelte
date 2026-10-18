@@ -413,6 +413,7 @@
   .selected-list legend {
     margin-inline: var(--space-3);
     padding-inline: var(--space-1);
+    font-weight: 600;
   }
 
   .added-items ul {
