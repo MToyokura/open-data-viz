@@ -121,7 +121,7 @@ test("asset distribution shows negative assets, selection, and comparison on a n
     .getByRole("region", { name: "世帯属性の選択" })
     .getByLabel("世帯主の性別")
     .selectOption("02");
-  await expect(chart).toHaveCSS("height", "982px");
+  await expect(chart).toHaveCSS("height", "1192px");
 
   await page.getByLabel("比較する属性").selectOption("cat01");
   const compareOptions = page.getByRole("group", { name: "比較する区分" });

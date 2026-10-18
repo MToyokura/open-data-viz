@@ -26,7 +26,9 @@
   let compareDimensionId = $state("");
   let compareSetId = $state("");
   let compareCodes = $state(/** @type {string[]} */ ([]));
-  let singleSeriesRemoved = $state(false);
+  let normalCombinations = $state.raw(
+    /** @type {import("./utils/data.js").Combination[]} */ ([]),
+  );
   let seriesItems = $state.raw(
     /** @type {Record<string, import("./utils/data.js").DistributionItem[]>} */ ({}),
   );
@@ -162,19 +164,10 @@
         };
   }
 
-  const currentCombination = $derived(
-    !comparisonMode && !singleSeriesRemoved
-      ? combinationFor(selections)
-      : undefined,
-  );
   const activeCombinations = $derived.by(() => {
     if (!data)
       return /** @type {import("./utils/data.js").Combination[]} */ ([]);
-    if (!comparisonMode) {
-      return currentCombination?.status === "published"
-        ? [currentCombination]
-        : [];
-    }
+    if (!comparisonMode) return normalCombinations;
     const combinations = (comparisonSet?.category_codes ?? [])
       .filter((code) => compareCodes.includes(code))
       .map((code) =>
@@ -252,6 +245,7 @@
     error = "";
     seriesError = "";
     seriesItems = {};
+    normalCombinations = [];
     try {
       data = await fetchAssetDistribution();
       selections = Object.fromEntries(
@@ -259,6 +253,9 @@
           .filter((dimension) => dimension.role === "filter")
           .map((dimension) => [dimension.id, dimension.default_code ?? ""]),
       );
+      const initialCombination = combinationFor(selections);
+      normalCombinations =
+        initialCombination?.status === "published" ? [initialCombination] : [];
     } catch (cause) {
       error =
         cause instanceof Error
@@ -338,7 +335,6 @@
     compareDimensionId = "";
     compareSetId = "";
     compareCodes = [];
-    singleSeriesRemoved = false;
     if (combinationFor(selections)?.status !== "published" && data) {
       selections = Object.fromEntries(
         filterDimensions.map((dimension) => [
@@ -367,18 +363,28 @@
       removeComparisonCode(combination.dimensions[compareDimensionId]);
       return;
     }
-    singleSeriesRemoved = true;
+    normalCombinations = normalCombinations.filter(
+      (item) => item.id !== combination.id,
+    );
   }
 
   /** @param {string} dimensionId @param {string} code */
   function changeSelection(dimensionId, code) {
     selections = { ...selections, [dimensionId]: code };
-    singleSeriesRemoved = false;
+    if (!comparisonMode) {
+      const combination = combinationFor(selections);
+      if (
+        combination?.status === "published" &&
+        !normalCombinations.some((item) => item.id === combination.id)
+      ) {
+        normalCombinations = [...normalCombinations, combination];
+      }
+    }
   }
 
   function clearSeries() {
     if (comparisonMode) compareCodes = [];
-    else singleSeriesRemoved = true;
+    else normalCombinations = [];
   }
 
   onMount(() => {
@@ -423,8 +429,10 @@
               <summary>世帯属性・比較条件</summary>
               <div class="selector-panel-content">
                 <fieldset class="series-condition-list">
-                  <legend>世帯属性を選択</legend>
-                  <p class="intro">属性別・純資産額階級別の世帯数（2024年）</p>
+                  <legend>系列の条件</legend>
+                  <p class="intro">
+                    属性別・純資産額階級別の世帯数（2024年）。条件を変えると、その条件の系列がグラフに追加されます。
+                  </p>
                   <section class="selectors" aria-label="世帯属性">
                     {#each filterDimensions as dimension (dimension.id)}
                       <label>
@@ -547,11 +555,15 @@
               </div>
             </details>
           </section>
-          <section class="comparison-panel" aria-label="比較中のデータ">
+          <section
+            class="comparison-panel"
+            aria-label={comparisonMode ? "比較中のデータ" : "表示中の系列"}
+          >
             <details class="added-items" bind:open={isComparisonOpen}>
               <summary
                 ><h2>
-                  比較中 <span>{activeCombinations.length}系列</span>
+                  {comparisonMode ? "比較中" : "表示中の系列"}
+                  <span>{activeCombinations.length}系列</span>
                 </h2></summary
               >
               <fieldset class="selected-list">

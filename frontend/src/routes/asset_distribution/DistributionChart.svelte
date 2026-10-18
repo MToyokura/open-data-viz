@@ -58,7 +58,12 @@
         return [categoryLabel, ...rows].join("<br>");
       },
     },
-    legend: { type: "scroll", bottom: 0 },
+    legend: {
+      type: "scroll",
+      bottom: 0,
+      formatter: (/** @type {string} */ name) =>
+        name.replace(/\s+\[[^\]]+\]$/, ""),
+    },
     grid: {
       left: orientation === "horizontal" ? 18 : 56,
       right: orientation === "horizontal" ? 56 : 24,
@@ -121,7 +126,8 @@
           },
     series: series.map((entry) => ({
       id: entry.key,
-      name: entry.label,
+      // ECharts assigns palette colors by series name, so add stable condition codes.
+      name: `${entry.label} [${entry.key.replaceAll("|", "/")}]`,
       type: "bar",
       barMaxWidth: 24,
       data: categories.map((category) => {
