@@ -86,6 +86,34 @@
   function changeMonth(index) {
     if (index >= 0 && index < months.length) selectedMonth = months[index];
   }
+  /** @param {KeyboardEvent} event */
+  function handleMonthKeydown(event) {
+    if (
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey
+    )
+      return;
+
+    const target = event.target;
+    if (
+      target instanceof Element &&
+      target.closest(
+        "input, select, textarea, button, a, [contenteditable='true'], [role='button'], [tabindex]",
+      )
+    )
+      return;
+
+    if (event.key === "ArrowLeft" && monthIndex > 0) {
+      event.preventDefault();
+      changeMonth(monthIndex - 1);
+    } else if (event.key === "ArrowRight" && monthIndex < months.length - 1) {
+      event.preventDefault();
+      changeMonth(monthIndex + 1);
+    }
+  }
   /** @param {string} name */
   function selectPrefecture(name) {
     selectedPrefecture = name;
@@ -137,6 +165,8 @@
     return `${year}年 ${Number(number)}月`;
   };
 </script>
+
+<svelte:window onkeydown={handleMonthKeydown} />
 
 <svelte:head>
   <title>野菜の産地リレー | Open Data Viz</title>
