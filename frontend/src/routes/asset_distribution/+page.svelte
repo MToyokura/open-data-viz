@@ -76,7 +76,13 @@
   /** @param {{id: string, categories: {code:string,label:string}[], display_hierarchy?: {standalone_codes:string[],groups:{code:string,children:string[]}[]} }|undefined} dimension @param {string} code */
   function dimensionCategoryLabel(dimension, code) {
     const category = dimension?.categories.find((item) => item.code === code);
-    return category?.label ?? code;
+    const label = category?.label ?? code;
+    if (dimension?.id !== "cat02") return label;
+    if (code === "0") return label;
+    if (code === "2") return "卒業（全体）";
+    if (["21", "22", "23"].includes(code))
+      return `卒業者の内訳 > ${label}`;
+    return label;
   }
   const comparisonDimension = $derived(
     filterDimensions.find((dimension) => dimension.id === compareDimensionId),
@@ -630,11 +636,6 @@
                       ? "比較する属性以外の条件を、すべての比較系列に適用します。"
                       : "属性別・純資産額階級別の世帯数（2024年）。条件を選び、系列を追加してください。"}
                   </p>
-                  {#if filterDimensions.some((dimension) => dimension.id === "cat02")}
-                    <p class="hint">
-                      学歴区分の「平均」は公式分類名です。この画面では学歴で絞り込まない条件として使用します。公式の対象範囲を示す定義ではありません。
-                    </p>
-                  {/if}
                   <section class="selectors" aria-label="世帯属性">
                     {#each filterDimensions as dimension (dimension.id)}
                       {#if !(comparisonMode && dimension.id === compareDimensionId)}
@@ -757,7 +758,7 @@
         {/if}
 
         {#if data}
-          <ReferencePanel title="データについて" marginTop="var(--space-4)">
+          <ReferencePanel title="データ利用上の注意" marginTop="var(--space-4)">
             <table class="reference-table ui-table">
               <tbody>
                 <tr>
@@ -783,6 +784,17 @@
                       data.metadata.asset_basis ?? "純資産総額",
                     )}。最低階級は公式の再掲内訳である「0万円未満」「0万円」「0万円超25万円未満」の3区分で表示します。元の「25万円未満」は内訳と重ねて表示せず、二重計上を防いでいます。「0万円未満」は純資産総額がマイナスの世帯です。資産額不詳の世帯は金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。</td
                   >
+                </tr>
+                <tr>
+                  <th>学歴区分</th>
+                  <td>
+                    学歴区分の「平均」は公式分類名です。選択すると、この区分で公表された値を表示します。公式資料では、一部を除き「平均（総数）」に不詳を含むため、総数と内訳の合計は必ずしも一致しないと説明されています。
+                    <a
+                      href="https://www.stat.go.jp/data/zenkokukakei/2024/pdf/riyou2024.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer">出典：利用上の注意（12ページ）</a
+                    >
+                  </td>
                 </tr>
                 <tr>
                   <th>世帯数の推計</th>

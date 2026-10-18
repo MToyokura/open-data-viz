@@ -45,7 +45,7 @@
     { key: "sex", title: "性別" },
   ];
   const educationHierarchyNote =
-    "「在学中」「卒業」と学校区分の階層・まとまりは、この画面で選択・比較しやすくするための表示上の整理です。親区分と内訳の合計や、厳密な包含関係を示すものではありません。";
+    "学校区分は「在学中」「卒業」それぞれの内訳です。卒業の「大学・大学院」は、2013年から「大学」と「大学院」に分かれています。数値の四捨五入や分類不能・不詳の扱いにより、総数と内訳の合計は一致しない場合があります。";
 
   const selectedIndex = $derived(findIndex(selections));
   const selectedNormalItemKey = $derived(
@@ -193,13 +193,15 @@
     const context = paths[code] ?? [];
     const visibleContext = context
       .filter((ancestorCode) => ancestorCode !== "00")
-      .map((ancestorCode) =>
-        (
+      .map((ancestorCode) => {
+        if (ancestorCode === "01") return "在学中の内訳";
+        if (ancestorCode === "05") return "卒業者の内訳";
+        return (
           currentOptions.dimensions.education.find(
             (item) => item.code === ancestorCode,
           )?.name ?? ancestorCode
-        ).replace(/^うち/, ""),
-      );
+        ).replace(/^うち/, "");
+      });
     return [...visibleContext, name].filter(Boolean).join(" > ");
   }
 
@@ -531,9 +533,6 @@
                               {/each}
                             </select>
                           </label>
-                          <p class="muted">
-                            {educationHierarchyNote}
-                          </p>
                         {/if}
                         {#each comparisonChoices as choice (choice.code)}
                           <label class:unavailable={!choice.index}>
@@ -623,9 +622,6 @@
                             class="muted"
                             >この属性の区分を比較します（選択欄の値は比較に使いません）。</span
                           >{/if}
-                        {#if dimension.key === "education"}
-                          <span class="muted">{educationHierarchyNote}</span>
-                        {/if}
                       </label>
                     {/each}
                   </section>
@@ -713,6 +709,19 @@
           <h2>データ利用上の注意</h2>
           <ul class="notes">
             <li>
+              {educationHierarchyNote}
+              <a
+                href="https://www.stat.go.jp/data/roudou/change/2013/pdf/20121228.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                >出典：2013年からの変更内容（3ページ・表7）</a
+              >、<a
+                href="https://www.stat.go.jp/data/roudou/rireki/nen/dt/pdf/2012.pdf"
+                target="_blank"
+                rel="noopener noreferrer">詳細集計の利用上の注意</a
+              >
+            </li>
+            <li>
               推計人口の基準切り替えに伴い、時系列に変動が生じる場合があります。また、データベース収録値は時系列接続用の補正値と異なることがあります。
             </li>
             <li>
@@ -778,9 +787,6 @@
                 )
                 .join("・")}
             </p>{/if}
-          {#if (mode === "compare" && comparisonDimension === "education") || (mode === "add" && selections.education)}
-            <p class="muted" role="note">{educationHierarchyNote}</p>
-          {/if}
           {#if mode === "compare" && comparisonCodes.length === 1}<p
               class="empty"
               role="status"
