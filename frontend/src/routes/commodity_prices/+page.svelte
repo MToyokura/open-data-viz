@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import Spinner from "#lib/Spinner.svelte";
   import LineChart from "./LineChart.svelte";
@@ -25,6 +25,8 @@
   let isSelectorOpen = $state(true);
   let isComparisonOpen = $state(true);
   let fetchGeneration = 0;
+  /** @type {Record<string, Promise<CommodityPrices | undefined>>} */
+  let inFlightRequests = Object.create(null);
 
   onMount(() => {
     const mobileQuery = window.matchMedia("(max-width: 48rem)");
@@ -83,7 +85,9 @@
     dataNotFound = false;
 
     if (selectedCat02Code && selectedAreaCodes.length > 0) {
-      fetchAndAddData(selectedCat02Code, selectedAreaCodes, generation);
+      untrack(() =>
+        fetchAndAddData(selectedCat02Code, selectedAreaCodes, generation),
+      );
     }
   });
 
@@ -93,23 +97,45 @@
    * @param {number} generation
    */
   async function fetchAndAddData(cat02Code, selectedAreaCodes, generation) {
+    /** @type {Record<string, true>} */
+    const cachedKeys = Object.create(null);
+    commodityPrices.forEach((item) => {
+      cachedKeys[`${item.cat02_code}:${item.area_code}`] = true;
+    });
+    const expectedResults = selectedAreaCodes.filter(
+      (areaCode) => !cachedKeys[`${cat02Code}:${areaCode}`],
+    ).length;
     const results = await Promise.all(
-      selectedAreaCodes.map((areaCode) =>
-        fetchCommodityPrices({ cat02Code, areaCode }),
-      ),
+      selectedAreaCodes.map((areaCode) => {
+        const key = `${cat02Code}:${areaCode}`;
+        if (cachedKeys[key]) return Promise.resolve(undefined);
+
+        let request = inFlightRequests[key];
+        if (!request) {
+          request = fetchCommodityPrices({ cat02Code, areaCode });
+          inFlightRequests[key] = request;
+          void request.then(() => {
+            if (inFlightRequests[key] === request) delete inFlightRequests[key];
+          });
+        }
+        return request;
+      }),
     );
+
+    if (generation !== fetchGeneration) return;
+
     const foundData = results.filter((data) => data !== undefined);
-    const existingKeys = commodityPrices.map(
-      (item) => `${item.cat02_code}:${item.area_code}`,
-    );
-    if (generation === fetchGeneration) {
-      dataNotFound = foundData.length < results.length;
-    }
+    dataNotFound = foundData.length < expectedResults;
+    /** @type {Record<string, true>} */
+    const existingKeys = Object.create(null);
+    commodityPrices.forEach((item) => {
+      existingKeys[`${item.cat02_code}:${item.area_code}`] = true;
+    });
     commodityPrices.push(
       ...foundData.filter((item) => {
         const key = `${item.cat02_code}:${item.area_code}`;
-        if (existingKeys.includes(key)) return false;
-        existingKeys.push(key);
+        if (existingKeys[key]) return false;
+        existingKeys[key] = true;
         return true;
       }),
     );
@@ -117,6 +143,7 @@
 
   function handleReset() {
     fetchGeneration += 1;
+    inFlightRequests = Object.create(null);
     selectedAreaCodesByCat02 = {};
     commodityPrices = [];
     dataNotFound = false;

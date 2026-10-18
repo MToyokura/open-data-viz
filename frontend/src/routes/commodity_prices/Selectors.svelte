@@ -63,6 +63,7 @@
           <label class="area-option">
             <input
               type="checkbox"
+              disabled={!selectedCat02Code}
               checked={selectedAreaCodesByCat02[selectedCat02Code]?.includes(
                 area.area_code,
               ) ?? false}
