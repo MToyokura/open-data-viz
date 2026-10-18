@@ -1,7 +1,6 @@
 <script>
+  import LicenseLink from "#lib/LicenseLink.svelte";
   import { page } from "$app/state";
-  import CcIcon from "#lib/CcIcon.svelte";
-  import CcZeroIcon from "#lib/CcZeroIcon.svelte";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
 
   let { children } = $props();
@@ -38,15 +37,7 @@
 
 {#if !isWorkspace}
   <footer class="site-footer">
-    <a
-      class="cc-icons"
-      href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
-      target="_blank"
-      rel="noreferrer"
-    >
-      <CcIcon size="2rem" />
-      <CcZeroIcon size="2rem" />
-    </a>
+    <LicenseLink variant="footer" />
   </footer>
 {/if}
 
@@ -59,20 +50,5 @@
     display: flex;
     justify-content: end;
     margin: var(--space-8) var(--space-4) var(--space-4);
-  }
-
-  .cc-icons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--space-1);
-    text-decoration: none;
-    color: inherit;
-    opacity: 0.5;
-    transition: opacity 0.2s ease-in-out;
-  }
-
-  .cc-icons:hover {
-    opacity: 1;
   }
 </style>

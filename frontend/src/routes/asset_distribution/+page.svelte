@@ -1,7 +1,7 @@
 <script>
+  import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import LicenseLink from "#lib/LicenseLink.svelte";
   import { onMount } from "svelte";
-  import CcIcon from "#lib/CcIcon.svelte";
-  import CcZeroIcon from "#lib/CcZeroIcon.svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
   import Spinner from "#lib/Spinner.svelte";
@@ -595,8 +595,7 @@
         {/if}
 
         {#if data}
-          <section class="reference ui-panel ui-panel--subtle">
-            <h2>データについて</h2>
+          <ReferencePanel title="データについて" marginTop="var(--space-4)">
             <table class="reference-table ui-table">
               <tbody>
                 <tr>
@@ -659,18 +658,9 @@
                 </tr>
               </tbody>
             </table>
-          </section>
+          </ReferencePanel>
         {/if}
-        <a
-          class="cc-icons"
-          href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="CC0"
-        >
-          <CcIcon size="2rem" />
-          <CcZeroIcon size="2rem" />
-        </a>
+        <LicenseLink />
       </aside>
 
       <section class="chart-panel" aria-label="純資産額階級別の世帯数">
@@ -885,26 +875,12 @@
   .value-states {
     margin: var(--space-6) 0;
   }
-  .value-states h2,
-  .reference h2 {
+  .value-states h2 {
     margin: 0 0 var(--space-3);
     font-size: 1.1rem;
   }
   .value-states ul {
     padding-left: 1.4rem;
-  }
-  .reference {
-    margin-top: var(--space-4);
-  }
-  .reference h2 {
-    margin-top: 0;
-    margin-bottom: var(--space-4);
-  }
-  .reference-table {
-    margin-top: var(--space-4);
-  }
-  .reference-table a {
-    word-break: break-all;
   }
   .error {
     color: var(--danger-color);
@@ -984,24 +960,6 @@
   .reset-button {
     display: block;
     margin-top: var(--space-4);
-  }
-  .cc-icons {
-    display: flex;
-    justify-content: end;
-    gap: var(--space-1);
-    width: max-content;
-    margin: var(--space-4) 0 var(--space-4) auto;
-    padding: var(--space-2);
-    border-radius: var(--radius-md);
-    background: #fff;
-    color: #111;
-  }
-  .cc-icons :global(svg) {
-    opacity: 0.5;
-    transition: opacity 0.2s ease-in-out;
-  }
-  .cc-icons:hover :global(svg) {
-    opacity: 1;
   }
   @media (max-width: 50rem) {
     .page-shell {

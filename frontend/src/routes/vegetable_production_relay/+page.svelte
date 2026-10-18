@@ -1,6 +1,6 @@
 <script>
-  import CcIcon from "#lib/CcIcon.svelte";
-  import CcZeroIcon from "#lib/CcZeroIcon.svelte";
+  import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import LicenseLink from "#lib/LicenseLink.svelte";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
   /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import VegetableSankey from "./VegetableSankey.svelte";
@@ -404,8 +404,7 @@
             </p>
           </section>
 
-          <section class="reference ui-panel ui-panel--subtle">
-            <h2>出典情報等</h2>
+          <ReferencePanel title="出典情報等" marginTop="0">
             <table class="reference-table ui-table">
               <tbody>
                 <tr>
@@ -446,17 +445,8 @@
                 </tr>
               </tbody>
             </table>
-          </section>
-          <a
-            class="cc-icons"
-            href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="CC0"
-          >
-            <CcIcon size="2rem" />
-            <CcZeroIcon size="2rem" />
-          </a>
+          </ReferencePanel>
+          <LicenseLink />
         </section>
       </div>
     {:else if dataError}
@@ -468,25 +458,6 @@
 </div>
 
 <style>
-  .cc-icons {
-    display: flex;
-    justify-content: end;
-    gap: var(--space-1);
-    width: max-content;
-    margin: var(--space-4) 0 var(--space-4) auto;
-    padding: var(--space-2);
-    border-radius: var(--radius-md);
-    background: #fff;
-    --surface-color: #fff;
-    color: #111;
-  }
-  .cc-icons :global(svg) {
-    opacity: 0.5;
-    transition: opacity 0.2s ease-in-out;
-  }
-  .cc-icons:hover :global(svg) {
-    opacity: 1;
-  }
   .page-shell {
     --control-size: var(--control-height);
     --scale-value-width: 4rem;
@@ -724,19 +695,6 @@
     margin: var(--space-8) auto var(--space-4);
     line-height: 1.6;
   }
-  .reference {
-    margin-top: 0;
-  }
-  .reference h2 {
-    margin-top: 0;
-    margin-bottom: var(--space-4);
-  }
-  .reference-table {
-    margin-top: var(--space-4);
-  }
-  .reference-table a {
-    word-break: break-all;
-  }
   @media (max-width: 800px) {
     .page-shell {
       height: auto;
@@ -760,9 +718,6 @@
       padding: var(--space-4);
       border-left: 0;
       border-right: 0;
-    }
-    .cc-icons {
-      margin-right: 0;
     }
     .page-heading {
       padding: var(--space-3) var(--space-4);

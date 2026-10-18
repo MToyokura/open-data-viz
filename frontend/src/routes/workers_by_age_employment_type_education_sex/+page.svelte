@@ -1,8 +1,7 @@
 <script>
+  import LicenseLink from "#lib/LicenseLink.svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import { onMount } from "svelte";
-  import CcIcon from "#lib/CcIcon.svelte";
-  import CcZeroIcon from "#lib/CcZeroIcon.svelte";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
   import Spinner from "#lib/Spinner.svelte";
   import BarChart from "./BarChart.svelte";
@@ -577,16 +576,7 @@
             </tbody>
           </table>
         </section>
-        <a
-          class="cc-icons"
-          href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="CC0"
-        >
-          <CcIcon size="2rem" />
-          <CcZeroIcon size="2rem" />
-        </a>
+        <LicenseLink />
       </aside>
       <section class="chart-panel" aria-label="雇用者数の年次推移">
         {#if items.length && (!comparisonDimension || comparisonCodes.length > 1)}
@@ -858,24 +848,6 @@
   }
   .reference-table a {
     word-break: break-all;
-  }
-  .cc-icons {
-    display: flex;
-    justify-content: end;
-    gap: var(--space-1);
-    width: max-content;
-    margin: var(--space-4) 0 var(--space-4) auto;
-    padding: var(--space-2);
-    border-radius: var(--radius-md);
-    background: #fff;
-    color: #111;
-  }
-  .cc-icons :global(svg) {
-    opacity: 0.5;
-    transition: opacity 0.2s ease-in-out;
-  }
-  .cc-icons:hover :global(svg) {
-    opacity: 1;
   }
   .notes {
     margin-top: 0;

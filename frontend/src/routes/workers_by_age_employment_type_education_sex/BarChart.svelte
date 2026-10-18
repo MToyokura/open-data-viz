@@ -1,4 +1,5 @@
 <script>
+  import ChartViewControls from "#lib/ChartViewControls.svelte";
   import { onMount } from "svelte";
 
   /** @typedef {import("echarts").EChartsType} EChartsType */
@@ -13,8 +14,7 @@
   let viewMode = $state(/** @type {"fit"|"scroll"} */ ("fit"));
 
   /** @param {"fit"|"scroll"} mode */
-  function setViewMode(mode) {
-    viewMode = mode;
+  function handleViewModeChange(mode) {
     requestAnimationFrame(() => {
       if (mode === "fit") scrollContainer.scrollLeft = 0;
       chart?.resize();
@@ -129,26 +129,7 @@
   });
 </script>
 
-<div class="chart-view-controls" role="group" aria-label="グラフの表示方法">
-  <button
-    type="button"
-    class={[
-      "chart-view-button",
-      { "chart-view-button--active": viewMode === "fit" },
-    ]}
-    aria-pressed={viewMode === "fit"}
-    onclick={() => setViewMode("fit")}>画面幅表示</button
-  >
-  <button
-    type="button"
-    class={[
-      "chart-view-button",
-      { "chart-view-button--active": viewMode === "scroll" },
-    ]}
-    aria-pressed={viewMode === "scroll"}
-    onclick={() => setViewMode("scroll")}>スクロール表示</button
-  >
-</div>
+<ChartViewControls bind:mode={viewMode} onchange={handleViewModeChange} />
 <div
   class={[
     "chart-scroll-container",
@@ -170,25 +151,6 @@
 </div>
 
 <style>
-  .chart-view-controls {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-2);
-    margin-top: var(--space-4);
-  }
-  .chart-view-button {
-    padding: var(--space-1) var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-color);
-    font-size: 0.875rem;
-    cursor: pointer;
-  }
-  .chart-view-button--active {
-    border-color: var(--focus-color);
-    background: var(--surface-muted-color);
-    font-weight: 600;
-  }
   .chart-scroll-container {
     box-sizing: border-box;
     width: 100%;
