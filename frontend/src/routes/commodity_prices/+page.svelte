@@ -1,7 +1,10 @@
 <script>
   import { onMount, untrack } from "svelte";
+  import CcIcon from "#lib/CcIcon.svelte";
+  import CcZeroIcon from "#lib/CcZeroIcon.svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import Spinner from "#lib/Spinner.svelte";
+  import { VITE_ROOT_PATH } from "#lib/paths.js";
   import LineChart from "./LineChart.svelte";
   import Reference from "./Reference.svelte";
   import Selectors from "./Selectors.svelte";
@@ -29,7 +32,7 @@
   let inFlightRequests = Object.create(null);
 
   onMount(() => {
-    const mobileQuery = window.matchMedia("(max-width: 48rem)");
+    const mobileQuery = window.matchMedia("(max-width: 50rem)");
     const updateViewport = () => {
       isMobile = mobileQuery.matches;
       isSelectorOpen = !isMobile;
@@ -170,65 +173,81 @@
 
 <div class="page-shell">
   <main class="page-content">
-    <h1>主要品目の都市別小売価格</h1>
-    <p class="page-description">
-      品目・地域を選択して価格の推移を比較できます。
-    </p>
-    <div class="comparison-layout">
-      <aside class="control-panel" aria-label="比較条件">
+    <header class="page-heading">
+      <a class="home-link" href={`${VITE_ROOT_PATH}/`}>Home</a>
+      <h1>主要品目の都市別小売価格</h1>
+    </header>
+    <div class="workspace">
+      <aside class="details-column" aria-label="比較条件">
         {#if cat02LookupResult.isLoading || areaLookupResult.isLoading}
           <Spinner />
         {:else if cat02LookupResult.error || areaLookupResult.error}
           <p>Error loading lookup data</p>
         {:else if cat02LookupResult.cat02Lookup && areaLookupResult.areaLookup}
-          <details class="selector-panel" bind:open={isSelectorOpen}>
-            <summary>品目・地域を選択</summary>
-            <div class="selector-panel-content">
-              <Selectors
-                bind:selectedCat02Code
-                bind:selectedAreaCodesByCat02
-                cat02Lookup={cat02LookupResult.cat02Lookup}
-                areaLookup={areaLookupResult.areaLookup}
-              />
-            </div>
-          </details>
-          <details
-            class="added-items"
-            aria-label="比較中のデータ"
-            bind:open={isComparisonOpen}
-          >
-            <summary>
-              <h2>比較中 <span>{selectedCombinations.length}系列</span></h2>
-            </summary>
-            {#if selectedCombinations.length > 0}
-              <ul>
-                {#each selectedCombinations as item (`${item.cat02Code}:${item.areaCode}`)}
-                  <li>
-                    <span>{item.cat02Name}【{item.areaName}】</span>
-                    <button
-                      type="button"
-                      class="delete-button"
-                      aria-label="{item.cat02Name}【{item.areaName}】を削除"
-                      onclick={() =>
-                        handleRemove(item.cat02Code, item.areaCode)}
-                      ><img
-                        src={deleteIcon}
-                        alt=""
-                        aria-hidden="true"
-                      /></button
-                    >
-                  </li>
-                {/each}
-              </ul>
-            {:else}
-              <p class="empty-comparison">選択されていません。</p>
-            {/if}
-          </details>
-          <button onclick={handleReset} class="reset-button">リセット</button>
-          {#if dataNotFound}
-            <p class="data-not-found">データが見つかりませんでした</p>
-          {/if}
+          <section class="control-panel" aria-label="品目と地域">
+            <details class="selector-panel" bind:open={isSelectorOpen}>
+              <summary>品目・地域を選択</summary>
+              <div class="selector-panel-content">
+                <Selectors
+                  bind:selectedCat02Code
+                  bind:selectedAreaCodesByCat02
+                  cat02Lookup={cat02LookupResult.cat02Lookup}
+                  areaLookup={areaLookupResult.areaLookup}
+                />
+              </div>
+            </details>
+          </section>
+          <section class="comparison-panel" aria-label="比較中のデータ">
+            <details class="added-items" bind:open={isComparisonOpen}>
+              <summary>
+                <h2>比較中 <span>{selectedCombinations.length}系列</span></h2>
+              </summary>
+              <fieldset class="selected-list">
+                <legend>選択中一覧</legend>
+                {#if selectedCombinations.length > 0}
+                  <ul>
+                    {#each selectedCombinations as item (`${item.cat02Code}:${item.areaCode}`)}
+                      <li>
+                        <span>{item.cat02Name}【{item.areaName}】</span>
+                        <button
+                          type="button"
+                          class="delete-button"
+                          aria-label="{item.cat02Name}【{item.areaName}】を削除"
+                          onclick={() =>
+                            handleRemove(item.cat02Code, item.areaCode)}
+                          ><img
+                            src={deleteIcon}
+                            alt=""
+                            aria-hidden="true"
+                          /></button
+                        >
+                      </li>
+                    {/each}
+                  </ul>
+                {:else}
+                  <p class="empty-comparison">選択されていません。</p>
+                {/if}
+              </fieldset>
+              <button onclick={handleReset} class="reset-button"
+                >リセット</button
+              >
+              {#if dataNotFound}
+                <p class="data-not-found">データが見つかりませんでした</p>
+              {/if}
+            </details>
+          </section>
         {/if}
+        <Reference />
+        <a
+          class="cc-icons"
+          href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="CC0"
+        >
+          <CcIcon size="2rem" />
+          <CcZeroIcon size="2rem" />
+        </a>
       </aside>
 
       <section class="chart-panel" aria-label="価格推移グラフ">
@@ -237,41 +256,89 @@
         {:else}
           <div class="empty-chart">
             <h2>価格の推移を比較</h2>
-            <p>左側で品目と地域を選ぶと、ここにグラフが表示されます。</p>
+            <p>品目と地域を選ぶと、ここにグラフが表示されます。</p>
           </div>
         {/if}
       </section>
     </div>
-
-    <Reference />
   </main>
 </div>
 
 <style>
-  .page-description {
-    margin-top: calc(-1 * var(--space-2));
-    margin-bottom: var(--space-6);
+  .page-shell {
+    min-width: 0;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: clip;
   }
 
-  .comparison-layout {
+  .page-content {
     display: grid;
-    grid-template-columns: minmax(15rem, 0.32fr) minmax(0, 1fr);
-    align-items: start;
-    gap: var(--space-6);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page-heading {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: var(--space-4) var(--space-6);
+    border-bottom: var(--border-default);
+  }
+
+  .page-heading h1 {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .home-link {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    font-size: 0.8rem;
+    color: inherit;
+  }
+
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(20rem, 0.42fr) minmax(0, 1fr);
+    grid-template-areas: "details chart";
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .details-column,
+  .chart-panel {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .details-column {
+    grid-area: details;
+    padding: var(--space-4) var(--space-6);
+    border-right: var(--border-default);
+  }
+
+  .chart-panel {
+    grid-area: chart;
+    padding: var(--space-4);
+    --chart-height: calc(100dvh - 12rem);
   }
 
   .control-panel,
-  .chart-panel {
-    min-width: 0;
-  }
-
-  .control-panel {
-    position: sticky;
-    top: var(--space-4);
-    padding: var(--space-4);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-color);
+  .comparison-panel {
+    margin-bottom: var(--space-4);
   }
 
   .selector-panel > summary {
@@ -307,7 +374,7 @@
   }
 
   .added-items {
-    margin-top: var(--space-4);
+    margin: 0;
   }
 
   .added-items > summary {
@@ -332,20 +399,29 @@
   .empty-comparison {
     margin: 0;
     padding: var(--space-3);
+    color: #555;
+  }
+
+  .selected-list {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
     border: var(--border-default);
     border-radius: var(--radius-md);
-    color: #555;
+  }
+
+  .selected-list legend {
+    margin-inline: var(--space-3);
+    padding-inline: var(--space-1);
   }
 
   .added-items ul {
     display: flex;
     flex-direction: column;
     max-height: 12rem;
-    margin: 0;
+    margin: 0.25rem 0 0;
     padding: 0;
     overflow-y: auto;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
     list-style: none;
   }
 
@@ -389,15 +465,63 @@
     margin-top: var(--space-4);
   }
 
-  @media (max-width: 48rem) {
-    .comparison-layout {
-      grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-4);
+  .cc-icons {
+    display: flex;
+    justify-content: end;
+    gap: var(--space-1);
+    width: max-content;
+    margin: var(--space-4) 0 var(--space-4) auto;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: #111;
+  }
+
+  .cc-icons :global(svg) {
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .cc-icons:hover :global(svg) {
+    opacity: 1;
+  }
+
+  @media (max-width: 50rem) {
+    .page-shell {
+      height: auto;
     }
 
-    .control-panel {
-      position: static;
-      padding: var(--space-3);
+    .page-content {
+      height: auto;
+      min-height: 0;
+      display: block;
+    }
+
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .details-column,
+    .chart-panel {
+      overflow: visible;
+    }
+
+    .details-column {
+      border-right: 0;
+      border-bottom: var(--border-default);
+      padding: var(--space-4);
+    }
+
+    .chart-panel {
+      order: -1;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: clip;
+      --chart-height: 55vh;
     }
 
     .selector-panel > summary {
@@ -422,6 +546,14 @@
 
     .added-items[open] > summary h2 {
       margin-bottom: var(--space-2);
+    }
+
+    .page-heading {
+      padding: var(--space-3) var(--space-4);
+    }
+
+    .page-heading h1 {
+      font-size: 1.1rem;
     }
 
     .empty-chart {

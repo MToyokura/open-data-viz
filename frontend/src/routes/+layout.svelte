@@ -8,6 +8,9 @@
   const isRelay = $derived(
     page.url.pathname.includes("/vegetable_production_relay"),
   );
+  const isWorkspace = $derived(
+    isRelay || page.url.pathname.includes("/commodity_prices"),
+  );
 </script>
 
 <svelte:head>
@@ -18,7 +21,7 @@
   />
 </svelte:head>
 
-{#if !isRelay}
+{#if !isWorkspace}
   <nav class="site-nav">
     <a href={`${VITE_ROOT_PATH}/`}>Home</a>
   </nav>
@@ -28,7 +31,7 @@
   {@render children()}
 </div>
 
-{#if !isRelay}
+{#if !isWorkspace}
   <footer class="site-footer">
     <a
       class="cc-icons"

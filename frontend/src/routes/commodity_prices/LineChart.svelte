@@ -140,6 +140,8 @@
   }
 
   .chart-scroll-container {
+    box-sizing: border-box;
+    width: 100%;
     max-width: 100%;
     margin: var(--space-8) 0;
     overflow-x: auto;
@@ -160,7 +162,7 @@
   #chart-container {
     box-sizing: border-box;
     width: 100%;
-    height: 60vh;
+    height: var(--chart-height, 60vh);
     min-height: 320px;
     padding: var(--space-8) 0;
   }
