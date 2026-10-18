@@ -19,7 +19,13 @@
       sex: "",
     }),
   );
-  let items = $state(/** @type {Item[]} */ ([]));
+  let normalItems = $state(/** @type {Item[]} */ ([]));
+  let comparisonItems = $state(/** @type {Item[]} */ ([]));
+  let comparisonDimension = $state(/** @type {DimensionKey|""} */ (""));
+  let comparisonCodes = $state(/** @type {string[]} */ ([]));
+  let normalSnapshot = $state(
+    /** @type {{selections:Record<DimensionKey,string>}|null} */ (null),
+  );
   let orientation = $state(/** @type {"vertical"|"horizontal"} */ ("vertical"));
   let serial = 0;
   /** @type {{key:DimensionKey,title:string}[]} */
@@ -30,24 +36,13 @@
     { key: "sex", title: "性別" },
   ];
 
-  const condition = $derived({
-    age_code: selections.age,
-    employment_type_code: selections.employment_type,
-    education_code: selections.education,
-    sex_code: selections.sex,
-  });
-  const selectedIndex = $derived(
-    options?.series.find(
-      (s) =>
-        s.age_code === condition.age_code &&
-        s.employment_type_code === condition.employment_type_code &&
-        s.education_code === condition.education_code &&
-        s.sex_code === condition.sex_code,
+  const selectedIndex = $derived(findIndex(selections));
+  const isDataMissing = $derived(
+    Boolean(
+      options && selections.age && !selectedIndex && !comparisonDimension,
     ),
   );
-  const isDataMissing = $derived(
-    Boolean(options && selections.age && !selectedIndex),
-  );
+  const items = $derived(comparisonDimension ? comparisonItems : normalItems);
   const displayItems = $derived(
     items.map((item) => ({
       key: item.key,
@@ -69,13 +64,31 @@
     ),
   ]);
 
+  const comparisonChoices = $derived.by(() => {
+    if (!comparisonDimension || !options) return [];
+    const dimension = comparisonDimension;
+    return options.dimensions[dimension].map((choice) => ({
+      ...choice,
+      index: comparisonIndex(dimension, choice.code),
+    }));
+  });
+  const availableComparisonChoices = $derived(
+    comparisonChoices.filter((choice) => choice.index),
+  );
+
   async function loadOptions() {
     optionsLoading = true;
     optionsError = "";
     try {
       options = await fetchOptions();
-      for (const { key } of dimensionLabels)
-        selections[key] = options.dimensions[key][0]?.code ?? "";
+      const initial = options.series[0];
+      if (initial) {
+        selections = selectionFromIndex(initial);
+        addNormalItem(initial);
+      } else {
+        for (const { key } of dimensionLabels)
+          selections[key] = options.dimensions[key][0]?.code ?? "";
+      }
     } catch (error) {
       optionsError =
         error instanceof Error
@@ -86,19 +99,46 @@
     }
   }
 
+  /** @param {Record<DimensionKey,string>} selected */
+  function findIndex(selected) {
+    return options?.series.find(
+      (s) =>
+        s.age_code === selected.age &&
+        s.employment_type_code === selected.employment_type &&
+        s.education_code === selected.education &&
+        s.sex_code === selected.sex,
+    );
+  }
+
+  /** @param {import("./constants/types.js").SeriesIndexItem} index */
+  function selectionFromIndex(index) {
+    return {
+      age: index.age_code,
+      employment_type: index.employment_type_code,
+      education: index.education_code,
+      sex: index.sex_code,
+    };
+  }
+
+  /** @param {DimensionKey} dimension @param {string} code */
+  function comparisonIndex(dimension, code) {
+    return findIndex({ ...selections, [dimension]: code });
+  }
+
+  /** @param {import("./constants/types.js").SeriesIndexItem} index @param {DimensionKey} dimension */
+  function codeForDimension(index, dimension) {
+    return {
+      age: index.age_code,
+      employment_type: index.employment_type_code,
+      education: index.education_code,
+      sex: index.sex_code,
+    }[dimension];
+  }
+
   /** @param {import("./constants/types.js").SeriesIndexItem} index */
   function labelFor(index) {
     if (!options) return "";
-    const educationName = options.dimensions.education.find(
-      (x) => x.code === index.education_code,
-    )?.name;
-    const educationLabel =
-      {
-        "03": `在学中 > ${educationName}`,
-        "04": `在学中 > ${educationName}`,
-        "07": `卒業 > ${educationName}`,
-        "08": `卒業 > ${educationName}`,
-      }[index.education_code] ?? educationName;
+    const educationLabel = dimensionName("education", index.education_code);
     const labels = [
       options.dimensions.age.find((x) => x.code === index.age_code)?.name,
       options.dimensions.employment_type.find(
@@ -110,66 +150,201 @@
     return labels.filter(Boolean).join("・");
   }
 
-  /** @param {Item} item */
-  async function startFetch(item) {
+  /** @param {DimensionKey} dimension @param {string} code */
+  function dimensionName(dimension, code) {
+    const name =
+      options?.dimensions[dimension].find((item) => item.code === code)?.name ??
+      code;
+    if (dimension !== "education") return name;
+    return (
+      {
+        "03": `在学中 > ${name}`,
+        "04": `在学中 > ${name}`,
+        "07": `卒業 > ${name}`,
+        "08": `卒業 > ${name}`,
+      }[code] ?? name
+    );
+  }
+
+  /** @param {boolean} comparing */
+  function activeItems(comparing) {
+    return comparing ? comparisonItems : normalItems;
+  }
+
+  /** @param {boolean} comparing @param {(list:Item[])=>Item[]} update */
+  function updateItems(comparing, update) {
+    if (comparing) comparisonItems = update(comparisonItems);
+    else normalItems = update(normalItems);
+  }
+
+  /** @param {Item} item @param {boolean} comparing */
+  async function startFetch(item, comparing = Boolean(comparisonDimension)) {
     const requestId = ++serial;
     const key = item.key;
-    items = items.map((current) =>
-      current.key === key
-        ? {
-            ...current,
-            requestId,
-            status: "loading",
-            error: "",
-            data: undefined,
-          }
-        : current,
+    updateItems(comparing, (list) =>
+      list.map((current) =>
+        current.key === key
+          ? {
+              ...current,
+              requestId,
+              status: "loading",
+              error: "",
+              data: undefined,
+            }
+          : current,
+      ),
     );
     try {
       const data = await fetchSeries(item.index);
-      if (items.find((x) => x.key === key)?.requestId !== requestId) return;
-      items = items.map((current) =>
-        current.key === key ? { ...current, data, status: "loaded" } : current,
+      if (
+        activeItems(comparing).find((x) => x.key === key)?.requestId !==
+        requestId
+      )
+        return;
+      updateItems(comparing, (list) =>
+        list.map((current) =>
+          current.key === key
+            ? { ...current, data, status: "loaded" }
+            : current,
+        ),
       );
     } catch (error) {
-      if (items.find((x) => x.key === key)?.requestId !== requestId) return;
+      if (
+        activeItems(comparing).find((x) => x.key === key)?.requestId !==
+        requestId
+      )
+        return;
       const message =
         error instanceof Error ? error.message : "データの取得に失敗しました";
-      items = items.map((current) =>
-        current.key === key
-          ? { ...current, error: message, status: "error" }
-          : current,
+      updateItems(comparing, (list) =>
+        list.map((current) =>
+          current.key === key
+            ? { ...current, error: message, status: "error" }
+            : current,
+        ),
       );
     }
   }
 
-  function addSeries() {
-    if (!selectedIndex || !options || optionsLoading || optionsError) return;
-    const key = [
-      condition.age_code,
-      condition.employment_type_code,
-      condition.education_code,
-      condition.sex_code,
-    ].join("|");
-    if (items.some((item) => item.key === key)) return;
-    const item = /** @type {Item} */ ({
+  /** @param {import("./constants/types.js").SeriesIndexItem} index @param {DimensionKey|""} compareBy */
+  function createItem(index, compareBy = "") {
+    const key =
+      [
+        index.age_code,
+        index.employment_type_code,
+        index.education_code,
+        index.sex_code,
+      ].join("|") + (compareBy ? `|${compareBy}` : "");
+    return /** @type {Item} */ ({
       key,
-      label: labelFor(selectedIndex),
+      label: compareBy
+        ? dimensionName(compareBy, index[`${compareBy}_code`])
+        : labelFor(index),
       status: "loading",
       requestId: 0,
-      index: selectedIndex,
+      index,
     });
-    items = [...items, item];
-    void startFetch(item);
+  }
+
+  /** @param {import("./constants/types.js").SeriesIndexItem} index */
+  function addNormalItem(index) {
+    const item = createItem(index);
+    if (normalItems.some((current) => current.key === item.key)) return;
+    normalItems = [...normalItems, item];
+    void startFetch(item, false);
+  }
+
+  function addSeries() {
+    if (
+      !selectedIndex ||
+      !options ||
+      optionsLoading ||
+      optionsError ||
+      comparisonDimension
+    )
+      return;
+    addNormalItem(selectedIndex);
   }
 
   /** @param {string} key */
   function removeItem(key) {
-    items = items.filter((item) => item.key !== key);
+    if (comparisonDimension) {
+      const dimension = comparisonDimension;
+      const item = comparisonItems.find((current) => current.key === key);
+      if (item)
+        comparisonCodes = comparisonCodes.filter(
+          (code) => code !== codeForDimension(item.index, dimension),
+        );
+      comparisonItems = comparisonItems.filter((item) => item.key !== key);
+    } else normalItems = normalItems.filter((item) => item.key !== key);
   }
   function clearItems() {
-    items = [];
-    serial += 1;
+    if (comparisonDimension) {
+      comparisonCodes = [];
+      comparisonItems = [];
+    } else normalItems = [];
+  }
+
+  function syncComparisonItems() {
+    if (!comparisonDimension) return;
+    const dimension = comparisonDimension;
+    /** @type {import("./constants/types.js").SeriesIndexItem[]} */
+    const indexes = comparisonCodes
+      .map((code) => comparisonIndex(dimension, code))
+      .filter(
+        /** @param {import("./constants/types.js").SeriesIndexItem|undefined} index @returns {index is import("./constants/types.js").SeriesIndexItem} */
+        (index) => Boolean(index),
+      );
+    const keys = new Set(
+      indexes.map((index) => createItem(index, dimension).key),
+    );
+    comparisonItems = comparisonItems.filter((item) => keys.has(item.key));
+    for (const index of indexes) {
+      const item = createItem(index, dimension);
+      if (comparisonItems.some((current) => current.key === item.key)) continue;
+      comparisonItems = [...comparisonItems, item];
+      void startFetch(item, true);
+    }
+  }
+
+  /** @param {DimensionKey} key @param {string} value */
+  function changeSelection(key, value) {
+    selections[key] = value;
+    if (!comparisonDimension || key === comparisonDimension) return;
+    const available = new Set(
+      availableComparisonChoices.map((choice) => choice.code),
+    );
+    comparisonCodes = comparisonCodes.filter((code) => available.has(code));
+    syncComparisonItems();
+  }
+
+  /** @param {DimensionKey|""} dimension */
+  function setComparison(dimension) {
+    if (!dimension) {
+      if (normalSnapshot) selections = { ...normalSnapshot.selections };
+      comparisonDimension = "";
+      comparisonCodes = [];
+      comparisonItems = [];
+      normalSnapshot = null;
+      return;
+    }
+    if (!comparisonDimension)
+      normalSnapshot = { selections: { ...selections } };
+    comparisonDimension = dimension;
+    comparisonCodes =
+      options?.dimensions[dimension]
+        .filter((choice) => comparisonIndex(dimension, choice.code))
+        .map((choice) => choice.code) ?? [];
+    comparisonItems = [];
+    syncComparisonItems();
+  }
+
+  /** @param {string} code */
+  function toggleComparisonCode(code) {
+    comparisonCodes = comparisonCodes.includes(code)
+      ? comparisonCodes.filter((selected) => selected !== code)
+      : [...comparisonCodes, code];
+    syncComparisonItems();
   }
 
   onMount(() => {
@@ -200,7 +375,12 @@
         {#each dimensionLabels as dimension (dimension.key)}
           <label
             >{dimension.title}
-            <select bind:value={selections[dimension.key]}>
+            <select
+              value={selections[dimension.key]}
+              disabled={comparisonDimension === dimension.key}
+              onchange={(event) =>
+                changeSelection(dimension.key, event.currentTarget.value)}
+            >
               {#each options.dimensions[dimension.key] as choice (choice.code)}<option
                   value={choice.code}>{choice.name}</option
                 >{/each}
@@ -208,8 +388,64 @@
           </label>
         {/each}
       </section>
+      <section class="comparison-controls" aria-label="属性比較">
+        <div class="comparison-attribute">
+          <span>属性を比較</span>
+          <select
+            aria-label="比較する属性"
+            value={comparisonDimension}
+            onchange={(event) =>
+              setComparison(
+                /** @type {DimensionKey|""} */ (event.currentTarget.value),
+              )}
+          >
+            <option value="">比較しない</option>
+            {#each dimensionLabels as dimension (dimension.key)}
+              <option value={dimension.key}>{dimension.title}</option>
+            {/each}
+          </select>
+        </div>
+        {#if comparisonDimension}
+          <p class="muted">
+            比較中に変更した固定条件は、比較を終了すると元に戻ります。
+          </p>
+          <fieldset class="compare-options">
+            <legend
+              >{dimensionLabels.find((item) => item.key === comparisonDimension)
+                ?.title}の区分</legend
+            >
+            {#each comparisonChoices as choice (choice.code)}
+              <label class:unavailable={!choice.index}>
+                <input
+                  type="checkbox"
+                  checked={comparisonCodes.includes(choice.code)}
+                  disabled={!choice.index}
+                  title={choice.index ? "" : "この条件の系列はありません"}
+                  onchange={() => toggleComparisonCode(choice.code)}
+                />
+                {dimensionName(comparisonDimension, choice.code)}
+                {#if !choice.index}<span class="muted"
+                    >— この条件の系列はありません</span
+                  >{/if}
+              </label>
+            {/each}
+          </fieldset>
+          {#if availableComparisonChoices.length === 0}
+            <p class="empty" role="status">
+              この固定条件で比較できる系列はありません。
+            </p>
+          {:else if comparisonCodes.length <= 1}
+            <p class="empty" role="status">
+              比較グラフには2区分以上が必要です。追加で選択できる区分を選んでください。
+            </p>
+          {/if}
+        {/if}
+      </section>
       <div class="actions">
-        <button onclick={addSeries} disabled={!selectedIndex}>系列を追加</button
+        <button
+          onclick={addSeries}
+          disabled={!selectedIndex || Boolean(comparisonDimension)}
+          >系列を追加</button
         >
         <label class="orientation"
           >グラフの向き
@@ -254,7 +490,9 @@
               </li>{/each}
           </ul>
         </section>
-        <BarChart items={displayItems} {orientation} />
+        {#if !comparisonDimension || comparisonCodes.length > 1}
+          <BarChart items={displayItems} {orientation} />
+        {/if}
       {/if}
     {/if}
 
@@ -320,9 +558,39 @@
     margin: var(--space-6) 0;
   }
   .selectors label,
-  .orientation {
+  .orientation,
+  .comparison-attribute {
     display: grid;
     gap: var(--space-2);
+  }
+  .comparison-controls {
+    margin: var(--space-6) 0;
+  }
+  .comparison-attribute {
+    max-width: 24rem;
+  }
+  .comparison-controls p {
+    margin-bottom: 0;
+  }
+  .compare-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-3) 0;
+    padding: var(--space-3);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+  }
+  .compare-options legend {
+    padding: 0 var(--space-1);
+  }
+  .compare-options label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .compare-options .unavailable {
+    color: var(--text-muted-color);
   }
   select {
     min-width: 0;
