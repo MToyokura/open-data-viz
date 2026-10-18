@@ -6,6 +6,9 @@ use modules::projects::commodity_prices::process_commodity_prices::process_commo
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if modules::publish_gzip::run(&args) {
+        return;
+    }
     if modules::projects::asset_distribution::run(&args) {
         return;
     }
@@ -59,6 +62,9 @@ fn print_usage() {
     println!("Usage: cargo run -- <command> [arguments]");
     println!(
         "Commands include commodity-prices, prefectures-update, vegetable-relay, and workers-by-age-employment-type-education-sex."
+    );
+    println!(
+        "Gzip publishing: gzip-stage PUBLISHED_COPY_DIR STAGE_DIR; gzip-reconcile --stage-dir DIR --source-dir DIR --remote-prefix gs://BUCKET/PREFIX --verification-dir DIR --content-type TYPE --cache-control VALUE."
     );
     println!(
         "Vegetable inspections: vegetable-relay-inspect-workbooks, vegetable-relay-acquire-product-observations, vegetable-relay-verify-product-mappings, vegetable-relay-verify-daikon-mapping, vegetable-relay-validate-m3-m5."
