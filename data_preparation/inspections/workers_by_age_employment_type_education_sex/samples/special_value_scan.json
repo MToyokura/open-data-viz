@@ -1,87 +1,87 @@
 {
-  "capturedAtUtc": "2026-10-17T03:38:10+00:00",
-  "tableId": "0003006608",
+  "annotationKeysObserved": [],
+  "capturedAtUtc": "2026-10-18T09:59:03+00:00",
   "pageLimit": 10000,
+  "pages": [
+    {
+      "fromNumber": 1,
+      "limit": 10000,
+      "startPosition": 1,
+      "toNumber": 10000
+    },
+    {
+      "fromNumber": 10001,
+      "limit": 10000,
+      "startPosition": 10001,
+      "toNumber": 20000
+    },
+    {
+      "fromNumber": 20001,
+      "limit": 10000,
+      "startPosition": 20001,
+      "toNumber": 30000
+    },
+    {
+      "fromNumber": 30001,
+      "limit": 10000,
+      "startPosition": 30001,
+      "toNumber": 40000
+    },
+    {
+      "fromNumber": 40001,
+      "limit": 10000,
+      "startPosition": 40001,
+      "toNumber": 50000
+    },
+    {
+      "fromNumber": 50001,
+      "limit": 10000,
+      "startPosition": 50001,
+      "toNumber": 60000
+    },
+    {
+      "fromNumber": 60001,
+      "limit": 10000,
+      "startPosition": 60001,
+      "toNumber": 70000
+    },
+    {
+      "fromNumber": 70001,
+      "limit": 10000,
+      "startPosition": 70001,
+      "toNumber": 78918
+    }
+  ],
+  "recordCount": 78918,
   "specialValueCounts": {
-    "…": 4140,
-    "0": 11814
+    "0": 11814,
+    "…": 4140
   },
   "specialValueSamples": {
-    "…": {
-      "@tab": "06",
-      "@cat01": "00",
-      "@cat02": "02",
-      "@cat03": "00",
-      "@cat04": "00",
-      "@cat05": "0",
-      "@area": "00000",
-      "@time": "2011000000",
-      "@unit": "万人",
-      "$": "…"
-    },
     "0": {
-      "@tab": "06",
+      "$": "0",
+      "@area": "00000",
       "@cat01": "00",
       "@cat02": "02",
       "@cat03": "03",
       "@cat04": "02",
       "@cat05": "0",
-      "@area": "00000",
+      "@tab": "06",
       "@time": "2003000000",
-      "@unit": "万人",
-      "$": "0"
+      "@unit": "万人"
+    },
+    "…": {
+      "$": "…",
+      "@area": "00000",
+      "@cat01": "00",
+      "@cat02": "02",
+      "@cat03": "00",
+      "@cat04": "00",
+      "@cat05": "0",
+      "@tab": "06",
+      "@time": "2011000000",
+      "@unit": "万人"
     }
   },
-  "annotationKeysObserved": [],
-  "recordCount": 78918,
-  "pages": [
-    {
-      "startPosition": 1,
-      "limit": 10000,
-      "fromNumber": 1,
-      "toNumber": 10000
-    },
-    {
-      "startPosition": 10001,
-      "limit": 10000,
-      "fromNumber": 10001,
-      "toNumber": 20000
-    },
-    {
-      "startPosition": 20001,
-      "limit": 10000,
-      "fromNumber": 20001,
-      "toNumber": 30000
-    },
-    {
-      "startPosition": 30001,
-      "limit": 10000,
-      "fromNumber": 30001,
-      "toNumber": 40000
-    },
-    {
-      "startPosition": 40001,
-      "limit": 10000,
-      "fromNumber": 40001,
-      "toNumber": 50000
-    },
-    {
-      "startPosition": 50001,
-      "limit": 10000,
-      "fromNumber": 50001,
-      "toNumber": 60000
-    },
-    {
-      "startPosition": 60001,
-      "limit": 10000,
-      "fromNumber": 60001,
-      "toNumber": 70000
-    },
-    {
-      "startPosition": 70001,
-      "limit": 10000,
-      "fromNumber": 70001,
-      "toNumber": 78918
-    }
-  ]
+  "tableId": "0003006608"
 }

@@ -73,6 +73,17 @@
   function displayCategoryLabel(label) {
     return label.replace(/[（(]再掲[）)]/g, "");
   }
+  /** @param {{id: string, categories: {code:string,label:string}[], display_hierarchy?: {standalone_codes:string[],groups:{code:string,children:string[]}[]} }|undefined} dimension @param {string} code */
+  function dimensionCategoryLabel(dimension, code) {
+    const category = dimension?.categories.find((item) => item.code === code);
+    const label = category?.label ?? code;
+    if (dimension?.id !== "cat02") return label;
+    if (code === "0") return label;
+    if (code === "2") return "卒業（全体）";
+    if (["21", "22", "23"].includes(code))
+      return `卒業者の内訳 > ${label}`;
+    return label;
+  }
   const comparisonDimension = $derived(
     filterDimensions.find((dimension) => dimension.id === compareDimensionId),
   );
@@ -100,19 +111,12 @@
   function displaySeriesLabel(combination) {
     if (comparisonMode) {
       const code = combination.dimensions[compareDimensionId];
-      return (
-        comparisonDimension?.categories.find(
-          (category) => category.code === code,
-        )?.label ?? code
-      );
+      return dimensionCategoryLabel(comparisonDimension, code);
     }
     return filterDimensions
       .map((dimension) => {
         const code = combination.dimensions[dimension.id];
-        return (
-          dimension.categories.find((category) => category.code === code)
-            ?.label ?? code
-        );
+        return dimensionCategoryLabel(dimension, code);
       })
       .filter(Boolean)
       .join("・");
@@ -206,11 +210,7 @@
       .map((combination) => {
         const code = combination.dimensions[compareDimensionId];
         const categoryLabel = comparisonMode
-          ? (comparisonDimension?.categories.find(
-              (category) => category.code === code,
-            )?.label ??
-            code ??
-            "")
+          ? dimensionCategoryLabel(comparisonDimension, code)
           : "選択条件";
         const items = seriesItems[combination.id];
         if (!items) return null;
@@ -448,11 +448,8 @@
       );
       const removed = previouslySelected.filter((item) => !available.has(item));
       compareCodes = previouslySelected.filter((item) => available.has(item));
-      removedCompareLabels = removed.map(
-        (item) =>
-          comparisonDimension?.categories.find(
-            (category) => category.code === item,
-          )?.label ?? item,
+      removedCompareLabels = removed.map((item) =>
+        dimensionCategoryLabel(comparisonDimension, item),
       );
     }
   }
@@ -588,10 +585,6 @@
                       <fieldset class="compare-options">
                         <legend>比較する区分</legend>
                         {#each comparisonSet.category_codes as code (code)}
-                          {@const category =
-                            comparisonDimension.categories.find(
-                              (item) => item.code === code,
-                            )}
                           {@const availability = candidateStatus(
                             comparisonDimension,
                             code,
@@ -604,7 +597,10 @@
                               disabled={!availability.available}
                               onchange={() => toggleCompareCode(code)}
                             />
-                            {category?.label ?? code}{availability.available
+                            {dimensionCategoryLabel(
+                              comparisonDimension,
+                              code,
+                            )}{availability.available
                               ? ""
                               : ` — ${availability.reason}`}
                           </label>
@@ -662,7 +658,10 @@
                                 value={category.code}
                                 disabled={!availability.available}
                                 title={availability.reason}
-                                >{category.label}{availability.available
+                                >{dimensionCategoryLabel(
+                                  dimension,
+                                  category.code,
+                                )}{availability.available
                                   ? ""
                                   : `（利用不可: ${availability.reason}）`}</option
                               >
@@ -759,7 +758,7 @@
         {/if}
 
         {#if data}
-          <ReferencePanel title="データについて" marginTop="var(--space-4)">
+          <ReferencePanel title="データ利用上の注意" marginTop="var(--space-4)">
             <table class="reference-table ui-table">
               <tbody>
                 <tr>
@@ -785,6 +784,17 @@
                       data.metadata.asset_basis ?? "純資産総額",
                     )}。最低階級は公式の再掲内訳である「0万円未満」「0万円」「0万円超25万円未満」の3区分で表示します。元の「25万円未満」は内訳と重ねて表示せず、二重計上を防いでいます。「0万円未満」は純資産総額がマイナスの世帯です。資産額不詳の世帯は金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。</td
                   >
+                </tr>
+                <tr>
+                  <th>学歴区分</th>
+                  <td>
+                    学歴区分の「平均」は公式分類名です。選択すると、この区分で公表された値を表示します。公式資料では、一部を除き「平均（総数）」に不詳を含むため、総数と内訳の合計は必ずしも一致しないと説明されています。
+                    <a
+                      href="https://www.stat.go.jp/data/zenkokukakei/2024/pdf/riyou2024.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer">出典：利用上の注意（12ページ）</a
+                    >
+                  </td>
                 </tr>
                 <tr>
                   <th>世帯数の推計</th>
@@ -841,7 +851,7 @@
                   .filter((dimension) => dimension.id !== compareDimensionId)
                   .map(
                     (dimension) =>
-                      `${dimension.label} ${dimension.categories.find((category) => category.code === selections[dimension.id])?.label ?? selections[dimension.id]}`,
+                      `${dimension.label} ${dimensionCategoryLabel(dimension, selections[dimension.id])}`,
                   )
                   .join("・")}。{:else}比較する属性を選んでください。{/if}
             </p>{/if}

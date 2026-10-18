@@ -2,9 +2,9 @@ import { VITE_STORAGE_BASE_URL } from "#lib/paths.js";
 
 export const ASSET_DISTRIBUTION_PATH = `${VITE_STORAGE_BASE_URL}/asset_distribution/manifest.json`;
 
-/** @typedef {{ code: string, label: string, kind: string, order: number }} Category */
+/** @typedef {{ code: string, label: string, kind: string, order: number, api_level?: string, api_parent_code?: string }} Category */
 /** @typedef {{ id: string, label: string, category_codes: string[] }} ComparisonSet */
-/** @typedef {{ id: string, label: string, role: "filter"|"asset_class", order: number, total_code: string|null, default_code: string|null, categories: Category[], display_category_codes?: string[], comparison_sets?: ComparisonSet[] }} Dimension */
+/** @typedef {{ id: string, label: string, role: "filter"|"asset_class", order: number, total_code: string|null, default_code: string|null, categories: Category[], display_category_codes?: string[], display_hierarchy?: { standalone_codes: string[], groups: { code: string, children: string[] }[] }, comparison_sets?: ComparisonSet[] }} Dimension */
 /** @typedef {{ id: string, dimensions: Record<string, string>, status: "published", reason: null, items_file: string }} Combination */
 /** @typedef {{ combination_id: string, asset_class_code: string, count: number|null, status: "observed"|"suppressed"|"missing", raw_value: string, annotations: string[] }} DistributionItem */
 /** @typedef {{ path: string, start_index: number, count: number, bytes?: number }} Chunk */
@@ -56,6 +56,55 @@ export function validateAssetDistribution(input) {
     )
   )
     throw new Error("manifestに表示または検索に必要な情報がありません");
+  const education = data.dimensions.find(
+    (dimension) => dimension.id === "cat02",
+  );
+  const expectedEducation = [
+    ["0", "平均", "1", null],
+    ["1", "在学中", "1", null],
+    ["2", "卒業", "1", null],
+    ["21", "小学校・中学校", "2", "2"],
+    ["22", "高校程度", "2", "2"],
+    ["23", "短大程度以上", "2", "2"],
+  ];
+  if (
+    !education ||
+    education.categories.length !== expectedEducation.length ||
+    education.categories.some((category, index) => {
+      const [code, label, level, parent] = expectedEducation[index];
+      return (
+        category.code !== code ||
+        category.label !== label ||
+        category.order !== index ||
+        category.api_level !== level ||
+        (category.api_parent_code ?? null) !== parent
+      );
+    }) ||
+    education.display_hierarchy?.standalone_codes.join("|") !== "0|1" ||
+    education.display_hierarchy?.groups.length !== 1 ||
+    education.display_hierarchy.groups[0].code !== "2" ||
+    education.display_hierarchy.groups[0].children.join("|") !== "21|22|23" ||
+    JSON.stringify(
+      education.comparison_sets?.map(({ id, label, category_codes }) => ({
+        id,
+        label,
+        category_codes,
+      })),
+    ) !==
+      JSON.stringify([
+        {
+          id: "education-status",
+          label: "在学中・卒業者全体",
+          category_codes: ["1", "2"],
+        },
+        {
+          id: "graduated-subgroups",
+          label: "卒業者の学歴内訳",
+          category_codes: ["21", "22", "23"],
+        },
+      ])
+  )
+    throw new Error("学歴区分の公式メタデータまたは表示階層が想定と異なります");
 
   // The generator validates category identities and chunk ranges. Keep the
   // lookup index as part of normal manifest loading for combination search.

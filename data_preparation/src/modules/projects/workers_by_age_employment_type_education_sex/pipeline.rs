@@ -32,6 +32,8 @@ const PAGE_SIZE: u32 = 100_000;
 pub struct OptionsDocument {
     pub metadata: OptionsMetadata,
     pub dimensions: DimensionOptions,
+    pub education_display_hierarchy: Vec<DisplayNode>,
+    pub education_comparison_sets: Vec<ComparisonSet>,
     pub series: Vec<SeriesReference>,
 }
 
@@ -61,6 +63,24 @@ pub struct DimensionOption {
     pub code: String,
     pub name: String,
     pub order: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_level: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_parent_code: Option<String>,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct DisplayNode {
+    pub code: String,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub children: Vec<DisplayNode>,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct ComparisonSet {
+    pub id: String,
+    pub label: String,
+    pub category_codes: Vec<String>,
 }
 
 #[allow(dead_code)]
@@ -256,6 +276,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
     let age = dimension_options(class_objs, "cat01")?;
     let employment_type = dimension_options(class_objs, "cat03")?;
     let education = dimension_options(class_objs, "cat04")?;
+    validate_education_categories(&education)?;
     let sex = dimension_options(class_objs, "cat05")?;
     let lookups = [
         (&age, "age"),
@@ -429,6 +450,8 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             education,
             sex,
         },
+        education_display_hierarchy: education_display_hierarchy(),
+        education_comparison_sets: education_comparison_sets(),
         series,
     };
     for item in &options.series {
@@ -581,9 +604,93 @@ fn dimension_options(
                 code: required_attr(item, "@code")?.to_owned(),
                 name: required_attr(item, "@name")?.to_owned(),
                 order,
+                api_level: attr(item, "@level").map(str::to_owned),
+                api_parent_code: attr(item, "@parentCode").map(str::to_owned),
             })
         })
         .collect()
+}
+
+fn validate_education_categories(categories: &[DimensionOption]) -> Result<(), Box<dyn Error>> {
+    let expected = [
+        ("00", "総数", "1", None),
+        ("01", "うち在学中", "2", None),
+        ("02", "小学・中学・高校", "3", None),
+        ("03", "短大・高専", "3", Some("02")),
+        ("04", "大学・大学院", "3", Some("02")),
+        ("05", "うち卒業", "2", None),
+        ("06", "小学・中学・高校・旧中", "3", Some("05")),
+        ("07", "短大・高専", "3", Some("05")),
+        ("08", "大学・大学院", "3", Some("05")),
+        ("09", "大学", "3", Some("05")),
+        ("10", "大学院", "3", Some("05")),
+    ];
+    if categories.len() != expected.len() {
+        return Err(format!("教育区分の数が変わりました: {}", categories.len()).into());
+    }
+    for (index, (category, (code, name, level, parent))) in
+        categories.iter().zip(expected).enumerate()
+    {
+        if category.order != index
+            || category.code != code
+            || category.name != name
+            || category.api_level.as_deref() != Some(level)
+            || category.api_parent_code.as_deref() != parent
+        {
+            return Err(format!(
+                "想定外の労働力調査教育区分: {} ({})",
+                category.code, category.name
+            )
+            .into());
+        }
+    }
+    Ok(())
+}
+
+fn education_display_hierarchy() -> Vec<DisplayNode> {
+    let leaf = |code: &str| DisplayNode {
+        code: code.to_owned(),
+        children: Vec::new(),
+    };
+    vec![DisplayNode {
+        code: "00".into(),
+        children: vec![
+            DisplayNode {
+                code: "01".into(),
+                children: vec![leaf("02"), leaf("03"), leaf("04")],
+            },
+            DisplayNode {
+                code: "05".into(),
+                children: vec![leaf("06"), leaf("07"), leaf("08"), leaf("09"), leaf("10")],
+            },
+        ],
+    }]
+}
+
+fn education_comparison_sets() -> Vec<ComparisonSet> {
+    vec![
+        ComparisonSet {
+            id: "education-status".into(),
+            label: "在学中・卒業".into(),
+            category_codes: vec!["01".into(), "05".into()],
+        },
+        ComparisonSet {
+            id: "enrolled-categories".into(),
+            label: "在学中の教育区分".into(),
+            category_codes: vec!["02".into(), "03".into(), "04".into()],
+        },
+        ComparisonSet {
+            id: "graduated-categories".into(),
+            label: "卒業者の教育区分".into(),
+            category_codes: vec![
+                "06".into(),
+                "07".into(),
+                "08".into(),
+                "09".into(),
+                "10".into(),
+            ],
+        },
+    ]
 }
 
 fn normalize_record(

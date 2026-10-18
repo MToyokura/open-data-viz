@@ -1,5 +1,5 @@
 {
-  "captured_at_utc": "2026-10-17T09:34:11Z",
+  "captured_at_utc": "2026-10-18T10:01:25Z",
   "filters": {
     "area": "00000",
     "tab": "07-2024",
@@ -11,24 +11,18 @@
   },
   "pages": 3,
   "result_total_number": 243432,
-  "sample_value_count": 72,
+  "sample_value_count": 216,
   "samples": {
     "meta_info.json": {
-      "sha256": "8b975dc53130341ff44b1284ba31677670b57e2b762cbe9c6c123e09ce65969e"
+      "sha256": "029c625943c4959633f7f2057b71a3ebc32dd20c7833f1d339f8f8e7b464c2e9"
     },
     "stats_data.json": {
-      "sha256": "0d958eac462842a75640b768d55db04879df139eccba9af1d14b7f8dff5b309b"
+      "sha256": "77ab8695a600ae24a7026c389c042c00f7a33c0d79a5037fe59c19eabd738889"
     }
   },
   "stats_data_id": "0004056120",
-  "official_crosscheck": {
-    "source_title": "e-Stat official Excel, table 7-131-1",
-    "stat_infid": "000040490406",
-    "url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040490406&fileKind=0",
-    "accessed_utc": "2026-10-17T09:36:21Z",
-    "sha256": "861884421593840d0def5dcfca62d92bd7a0da3114e12e2ed229ad74e40f5345",
-    "selection": "Household size = average; age = average; education = average; disposable income = average",
-    "compared_asset_codes": [
+  "official_reference": {
+    "asset_codes": [
       "00",
       "00R",
       "01",
@@ -42,19 +36,15 @@
       "732540",
       "3304085"
     ],
-    "api_values": [
-      "52688337",
-      "51277351",
-      "6533792",
-      "732540",
-      "3304085"
-    ],
-    "result": "all five values match exactly"
-  },
-  "negative_asset_crosscheck": {
-    "source_title": "e-Stat official Excel, table 7-131-1",
-    "stat_infid": "000040490406",
     "selection": "Household size = average; age = average; education = average; disposable income = average",
+    "source": {
+      "title": "e-Stat official Excel, table 7-131-1",
+      "stat_infid": "000040490406",
+      "url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040490406&fileKind=0",
+      "sha256": "861884421593840d0def5dcfca62d92bd7a0da3114e12e2ed229ad74e40f5345"
+    }
+  },
+  "negative_asset_reference": {
     "asset_codes": [
       "R01",
       "R02",
@@ -65,11 +55,135 @@
       "1520744",
       "1039774"
     ],
-    "api_values": [
-      "3973273",
-      "1520744",
-      "1039774"
-    ],
-    "result": "all three values match exactly; their sum differs from category 01 by one household due to published rounding"
+    "selection": "Household size = average; age = average; education = average; disposable income = average",
+    "source": {
+      "title": "e-Stat official Excel, table 7-131-1",
+      "stat_infid": "000040490406",
+      "url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040490406&fileKind=0",
+      "sha256": "861884421593840d0def5dcfca62d92bd7a0da3114e12e2ed229ad74e40f5345"
+    }
+  },
+  "crosscheck_history": [
+    {
+      "recorded_as": "official_crosscheck",
+      "record": {
+        "accessed_utc": "2026-10-17T09:36:21Z",
+        "api_values": [
+          "52688337",
+          "51277351",
+          "6533792",
+          "732540",
+          "3304085"
+        ],
+        "compared_asset_codes": [
+          "00",
+          "00R",
+          "01",
+          "02",
+          "19"
+        ],
+        "official_values": [
+          "52688337",
+          "51277351",
+          "6533792",
+          "732540",
+          "3304085"
+        ],
+        "result": "all five values match exactly",
+        "selection": "Household size = average; age = average; education = average; disposable income = average",
+        "sha256": "861884421593840d0def5dcfca62d92bd7a0da3114e12e2ed229ad74e40f5345",
+        "source_title": "e-Stat official Excel, table 7-131-1",
+        "stat_infid": "000040490406",
+        "url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040490406&fileKind=0"
+      },
+      "api_acquisition_binding": {
+        "id": null,
+        "captured_at_utc": null,
+        "official_file_accessed_utc": "2026-10-17T09:36:21Z",
+        "note": "Original record did not identify the API acquisition; accessed_utc is the official-file access time only."
+      }
+    },
+    {
+      "recorded_as": "negative_asset_crosscheck",
+      "record": {
+        "api_values": [
+          "3973273",
+          "1520744",
+          "1039774"
+        ],
+        "asset_codes": [
+          "R01",
+          "R02",
+          "R03"
+        ],
+        "official_values": [
+          "3973273",
+          "1520744",
+          "1039774"
+        ],
+        "result": "all three values match exactly; their sum differs from category 01 by one household due to published rounding",
+        "selection": "Household size = average; age = average; education = average; disposable income = average",
+        "source_title": "e-Stat official Excel, table 7-131-1",
+        "stat_infid": "000040490406"
+      },
+      "api_acquisition_binding": {
+        "id": null,
+        "captured_at_utc": null,
+        "official_file_accessed_utc": null,
+        "note": "Original record did not identify the API acquisition; accessed_utc is the official-file access time only."
+      }
+    }
+  ],
+  "current_crosschecks": {
+    "official_crosscheck": {
+      "status": "unchecked",
+      "reason": "The complete API acquisition used by this checked-in manifest is not available for a fresh comparison; historical match is not current evidence.",
+      "acquisition": null,
+      "selection": "Household size = average; age = average; education = average; disposable income = average",
+      "compared_asset_codes": [
+        "00",
+        "00R",
+        "01",
+        "02",
+        "19"
+      ],
+      "api_values": [],
+      "official_values": [
+        "52688337",
+        "51277351",
+        "6533792",
+        "732540",
+        "3304085"
+      ],
+      "source": {
+        "title": "e-Stat official Excel, table 7-131-1",
+        "stat_infid": "000040490406",
+        "url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040490406&fileKind=0",
+        "sha256": "861884421593840d0def5dcfca62d92bd7a0da3114e12e2ed229ad74e40f5345"
+      }
+    },
+    "negative_asset_crosscheck": {
+      "status": "unchecked",
+      "reason": "The complete API acquisition used by this checked-in manifest is not available for a fresh comparison; historical match is not current evidence.",
+      "acquisition": null,
+      "selection": "Household size = average; age = average; education = average; disposable income = average",
+      "compared_asset_codes": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "api_values": [],
+      "official_values": [
+        "3973273",
+        "1520744",
+        "1039774"
+      ],
+      "source": {
+        "title": "e-Stat official Excel, table 7-131-1",
+        "stat_infid": "000040490406",
+        "url": "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040490406&fileKind=0",
+        "sha256": "861884421593840d0def5dcfca62d92bd7a0da3114e12e2ed229ad74e40f5345"
+      }
+    }
   }
 }

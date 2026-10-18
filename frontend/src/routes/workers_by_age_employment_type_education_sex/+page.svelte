@@ -25,6 +25,7 @@
   let comparisonItems = $state(/** @type {Item[]} */ ([]));
   let mode = $state(/** @type {"add"|"compare"} */ ("add"));
   let comparisonDimension = $state(/** @type {DimensionKey|""} */ (""));
+  let educationComparisonSetId = $state("education-status");
   let comparisonCodes = $state(/** @type {string[]} */ ([]));
   let removedComparisonLabels = $state(/** @type {string[]} */ ([]));
   let comparisonSelectionNotice = $state("");
@@ -43,6 +44,8 @@
     { key: "education", title: "教育" },
     { key: "sex", title: "性別" },
   ];
+  const educationHierarchyNote =
+    "学校区分は「在学中」「卒業」それぞれの内訳です。卒業の「大学・大学院」は、2013年から「大学」と「大学院」に分かれています。数値の四捨五入や分類不能・不詳の扱いにより、総数と内訳の合計は一致しない場合があります。";
 
   const selectedIndex = $derived(findIndex(selections));
   const selectedNormalItemKey = $derived(
@@ -79,7 +82,15 @@
   const comparisonChoices = $derived.by(() => {
     if (!comparisonDimension || !options) return [];
     const dimension = comparisonDimension;
-    return options.dimensions[dimension].map((choice) => ({
+    let choices = options.dimensions[dimension];
+    if (dimension === "education") {
+      const codes =
+        options.education_comparison_sets.find(
+          (set) => set.id === educationComparisonSetId,
+        )?.category_codes ?? [];
+      choices = choices.filter((choice) => codes.includes(choice.code));
+    }
+    return choices.map((choice) => ({
       ...choice,
       index: comparisonIndex(dimension, choice.code),
     }));
@@ -164,18 +175,34 @@
 
   /** @param {DimensionKey} dimension @param {string} code */
   function dimensionName(dimension, code) {
+    const currentOptions = options;
+    if (!currentOptions) return code;
     const name =
-      options?.dimensions[dimension].find((item) => item.code === code)?.name ??
-      code;
+      currentOptions.dimensions[dimension].find((item) => item.code === code)
+        ?.name ?? code;
     if (dimension !== "education") return name;
-    return (
-      {
-        "03": `在学中 > ${name}`,
-        "04": `在学中 > ${name}`,
-        "07": `卒業 > ${name}`,
-        "08": `卒業 > ${name}`,
-      }[code] ?? name
-    );
+    const paths = /** @type {Record<string, string[]>} */ ({});
+    /** @param {import("./constants/types.js").DisplayNode[]} nodes @param {string[]} [ancestors] */
+    const visit = (nodes, ancestors = []) => {
+      for (const node of nodes) {
+        paths[node.code] = ancestors;
+        visit(node.children ?? [], [...ancestors, node.code]);
+      }
+    };
+    visit(currentOptions.education_display_hierarchy);
+    const context = paths[code] ?? [];
+    const visibleContext = context
+      .filter((ancestorCode) => ancestorCode !== "00")
+      .map((ancestorCode) => {
+        if (ancestorCode === "01") return "在学中の内訳";
+        if (ancestorCode === "05") return "卒業者の内訳";
+        return (
+          currentOptions.dimensions.education.find(
+            (item) => item.code === ancestorCode,
+          )?.name ?? ancestorCode
+        ).replace(/^うち/, "");
+      });
+    return [...visibleContext, name].filter(Boolean).join(" > ");
   }
 
   /** @param {boolean} comparing */
@@ -346,11 +373,24 @@
       comparisonItems = [];
       return;
     }
+    if (dimension === "education")
+      educationComparisonSetId = "education-status";
     comparisonCodes =
-      options?.dimensions[dimension]
+      comparisonChoices
         .filter((choice) => comparisonIndex(dimension, choice.code))
         .map((choice) => choice.code) ?? [];
     comparisonSelectionNotice = `利用可能な区分を全選択しました（${comparisonCodes.length}系列）。`;
+    comparisonItems = [];
+    syncComparisonItems();
+  }
+
+  /** @param {string} setId */
+  function setEducationComparisonSet(setId) {
+    educationComparisonSetId = setId;
+    comparisonCodes = comparisonChoices
+      .filter((choice) => comparisonIndex("education", choice.code))
+      .map((choice) => choice.code);
+    comparisonSelectionNotice = `選択した区分集合から利用可能な区分を全選択しました（${comparisonCodes.length}系列）。`;
     comparisonItems = [];
     syncComparisonItems();
   }
@@ -364,6 +404,7 @@
       comparisonDimension = "";
       comparisonCodes = [];
       comparisonItems = [];
+      educationComparisonSetId = "education-status";
       removedComparisonLabels = [];
       comparisonSelectionNotice = "";
       return;
@@ -477,6 +518,22 @@
                             (item) => item.key === comparisonDimension,
                           )?.title}の区分</legend
                         >
+                        {#if comparisonDimension === "education"}
+                          <label class="comparison-set-select">
+                            比較する教育区分のまとまり
+                            <select
+                              value={educationComparisonSetId}
+                              onchange={(event) =>
+                                setEducationComparisonSet(
+                                  event.currentTarget.value,
+                                )}
+                            >
+                              {#each options.education_comparison_sets as set (set.id)}
+                                <option value={set.id}>{set.label}</option>
+                              {/each}
+                            </select>
+                          </label>
+                        {/if}
                         {#each comparisonChoices as choice (choice.code)}
                           <label class:unavailable={!choice.index}>
                             <input
@@ -554,7 +611,11 @@
                             )}
                         >
                           {#each options.dimensions[dimension.key] as choice (choice.code)}<option
-                              value={choice.code}>{choice.name}</option
+                              value={choice.code}
+                              >{dimensionName(
+                                dimension.key,
+                                choice.code,
+                              )}</option
                             >{/each}
                         </select>
                         {#if mode === "compare" && comparisonDimension === dimension.key}<span
@@ -647,6 +708,19 @@
         <section class="reference ui-panel ui-panel--subtle">
           <h2>データ利用上の注意</h2>
           <ul class="notes">
+            <li>
+              {educationHierarchyNote}
+              <a
+                href="https://www.stat.go.jp/data/roudou/change/2013/pdf/20121228.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                >出典：2013年からの変更内容（3ページ・表7）</a
+              >、<a
+                href="https://www.stat.go.jp/data/roudou/rireki/nen/dt/pdf/2012.pdf"
+                target="_blank"
+                rel="noopener noreferrer">詳細集計の利用上の注意</a
+              >
+            </li>
             <li>
               推計人口の基準切り替えに伴い、時系列に変動が生じる場合があります。また、データベース収録値は時系列接続用の補正値と異なることがあります。
             </li>

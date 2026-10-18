@@ -159,6 +159,7 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     let manifest = serde_json::json!({
         "stats_data_id": STATS_DATA_ID,
         "captured_records": captured,
+        "captured_at_utc": current_utc_timestamp(),
         "complete": true,
     });
     fs::write(
@@ -176,6 +177,8 @@ struct Category {
     label: String,
     kind: String,
     order: usize,
+    api_level: Option<String>,
+    api_parent_code: Option<String>,
 }
 
 #[derive(Clone)]
@@ -232,7 +235,12 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
                 label: name,
                 kind,
                 order: category_order,
+                api_level: attr(item, "@level").map(str::to_owned),
+                api_parent_code: attr(item, "@parentCode").map(str::to_owned),
             });
+        }
+        if id == &"cat02" {
+            validate_education_categories(&categories)?;
         }
         let total_code = if id == &"cat04" {
             None
@@ -255,7 +263,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             vec![
                 make_set(
                     "education-status",
-                    "在学中・卒業",
+                    "在学中・卒業者全体",
                     categories
                         .iter()
                         .filter(|c| c.label == "在学中" || c.label == "卒業")
@@ -263,7 +271,7 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
                 ),
                 make_set(
                     "graduated-subgroups",
-                    "卒業者の学歴",
+                    "卒業者の学歴内訳",
                     categories
                         .iter()
                         .filter(|c| {
@@ -686,6 +694,41 @@ fn validate_distribution_bundle(
     if all_dimension_ids.iter().collect::<BTreeSet<_>>().len() != all_dimension_ids.len() {
         return Err("Manifest repeats a dimension ID".into());
     }
+    if let Some(education_dimension) = dimensions
+        .iter()
+        .find(|dimension| dimension["id"] == "cat02")
+    {
+        let education_categories = education_dimension["categories"]
+            .as_array()
+            .ok_or("Manifest omitted cat02 categories")?
+            .iter()
+            .enumerate()
+            .map(|(order, category)| Category {
+                code: category["code"].as_str().unwrap_or_default().to_owned(),
+                label: category["label"].as_str().unwrap_or_default().to_owned(),
+                kind: category["kind"].as_str().unwrap_or_default().to_owned(),
+                order,
+                api_level: category["api_level"].as_str().map(str::to_owned),
+                api_parent_code: category["api_parent_code"].as_str().map(str::to_owned),
+            })
+            .collect::<Vec<_>>();
+        validate_education_categories(&education_categories)?;
+        if education_dimension["display_hierarchy"]
+            != serde_json::json!({
+                "standalone_codes": ["0", "1"],
+                "groups": [{"code": "2", "children": ["21", "22", "23"]}]
+            })
+            || education_dimension["comparison_sets"]
+                != serde_json::json!([
+                    {"id":"education-status","label":"在学中・卒業者全体","category_codes":["1","2"]},
+                    {"id":"graduated-subgroups","label":"卒業者の学歴内訳","category_codes":["21","22","23"]}
+                ])
+        {
+            return Err(
+                "Education display hierarchy or comparison sets changed unexpectedly".into(),
+            );
+        }
+    }
     if ids.len() != filter_ids.len() || ids.iter().any(|id| !filter_ids.contains(id)) {
         return Err(
             "Combination index axes must contain every filter dimension exactly once".into(),
@@ -800,6 +843,8 @@ fn validate_distribution_bundle(
                 label: required_attr(category, "label")?.to_owned(),
                 kind: required_attr(category, "kind")?.to_owned(),
                 order,
+                api_level: None,
+                api_parent_code: None,
             })
         })
         .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
@@ -1046,13 +1091,50 @@ fn dimension_json(d: &Dimension) -> Value {
     let mut dimension = serde_json::json!({
         "id": d.id, "label": d.label, "role": d.role, "order": d.order,
         "total_code": d.total_code, "default_code": d.total_code,
-        "categories": d.categories.iter().map(|c| serde_json::json!({"code":c.code,"label":c.label,"kind":c.kind,"order":c.order})).collect::<Vec<_>>(),
+        "categories": d.categories.iter().map(|c| serde_json::json!({"code":c.code,"label":c.label,"kind":c.kind,"order":c.order,"api_level":c.api_level,"api_parent_code":c.api_parent_code})).collect::<Vec<_>>(),
         "comparison_sets": d.comparison_sets
     });
     if d.role == "asset_class" {
         dimension["display_category_codes"] = serde_json::json!(d.display_category_codes);
     }
+    if d.id == "cat02" {
+        dimension["display_hierarchy"] = serde_json::json!({
+            "standalone_codes": ["0", "1"],
+            "groups": [{"code": "2", "children": ["21", "22", "23"]}]
+        });
+    }
     dimension
+}
+
+fn validate_education_categories(categories: &[Category]) -> Result<(), Box<dyn Error>> {
+    let expected = [
+        ("0", "平均", "1", None),
+        ("1", "在学中", "1", None),
+        ("2", "卒業", "1", None),
+        ("21", "小学校・中学校", "2", Some("2")),
+        ("22", "高校程度", "2", Some("2")),
+        ("23", "短大程度以上", "2", Some("2")),
+    ];
+    if categories.len() != expected.len() {
+        return Err(format!("学歴区分の数が変わりました: {}", categories.len()).into());
+    }
+    for (index, (category, (code, label, level, parent))) in
+        categories.iter().zip(expected).enumerate()
+    {
+        if category.order != index
+            || category.code != code
+            || category.label != label
+            || category.api_level.as_deref() != Some(level)
+            || category.api_parent_code.as_deref() != parent
+        {
+            return Err(format!(
+                "想定外の全国家計構造調査学歴区分: {} ({})",
+                category.code, category.label
+            )
+            .into());
+        }
+    }
+    Ok(())
 }
 
 fn cartesian_codes(dimensions: &[&Dimension]) -> Vec<Vec<(String, String)>> {
@@ -1138,7 +1220,16 @@ fn write_inspection_samples(
         serde_json::to_vec_pretty(metadata)?,
     )?;
     let mut chosen = Vec::new();
-    let age_code = metadata_category_code(class_objs, "cat01", "35歳未満")?;
+    let education_codes: BTreeSet<String> = class_objs
+        .iter()
+        .find(|dimension| attr(dimension, "@id") == Some("cat02"))
+        .map(|dimension| {
+            as_items(&dimension["CLASS"])
+                .into_iter()
+                .filter_map(|category| attr(category, "@code").map(str::to_owned))
+                .collect()
+        })
+        .ok_or("Metadata omitted cat02 education classifications")?;
     for path in raw_paths {
         let page: Value = serde_json::from_slice(&fs::read(path)?)?;
         let stat = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];
@@ -1149,7 +1240,7 @@ fn write_inspection_samples(
             {
                 continue;
             }
-            let total = ["cat01", "cat02", "cat03", "cat05"].iter().all(|id| {
+            let total = ["cat01", "cat03", "cat05"].iter().all(|id| {
                 let Some(dimension) = class_objs
                     .iter()
                     .find(|dimension| attr(dimension, "@id") == Some(id))
@@ -1163,29 +1254,14 @@ fn write_inspection_samples(
                     return false;
                 };
                 attr(row, &format!("@{id}")) == attr(category, "@code")
-            });
-            let age_subgroup = attr(row, "@cat01") == Some(age_code.as_str())
-                && ["cat02", "cat03", "cat05"].iter().all(|id| {
-                    let Some(dimension) = class_objs
-                        .iter()
-                        .find(|dimension| attr(dimension, "@id") == Some(id))
-                    else {
-                        return false;
-                    };
-                    let Some(category) = as_items(&dimension["CLASS"])
-                        .into_iter()
-                        .find(|category| attr(category, "@name") == Some("平均"))
-                    else {
-                        return false;
-                    };
-                    attr(row, &format!("@{id}")) == attr(category, "@code")
-                });
-            if total || age_subgroup {
+            }) && attr(row, "@cat02")
+                .is_some_and(|code| education_codes.contains(code));
+            if total {
                 chosen.push((*row).clone());
             }
         }
     }
-    let sample = serde_json::json!({"sample_note": "Actual e-Stat VALUE records extracted from the complete capture; two full 36-category series (overall and age-under-35) are retained.", "source_total_number": 243432, "selected_value_count": chosen.len(), "GET_STATS_DATA": {"STATISTICAL_DATA": {"DATA_INF": {"NOTE": [{"@char":"-","$":"該当数字がない"},{"@char":"X","$":"集計世帯数が少ないため秘匿しているもの"}], "VALUE": chosen}}}});
+    let sample = serde_json::json!({"sample_note": "Actual e-Stat VALUE records extracted from the complete capture; all six education categories and the 36 asset-class values for average age, average disposable income, and average household size are retained.", "source_total_number": 243432, "selected_value_count": chosen.len(), "GET_STATS_DATA": {"STATISTICAL_DATA": {"DATA_INF": {"NOTE": [{"@char":"-","$":"該当数字がない"},{"@char":"X","$":"集計世帯数が少ないため秘匿しているもの"}], "VALUE": chosen}}}});
     fs::write(
         samples.join("stats_data.json"),
         serde_json::to_vec_pretty(&sample)?,
@@ -1194,21 +1270,265 @@ fn write_inspection_samples(
         let bytes = fs::read(path)?;
         Ok(format!("{:x}", Sha256::digest(bytes)))
     };
-    let manifest = serde_json::json!({
-        "captured_at_utc": current_utc_timestamp(), "stats_data_id": STATS_DATA_ID,
+    let acquisition_manifest_path = PathBuf::from(OUTPUT_DIR).join("capture_manifest.json");
+    let acquisition_manifest = fs::read(&acquisition_manifest_path)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+        .unwrap_or(Value::Null);
+    let acquisition_time = acquisition_manifest["captured_at_utc"]
+        .as_str()
+        .map(str::to_owned);
+    let mut api_hasher = Sha256::new();
+    for path in raw_paths {
+        api_hasher.update(
+            path.file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .as_bytes(),
+        );
+        api_hasher.update(fs::read(path)?);
+    }
+    let api_sha256 = format!("{:x}", api_hasher.finalize());
+    let acquisition_id = format!("{STATS_DATA_ID}:{api_sha256}");
+    let mut manifest = serde_json::json!({
+        "captured_at_utc": acquisition_time, "stats_data_id": STATS_DATA_ID,
         "filters": {"tab":measure_code,"area":area_code,"time":year_code},
         "result_total_number":243432,"pages":raw_paths.len(),"sample_value_count":chosen.len(),
+        "acquisition": {"id":acquisition_id,"captured_at_utc":acquisition_time,"api_raw_sha256":api_sha256},
         "samples": {
             "meta_info.json":{"sha256":digest(&samples.join("meta_info.json"))?},
             "stats_data.json":{"sha256":digest(&samples.join("stats_data.json"))?}
         },
         "output_counts": {"combinations":output["combinations"].as_array().map(Vec::len),"items":output["items"].as_array().map(Vec::len)}
     });
-    fs::write(
-        inspection.join("capture_manifest.json"),
-        serde_json::to_vec_pretty(&manifest)?,
+    let manifest_path = inspection.join("capture_manifest.json");
+    let previous = if manifest_path.exists() {
+        serde_json::from_slice::<Value>(&fs::read(&manifest_path)?)?
+    } else {
+        Value::Null
+    };
+    let (official_reference, negative_reference) = saved_official_references(&previous);
+    let mut history = previous["crosscheck_history"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    for key in ["official_crosscheck", "negative_asset_crosscheck"] {
+        if let Some(value) = previous.get(key) {
+            history.push(serde_json::json!({
+                "recorded_as":key,
+                "record":value,
+                "api_acquisition_binding": {
+                    "id": null,
+                    "captured_at_utc": null,
+                    "official_file_accessed_utc": value["accessed_utc"],
+                    "note": "Original record did not identify the API acquisition; accessed_utc is the official-file access time only."
+                }
+            }));
+        }
+    }
+    if let Some(value) = previous.get("current_crosschecks") {
+        history.push(serde_json::json!({
+            "recorded_as":"current_crosschecks",
+            "record":value,
+            "api_acquisition_binding":value
+        }));
+    }
+    let selection =
+        "Household size = average; age = average; education = average; disposable income = average";
+    let acquisition = serde_json::json!({
+        "id": acquisition_id, "captured_at_utc": acquisition_time,
+        "stats_data_id": STATS_DATA_ID, "filters": {"tab":measure_code,"area":area_code,"time":year_code},
+        "api_raw_sha256": api_sha256
+    });
+    let current_official = compare_saved_official(
+        &official_reference,
+        &["00", "00R", "01", "02", "19"],
+        selection,
+        class_objs,
+        raw_paths,
+        measure_code,
+        area_code,
+        year_code,
+        &acquisition,
     )?;
+    let current_negative = compare_saved_official(
+        &negative_reference,
+        &["R01", "R02", "R03"],
+        selection,
+        class_objs,
+        raw_paths,
+        measure_code,
+        area_code,
+        year_code,
+        &acquisition,
+    )?;
+    manifest["official_reference"] = official_reference;
+    manifest["negative_asset_reference"] = negative_reference;
+    manifest["crosscheck_history"] = Value::Array(history);
+    manifest["current_crosschecks"] = serde_json::json!({
+        "official_crosscheck": current_official,
+        "negative_asset_crosscheck": current_negative
+    });
+    fs::write(manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
     Ok(())
+}
+
+fn saved_official_references(previous: &Value) -> (Value, Value) {
+    let legacy_official = &previous["official_crosscheck"];
+    let legacy_negative = &previous["negative_asset_crosscheck"];
+    let fallback_source = serde_json::json!({
+        "title": legacy_official["source_title"],
+        "stat_infid": legacy_official["stat_infid"],
+        "url": legacy_official["url"],
+        "sha256": legacy_official["sha256"]
+    });
+    let official = previous
+        .get("official_reference")
+        .cloned()
+        .unwrap_or_else(|| {
+            serde_json::json!({
+                "asset_codes": legacy_official["compared_asset_codes"],
+                "official_values": legacy_official["official_values"],
+                "selection": legacy_official["selection"],
+                "source": fallback_source
+            })
+        });
+    let negative = previous
+        .get("negative_asset_reference")
+        .cloned()
+        .unwrap_or_else(|| {
+            serde_json::json!({
+                "asset_codes": legacy_negative["asset_codes"],
+                "official_values": legacy_negative["official_values"],
+                "selection": legacy_negative["selection"],
+                "source": fallback_source
+            })
+        });
+    (official, negative)
+}
+
+fn compare_saved_official(
+    reference: &Value,
+    asset_codes: &[&str],
+    selection: &str,
+    class_objs: &[&Value],
+    raw_paths: &[PathBuf],
+    measure_code: &str,
+    area_code: &str,
+    year_code: &str,
+    acquisition: &Value,
+) -> Result<Value, Box<dyn Error>> {
+    let mut selected_codes = BTreeMap::new();
+    for dimension_id in ["cat01", "cat02", "cat03", "cat05"] {
+        let dimension = class_objs
+            .iter()
+            .find(|dimension| attr(dimension, "@id") == Some(dimension_id))
+            .ok_or_else(|| format!("Metadata omitted {dimension_id}"))?;
+        let category = as_items(&dimension["CLASS"])
+            .into_iter()
+            .find(|category| attr(category, "@name") == Some("平均"))
+            .ok_or_else(|| format!("Metadata omitted average category for {dimension_id}"))?;
+        selected_codes.insert(dimension_id, required_attr(category, "@code")?);
+    }
+    let mut api_values = BTreeMap::<String, String>::new();
+    for path in raw_paths {
+        let page: Value = serde_json::from_slice(&fs::read(path)?)?;
+        for row in as_items(&page["GET_STATS_DATA"]["STATISTICAL_DATA"]["DATA_INF"]["VALUE"]) {
+            let matches = ["cat01", "cat02", "cat03", "cat05"]
+                .iter()
+                .all(|id| attr(row, &format!("@{id}")) == selected_codes.get(id).copied());
+            if !matches
+                || attr(row, "@tab") != Some(measure_code)
+                || attr(row, "@area") != Some(area_code)
+                || attr(row, "@time") != Some(year_code)
+            {
+                continue;
+            }
+            let code = required_attr(row, "@cat04")?;
+            if asset_codes.contains(&code) {
+                api_values.insert(code.to_owned(), required_attr(row, "$")?.to_owned());
+            }
+        }
+    }
+    let expected_codes: Vec<String> = reference["asset_codes"]
+        .as_array()
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
+    let expected_values: Vec<String> = reference["official_values"]
+        .as_array()
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
+    let reference_by_code: BTreeMap<_, _> = expected_codes
+        .iter()
+        .cloned()
+        .zip(expected_values.iter().cloned())
+        .collect();
+    let complete_reference = asset_codes.len() == expected_codes.len()
+        && asset_codes
+            .iter()
+            .all(|code| reference_by_code.contains_key(*code));
+    let complete_api = asset_codes
+        .iter()
+        .all(|code| api_values.contains_key(*code));
+    let matches = complete_reference
+        && complete_api
+        && asset_codes
+            .iter()
+            .all(|code| reference_by_code.get(*code) == api_values.get(*code));
+    let status = crosscheck_status(complete_reference, complete_api, matches);
+    let mut api_ordered = Vec::new();
+    let mut official_ordered = Vec::new();
+    for code in asset_codes {
+        api_ordered.push(api_values.get(*code).cloned().unwrap_or_default());
+        official_ordered.push(reference_by_code.get(*code).cloned().unwrap_or_default());
+    }
+    Ok(serde_json::json!({
+        "status": status,
+        "acquisition": acquisition,
+        "conditions": {
+            "tab": measure_code,
+            "area": area_code,
+            "time": year_code,
+            "cat01": selected_codes["cat01"],
+            "cat02": selected_codes["cat02"],
+            "cat03": selected_codes["cat03"],
+            "cat05": selected_codes["cat05"],
+            "cat04": asset_codes.iter().filter(|code| api_values.contains_key(**code)).copied().collect::<Vec<_>>(),
+            "requested_cat04": asset_codes
+        },
+        "selection": selection,
+        "compared_asset_codes": asset_codes,
+        "api_values": api_ordered,
+        "official_values": official_ordered,
+        "source": reference["source"],
+        "result": match status { "match" => "all values match exactly for this API acquisition", "mismatch" => "current API values differ from saved official values", _ => "not compared: reference or current API values are incomplete" }
+    }))
+}
+
+fn crosscheck_status(
+    reference_complete: bool,
+    api_complete: bool,
+    values_match: bool,
+) -> &'static str {
+    if !reference_complete || !api_complete {
+        "unchecked"
+    } else if values_match {
+        "match"
+    } else {
+        "mismatch"
+    }
 }
 
 fn as_items(value: &Value) -> Vec<&Value> {
@@ -1330,6 +1650,14 @@ mod tests {
                 label: category["@name"].as_str().unwrap().to_owned(),
                 kind: classify_category("cat04", category["@name"].as_str().unwrap()),
                 order,
+                api_level: category
+                    .get("@level")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
+                api_parent_code: category
+                    .get("@parentCode")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
             })
             .collect()
     }
@@ -1543,5 +1871,39 @@ mod tests {
         }
         assert_eq!(sum, 6_533_791);
         assert_eq!(national["01"], "6533792");
+    }
+
+    #[test]
+    fn crosscheck_requires_complete_current_values_and_exact_equality() {
+        assert_eq!(crosscheck_status(true, true, true), "match");
+        assert_eq!(crosscheck_status(true, true, false), "mismatch");
+        assert_eq!(crosscheck_status(true, false, false), "unchecked");
+        assert_eq!(crosscheck_status(false, true, true), "unchecked");
+    }
+
+    #[test]
+    fn legacy_crosschecks_become_official_references_without_current_status() {
+        let previous = serde_json::json!({
+            "official_crosscheck": {
+                "compared_asset_codes": ["00"],
+                "official_values": ["123"],
+                "selection": "selection",
+                "source_title": "official file",
+                "stat_infid": "file-id",
+                "url": "https://example.test/file",
+                "sha256": "abc"
+            },
+            "negative_asset_crosscheck": {
+                "asset_codes": ["R01"],
+                "official_values": ["45"],
+                "selection": "selection"
+            }
+        });
+        let (official, negative) = saved_official_references(&previous);
+        assert_eq!(official["asset_codes"][0], "00");
+        assert_eq!(official["official_values"][0], "123");
+        assert_eq!(official["source"]["sha256"], "abc");
+        assert_eq!(negative["asset_codes"][0], "R01");
+        assert_eq!(negative["official_values"][0], "45");
     }
 }

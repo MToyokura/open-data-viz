@@ -21,6 +21,105 @@ export function validateOptions(data) {
   }
   if (!Array.isArray(options.series))
     throw new Error("系列一覧の形式が正しくありません");
+  const expectedEducation =
+    /** @type {[string, string, string, string|null][]} */ ([
+      ["00", "総数", "1", null],
+      ["01", "うち在学中", "2", null],
+      ["02", "小学・中学・高校", "3", null],
+      ["03", "短大・高専", "3", "02"],
+      ["04", "大学・大学院", "3", "02"],
+      ["05", "うち卒業", "2", null],
+      ["06", "小学・中学・高校・旧中", "3", "05"],
+      ["07", "短大・高専", "3", "05"],
+      ["08", "大学・大学院", "3", "05"],
+      ["09", "大学", "3", "05"],
+      ["10", "大学院", "3", "05"],
+    ]);
+  const expectedDisplayHierarchy = [
+    {
+      code: "00",
+      children: [
+        {
+          code: "01",
+          children: [{ code: "02" }, { code: "03" }, { code: "04" }],
+        },
+        {
+          code: "05",
+          children: [
+            { code: "06" },
+            { code: "07" },
+            { code: "08" },
+            { code: "09" },
+            { code: "10" },
+          ],
+        },
+      ],
+    },
+  ];
+  const education = options.dimensions.education;
+  if (
+    education.length !== expectedEducation.length ||
+    education.some(
+      (
+        /** @type {import("../constants/types.js").DimensionOption} */ item,
+        /** @type {number} */ index,
+      ) => {
+        const [code, name, level, parent] = expectedEducation[index];
+        return (
+          item.code !== code ||
+          item.name !== name ||
+          item.order !== index ||
+          item.api_level !== level ||
+          (item.api_parent_code ?? null) !== parent
+        );
+      },
+    )
+  )
+    throw new Error("教育区分の公式メタデータが想定と異なります");
+  /**
+   * @param {unknown} actual
+   * @param {{ code: string, children?: { code: string, children?: any[] }[] }[]} expected
+   * @returns {boolean}
+   */
+  const matchesDisplayNodes = (actual, expected) =>
+    Array.isArray(actual) &&
+    actual.length === expected.length &&
+    actual.every((node, index) => {
+      if (!node || typeof node !== "object") return false;
+      const candidate = /** @type {{ code?: unknown, children?: unknown }} */ (
+        node
+      );
+      const expectedNode = expected[index];
+      const children = candidate.children ?? [];
+      return (
+        candidate.code === expectedNode.code &&
+        Array.isArray(children) &&
+        matchesDisplayNodes(children, expectedNode.children ?? [])
+      );
+    });
+  if (
+    !matchesDisplayNodes(
+      options.education_display_hierarchy,
+      expectedDisplayHierarchy,
+    )
+  )
+    throw new Error("教育区分の画面表示階層が想定と異なります");
+  if (
+    !Array.isArray(options.education_comparison_sets) ||
+    JSON.stringify(
+      options.education_comparison_sets.map(
+        (
+          /** @type {import("../constants/types.js").EducationComparisonSet} */ set,
+        ) => [set.id, set.category_codes],
+      ),
+    ) !==
+      JSON.stringify([
+        ["education-status", ["01", "05"]],
+        ["enrolled-categories", ["02", "03", "04"]],
+        ["graduated-categories", ["06", "07", "08", "09", "10"]],
+      ])
+  )
+    throw new Error("教育区分の比較集合が想定と異なります");
   if (!options.metadata || typeof options.metadata.stats_data_id !== "string")
     throw new Error("メタデータの形式が正しくありません");
   for (const item of options.series) {

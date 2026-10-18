@@ -266,6 +266,7 @@ pub fn run(app_id: &str, limit: u32, scan_all: bool) -> Result<(), Box<dyn Error
         let mut annotation_keys = BTreeSet::new();
         let mut seen = HashSet::new();
         let mut scan_pages = Vec::new();
+        let mut education_examples = Vec::new();
         let mut start = 1_u64;
         while start <= total {
             if start > 1 {
@@ -320,6 +321,17 @@ pub fn run(app_id: &str, limit: u32, scan_all: bool) -> Result<(), Box<dyn Error
                             .cloned(),
                     );
                 }
+                if value["@tab"] == "06"
+                    && value["@area"] == "00000"
+                    && value["@cat01"] == "00"
+                    && value["@cat02"] == "02"
+                    && value["@cat03"] == "00"
+                    && value["@cat05"] == "0"
+                    && ["2024000000", "2025000000"]
+                        .contains(&value["@time"].as_str().unwrap_or_default())
+                {
+                    education_examples.push(value.clone());
+                }
             }
             start += to - from + 1;
             total = returned_total;
@@ -331,6 +343,20 @@ pub fn run(app_id: &str, limit: u32, scan_all: bool) -> Result<(), Box<dyn Error
         validate_scan_payload(&scan, expected_total)?;
         save("special_value_scan.json", scan)?;
         manifest["fullValueScan"] = json!({"sample": "samples/special_value_scan.json", "recordCount": expected_total, "pageLimit": scan_limit, "pageCount": (expected_total + scan_limit - 1) / scan_limit});
+        let education_examples_path = save(
+            "education_value_examples.json",
+            json!({
+                "sample_note": "Current e-Stat VALUE records for 2024 and 2025, holding age, employment status/type, and sex at their total categories; missing category rows are not imputed.",
+                "conditions": {"tab": "06", "area": "00000", "cat01": "00", "cat02": "02", "cat03": "00", "cat05": "0"},
+                "education_codes": ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
+                "VALUE": education_examples
+            }),
+        )?;
+        manifest["educationValueExamples"] = json!({
+            "sample": education_examples_path,
+            "recordCount": education_examples.len(),
+            "years": ["2024", "2025"]
+        });
     }
     fs::write(
         Path::new(ROOT).join("capture_manifest.json"),
@@ -338,7 +364,7 @@ pub fn run(app_id: &str, limit: u32, scan_all: bool) -> Result<(), Box<dyn Error
     )?;
     println!("Captured scrubbed responses for table {TABLE} at {captured} (credentials omitted).");
     if scan_all {
-        println!("Full-value scan saved as samples/special_value_scan.json.");
+        println!("Full-value scan and education examples saved under samples/.");
     }
     Ok(())
 }
