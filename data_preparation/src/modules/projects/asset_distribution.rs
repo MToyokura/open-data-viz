@@ -66,10 +66,12 @@ pub fn run(args: &[String]) -> bool {
 }
 
 fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
-    let staging = PathBuf::from(format!("{OUTPUT_DIR}.staging"));
-    let _ = fs::remove_dir_all(&staging);
-    fs::create_dir_all(staging.join("meta_data"))?;
-    fs::create_dir_all(staging.join("raw_data"))?;
+    let target = PathBuf::from(OUTPUT_DIR);
+    if target.exists() {
+        fs::remove_dir_all(&target)?;
+    }
+    fs::create_dir_all(target.join("meta_data"))?;
+    fs::create_dir_all(target.join("raw_data"))?;
 
     let meta_response = get_meta_info(
         GetMetaInfoParamsBuilder::new(MetaParams {
@@ -83,7 +85,7 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     let mut metadata: Value = serde_json::from_str(&meta_response)?;
     redact_app_id(&mut metadata);
     fs::write(
-        staging.join("meta_data/get_meta_info.json"),
+        target.join("meta_data/get_meta_info.json"),
         serde_json::to_vec_pretty(&metadata)?,
     )?;
 
@@ -133,7 +135,7 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
         }
         redact_app_id(&mut page);
         fs::write(
-            staging
+            target
                 .join("raw_data")
                 .join(format!("get_stats_data_{start_position:010}.json")),
             serde_json::to_vec_pretty(&page)?,
@@ -160,23 +162,10 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
         "complete": true,
     });
     fs::write(
-        staging.join("capture_manifest.json"),
+        target.join("capture_manifest.json"),
         serde_json::to_vec_pretty(&manifest)?,
     )?;
 
-    let target = PathBuf::from(OUTPUT_DIR);
-    let backup = PathBuf::from(format!("{OUTPUT_DIR}.previous"));
-    let _ = fs::remove_dir_all(&backup);
-    if target.exists() {
-        fs::rename(&target, &backup)?;
-    }
-    if let Err(error) = fs::rename(&staging, &target) {
-        if backup.exists() {
-            let _ = fs::rename(&backup, &target);
-        }
-        return Err(error.into());
-    }
-    let _ = fs::remove_dir_all(backup);
     println!("Captured {captured} records in {OUTPUT_DIR}");
     Ok(())
 }
@@ -492,8 +481,8 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Write and validate the browser-facing manifest/chunks before replacing any
-/// previous generated output. Chunks are formed in deterministic combination
+/// Write and validate the browser-facing manifest/chunks directly in the
+/// generated output directory. Chunks are formed in deterministic combination
 /// order and never split a series across files.
 fn write_distribution_bundle(
     root: &PathBuf,
@@ -511,11 +500,19 @@ fn write_distribution_bundle(
     // If any estimate was low, split that candidate and remeasure its children.
     let finalized_chunks = serialize_planned_chunks(groups, &items_by_combination)?;
 
-    let staging = root.join(".asset_distribution.staging");
-    let backup = root.join(".asset_distribution.previous");
-    let _ = fs::remove_dir_all(&staging);
-    let _ = fs::remove_dir_all(&backup);
-    fs::create_dir_all(staging.join("items"))?;
+    let manifest_path = root.join("manifest.json");
+    if manifest_path.exists() {
+        fs::remove_file(&manifest_path)?;
+    }
+    let items_path = root.join("items");
+    if items_path.exists() {
+        fs::remove_dir_all(&items_path)?;
+    }
+    let legacy_path = root.join("asset_distribution.json");
+    if legacy_path.exists() {
+        fs::remove_file(legacy_path)?;
+    }
+    fs::create_dir_all(&items_path)?;
 
     let mut manifest_chunks = Vec::with_capacity(finalized_chunks.len());
     let mut next_start_index = 0_usize;
@@ -529,7 +526,7 @@ fn write_distribution_bundle(
             }
         }
         let relative_path = format!("items/{chunk_index:05}.json");
-        fs::write(staging.join(&relative_path), bytes)?;
+        fs::write(root.join(&relative_path), bytes)?;
         manifest_chunks.push(serde_json::json!({
             "path": relative_path,
             "bytes": bytes.len(),
@@ -552,14 +549,8 @@ fn write_distribution_bundle(
         },
         "chunks": manifest_chunks
     });
-    fs::write(
-        staging.join("manifest.json"),
-        serde_json::to_vec_pretty(&manifest)?,
-    )?;
-    validate_staged_bundle(&staging, &manifest, combinations, &items_by_combination)?;
-    replace_distribution_bundle(root, &staging, &backup)?;
-    let _ = fs::remove_dir_all(&backup);
-    let _ = fs::remove_dir_all(&staging);
+    fs::write(manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
+    validate_distribution_bundle(root, &manifest, combinations, &items_by_combination)?;
     Ok(finalized_chunks.len())
 }
 
@@ -652,16 +643,16 @@ fn chunk_json_bytes(items: &[Value]) -> Result<Vec<u8>, Box<dyn Error>> {
     }))?)
 }
 
-fn validate_staged_bundle(
-    staging: &PathBuf,
+fn validate_distribution_bundle(
+    output_dir: &PathBuf,
     manifest: &Value,
     expected_combinations: &[Value],
     expected_items: &[Vec<Value>],
 ) -> Result<(), Box<dyn Error>> {
     let on_disk_manifest: Value =
-        serde_json::from_slice(&fs::read(staging.join("manifest.json"))?)?;
+        serde_json::from_slice(&fs::read(output_dir.join("manifest.json"))?)?;
     if &on_disk_manifest != manifest {
-        return Err("Staged manifest does not match generated manifest".into());
+        return Err("Written manifest does not match generated manifest".into());
     }
     if manifest["schema_version"] != 3 {
         return Err("Unexpected manifest schema version".into());
@@ -833,7 +824,7 @@ fn validate_staged_bundle(
         if !relative_path.starts_with("items/") || relative_path.contains("..") {
             return Err(format!("Unsafe chunk path in manifest: {relative_path}").into());
         }
-        if fs::metadata(staging.join(relative_path))?.len() > CHUNK_MAX_BYTES as u64 {
+        if fs::metadata(output_dir.join(relative_path))?.len() > CHUNK_MAX_BYTES as u64 {
             return Err(format!("Chunk {relative_path} exceeds the size limit").into());
         }
         if !referenced_chunks.insert(relative_path) {
@@ -850,7 +841,7 @@ fn validate_staged_bundle(
             return Err("Chunk ranges overlap, have gaps, or exceed the combination index".into());
         }
         next_start_index += count;
-        let chunk: Value = serde_json::from_slice(&fs::read(staging.join(relative_path))?)?;
+        let chunk: Value = serde_json::from_slice(&fs::read(output_dir.join(relative_path))?)?;
         if chunk["schema_version"] != 3 {
             return Err(format!("Unexpected schema version in {relative_path}").into());
         }
@@ -861,7 +852,8 @@ fn validate_staged_bundle(
             .iter()
             .map(|c| c["id"].as_str().ok_or("Generated combination omitted ID"))
             .collect::<Result<_, _>>()?;
-        if chunk_ref["bytes"].as_u64() != Some(fs::metadata(staging.join(relative_path))?.len()) {
+        if chunk_ref["bytes"].as_u64() != Some(fs::metadata(output_dir.join(relative_path))?.len())
+        {
             return Err(
                 format!("Chunk byte size does not match manifest for {relative_path}").into(),
             );
@@ -919,7 +911,7 @@ fn validate_staged_bundle(
     if next_start_index != product {
         return Err("Chunk ranges do not cover the combination index".into());
     }
-    let on_disk_chunk_paths: BTreeSet<_> = fs::read_dir(staging.join("items"))?
+    let on_disk_chunk_paths: BTreeSet<_> = fs::read_dir(output_dir.join("items"))?
         .map(|entry| entry.map(|entry| entry.file_name().to_string_lossy().into_owned()))
         .collect::<Result<_, _>>()?;
     let referenced_chunk_paths: BTreeSet<_> = referenced_chunks
@@ -992,47 +984,6 @@ fn validate_staged_bundle(
         return Err("Chunk values are missing or unexpected".into());
     }
     Ok(())
-}
-
-fn replace_distribution_bundle(
-    root: &PathBuf,
-    staging: &PathBuf,
-    backup: &PathBuf,
-) -> Result<(), Box<dyn Error>> {
-    fs::create_dir_all(backup)?;
-    // The obsolete single-file output is removed, never restored as a fallback.
-    let legacy = root.join("asset_distribution.json");
-    if legacy.exists() {
-        fs::remove_file(legacy)?;
-    }
-    let generated_names = ["manifest.json", "items"];
-    for name in generated_names {
-        let old = root.join(name);
-        if old.exists() {
-            if let Err(error) = fs::rename(&old, backup.join(name)) {
-                restore_distribution_backup(root, backup);
-                return Err(error.into());
-            }
-        }
-    }
-    for name in ["items", "manifest.json"] {
-        if let Err(error) = fs::rename(staging.join(name), root.join(name)) {
-            let _ = fs::remove_file(root.join("manifest.json"));
-            let _ = fs::remove_dir_all(root.join("items"));
-            restore_distribution_backup(root, backup);
-            return Err(error.into());
-        }
-    }
-    Ok(())
-}
-
-fn restore_distribution_backup(root: &PathBuf, backup: &PathBuf) {
-    for name in ["manifest.json", "items"] {
-        let saved = backup.join(name);
-        if saved.exists() {
-            let _ = fs::rename(saved, root.join(name));
-        }
-    }
 }
 
 fn classify_category(axis: &str, name: &str) -> String {
@@ -1498,7 +1449,7 @@ mod tests {
             )
             .unwrap();
             fs::write(directory.join("items/00000.json"), chunk).unwrap();
-            validate_staged_bundle(&directory, &candidate, &expected_combinations, expected)
+            validate_distribution_bundle(&directory, &candidate, &expected_combinations, expected)
         };
         assert!(check(&manifest, &series, &[series.clone()]).is_ok());
         for version in [1, 2, 4] {
@@ -1560,7 +1511,8 @@ mod tests {
         .unwrap();
         fs::write(directory.join("items/00000.json"), old_bytes).unwrap();
         assert!(
-            validate_staged_bundle(&directory, &bad, &expected_combinations, &[series]).is_err()
+            validate_distribution_bundle(&directory, &bad, &expected_combinations, &[series])
+                .is_err()
         );
         fs::remove_dir_all(directory).unwrap();
     }
