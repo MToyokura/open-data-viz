@@ -76,12 +76,7 @@
   /** @param {{id: string, categories: {code:string,label:string}[], display_hierarchy?: {standalone_codes:string[],groups:{code:string,children:string[]}[]} }|undefined} dimension @param {string} code */
   function dimensionCategoryLabel(dimension, code) {
     const category = dimension?.categories.find((item) => item.code === code);
-    const label = category?.label ?? code;
-    if (dimension?.id !== "cat02") return label;
-    if (code === "0") return "学歴を限定しない全体（公式分類：平均）";
-    if (code === "2") return "卒業（全体）";
-    if (["21", "22", "23"].includes(code)) return `卒業者の内訳 > ${label}`;
-    return label;
+    return category?.label ?? code;
   }
   const comparisonDimension = $derived(
     filterDimensions.find((dimension) => dimension.id === compareDimensionId),
@@ -635,6 +630,11 @@
                       ? "比較する属性以外の条件を、すべての比較系列に適用します。"
                       : "属性別・純資産額階級別の世帯数（2024年）。条件を選び、系列を追加してください。"}
                   </p>
+                  {#if filterDimensions.some((dimension) => dimension.id === "cat02")}
+                    <p class="hint">
+                      学歴区分の「平均」は公式分類名です。この画面では学歴で絞り込まない条件として使用します。公式の対象範囲を示す定義ではありません。
+                    </p>
+                  {/if}
                   <section class="selectors" aria-label="世帯属性">
                     {#each filterDimensions as dimension (dimension.id)}
                       {#if !(comparisonMode && dimension.id === compareDimensionId)}

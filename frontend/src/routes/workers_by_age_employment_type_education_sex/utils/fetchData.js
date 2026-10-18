@@ -35,6 +35,27 @@ export function validateOptions(data) {
       ["09", "大学", "3", "05"],
       ["10", "大学院", "3", "05"],
     ]);
+  const expectedDisplayHierarchy = [
+    {
+      code: "00",
+      children: [
+        {
+          code: "01",
+          children: [{ code: "02" }, { code: "03" }, { code: "04" }],
+        },
+        {
+          code: "05",
+          children: [
+            { code: "06" },
+            { code: "07" },
+            { code: "08" },
+            { code: "09" },
+            { code: "10" },
+          ],
+        },
+      ],
+    },
+  ];
   const education = options.dimensions.education;
   if (
     education.length !== expectedEducation.length ||
@@ -55,21 +76,34 @@ export function validateOptions(data) {
     )
   )
     throw new Error("教育区分の公式メタデータが想定と異なります");
-  const flattened = /** @type {string[]} */ ([]);
-  /** @param {import("../constants/types.js").DisplayNode[]} nodes */
-  const collect = (nodes) => {
-    for (const node of nodes) {
-      flattened.push(node.code);
-      collect(node.children ?? []);
-    }
-  };
-  collect(options.education_display_hierarchy ?? []);
+  /**
+   * @param {unknown} actual
+   * @param {{ code: string, children?: { code: string, children?: any[] }[] }[]} expected
+   * @returns {boolean}
+   */
+  const matchesDisplayNodes = (actual, expected) =>
+    Array.isArray(actual) &&
+    actual.length === expected.length &&
+    actual.every((node, index) => {
+      if (!node || typeof node !== "object") return false;
+      const candidate = /** @type {{ code?: unknown, children?: unknown }} */ (
+        node
+      );
+      const expectedNode = expected[index];
+      const children = candidate.children ?? [];
+      return (
+        candidate.code === expectedNode.code &&
+        Array.isArray(children) &&
+        matchesDisplayNodes(children, expectedNode.children ?? [])
+      );
+    });
   if (
-    flattened.length !== expectedEducation.length ||
-    new Set(flattened).size !== flattened.length ||
-    expectedEducation.some(([code]) => !flattened.includes(code))
+    !matchesDisplayNodes(
+      options.education_display_hierarchy,
+      expectedDisplayHierarchy,
+    )
   )
-    throw new Error("教育区分の画面表示階層が不完全です");
+    throw new Error("教育区分の画面表示階層が想定と異なります");
   if (
     !Array.isArray(options.education_comparison_sets) ||
     JSON.stringify(

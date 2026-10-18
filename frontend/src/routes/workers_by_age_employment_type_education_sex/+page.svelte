@@ -44,6 +44,8 @@
     { key: "education", title: "教育" },
     { key: "sex", title: "性別" },
   ];
+  const educationHierarchyNote =
+    "「在学中」「卒業」と学校区分の階層・まとまりは、この画面で選択・比較しやすくするための表示上の整理です。親区分と内訳の合計や、厳密な包含関係を示すものではありません。";
 
   const selectedIndex = $derived(findIndex(selections));
   const selectedNormalItemKey = $derived(
@@ -530,7 +532,7 @@
                             </select>
                           </label>
                           <p class="muted">
-                            区分のまとまりごとに比較します。集計範囲の合計や包含関係を示すものではありません。
+                            {educationHierarchyNote}
                           </p>
                         {/if}
                         {#each comparisonChoices as choice (choice.code)}
@@ -621,6 +623,9 @@
                             class="muted"
                             >この属性の区分を比較します（選択欄の値は比較に使いません）。</span
                           >{/if}
+                        {#if dimension.key === "education"}
+                          <span class="muted">{educationHierarchyNote}</span>
+                        {/if}
                       </label>
                     {/each}
                   </section>
@@ -773,6 +778,9 @@
                 )
                 .join("・")}
             </p>{/if}
+          {#if (mode === "compare" && comparisonDimension === "education") || (mode === "add" && selections.education)}
+            <p class="muted" role="note">{educationHierarchyNote}</p>
+          {/if}
           {#if mode === "compare" && comparisonCodes.length === 1}<p
               class="empty"
               role="status"
