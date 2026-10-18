@@ -28,6 +28,14 @@ GCS_BUCKET=gs://YOUR_BUCKET
 ./data_preparation/scripts/publish.sh
 ```
 
+特定のデータだけを公開する場合は `--only` にプロジェクト名をカンマ区切りで指定します。たとえば、純資産分布と雇用者数を公開する場合は次のように実行します。
+
+```sh
+./data_preparation/scripts/publish.sh --only asset_distribution,workers_by_age_employment_type_education_sex
+```
+
+指定しなかったプロジェクトの出力はアップロード対象に含まれません。プロジェクト名はスクリプトの `--help` で確認できます。
+
 スクリプトは公開対象だけを一時ディレクトリへ集め、JSON / GeoJSON を gzip 圧縮して元と同じ URL・ファイル名でアップロードします。各オブジェクトには適切な Content-Type、`Content-Encoding: gzip`、共通の短い Cache-Control を設定します。アップロードは対象ファイルごとに行われ、途中で失敗した場合はエラー終了します。一部のファイルだけ更新されることがあるため、原因を修正して同じコマンドを再実行してください。
 
 ## 公開後の確認
