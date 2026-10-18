@@ -22,6 +22,7 @@
     const horizontal = orientation === "horizontal";
     const categories = items.filter((item) => item.data);
     return {
+      animation: false,
       tooltip: {
         trigger: "axis",
         formatter: (/** @type {any[]|any} */ params) => {
