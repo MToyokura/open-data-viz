@@ -1,7 +1,6 @@
 <script>
   import { onMount, untrack } from "svelte";
   import { SvelteMap, SvelteSet } from "svelte/reactivity";
-
   /** @typedef {import("./constants/types.js").GeoCollection} GeoCollection */
   /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import {
@@ -87,7 +86,7 @@
     const startRadius = marker.getRadius();
     const startOpacity = Number(marker.options.fillOpacity ?? 0.85);
     const startTime = performance.now();
-    const duration = 300;
+    const duration = 200;
 
     /** @param {number} now */
     const step = (now) => {
