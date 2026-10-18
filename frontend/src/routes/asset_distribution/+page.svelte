@@ -376,6 +376,11 @@
     singleSeriesRemoved = false;
   }
 
+  function clearSeries() {
+    if (comparisonMode) compareCodes = [];
+    else singleSeriesRemoved = true;
+  }
+
   onMount(() => {
     const mobileQuery = window.matchMedia("(max-width: 50rem)");
     const updateViewport = () => {
@@ -582,8 +587,8 @@
               </fieldset>
               <button
                 class="reset-button"
-                onclick={endComparison}
-                disabled={!comparisonMode}>比較を終了</button
+                onclick={clearSeries}
+                disabled={activeCombinations.length === 0}>すべて消去</button
               >
             </details>
           </section>
@@ -823,6 +828,12 @@
     display: grid;
     align-content: start;
     gap: var(--space-2);
+  }
+  .orientation {
+    grid-auto-flow: column;
+    align-items: center;
+    width: max-content;
+    margin-top: var(--space-4);
   }
   select {
     min-width: 0;
