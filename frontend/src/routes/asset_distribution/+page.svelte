@@ -703,8 +703,6 @@
                           >
                         {:else if !seriesItems[combination.id]}
                           <span class="hint" role="status">取得中…</span>
-                        {:else}
-                          <span class="hint">取得済み</span>
                         {/if}
                         <button
                           type="button"

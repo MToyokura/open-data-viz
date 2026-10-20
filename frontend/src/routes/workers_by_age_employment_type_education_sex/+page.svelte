@@ -677,9 +677,7 @@
                           class="muted"
                           >数値を表示できる年がありません（すべて欠損）</span
                         >
-                      {:else if item.status === "loaded"}<span class="muted"
-                          >取得済み</span
-                        >{/if}
+                      {/if}
                       <button
                         class="icon-button"
                         aria-label={`${item.label}を削除`}
