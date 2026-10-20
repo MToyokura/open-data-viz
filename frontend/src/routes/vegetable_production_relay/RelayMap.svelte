@@ -205,7 +205,10 @@
     }
 
     // Existing markers must stay above the replacement boundary layer.
-    for (const marker of markers.values()) marker.bringToFront();
+    // Marker changes must not retrigger geometry setup and reset the viewport.
+    untrack(() => {
+      for (const marker of markers.values()) marker.bringToFront();
+    });
 
     const bounds = boundary.getBounds();
     if (insetSeparator) bounds.extend(insetSeparator.getBounds());
