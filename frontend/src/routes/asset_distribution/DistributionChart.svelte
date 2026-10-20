@@ -191,7 +191,7 @@
     ? "純資産分布グラフ（画面幅表示）"
     : "純資産分布グラフ。左右にスクロールできます"}
 >
-  <div class="chart-stage" style:height={chartHeight}>
+  <div class="chart-stage chart-scroll-content" style:height={chartHeight}>
     <div
       bind:this={container}
       class="chart"
@@ -212,26 +212,8 @@
 </div>
 
 <style>
-  .chart-scroll-container {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 100%;
-    margin: var(--space-4) 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    -webkit-overflow-scrolling: touch;
-  }
-  .chart-scroll-container--fit {
-    overflow-x: hidden;
-  }
-  .chart-scroll-container--scroll .chart-stage {
-    width: 1400px;
-  }
   .chart-stage {
     position: relative;
-    width: 100%;
   }
   .chart {
     box-sizing: border-box;
@@ -248,17 +230,12 @@
     justify-content: center;
     gap: var(--space-2);
     padding: 28px 24px;
-    background: var(--color-surface, #fff);
+    background: var(--surface-color);
   }
 
   .placeholder-message {
     margin: 0;
-    color: var(--color-text-muted, #6b7280);
+    color: var(--text-muted-color);
     font-size: 0.9rem;
-  }
-  @media (max-width: 48rem) {
-    .chart-scroll-container--scroll .chart-stage {
-      width: 960px;
-    }
   }
 </style>

@@ -1,4 +1,5 @@
 <script>
+  import { useResponsivePanels } from "#lib/useResponsivePanels.svelte.js";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
@@ -40,9 +41,7 @@
     }),
   );
   let orientation = $state(/** @type {"vertical"|"horizontal"} */ ("vertical"));
-  let isMobile = $state(false);
-  let isSelectorOpen = $state(true);
-  let isComparisonOpen = $state(true);
+  const panels = useResponsivePanels(() => items.length);
   let serial = 0;
   /** @type {{key:DimensionKey,title:string}[]} */
   const dimensionLabels = [
@@ -423,16 +422,7 @@
   }
 
   onMount(() => {
-    const mobileQuery = window.matchMedia("(max-width: 50rem)");
-    const updateViewport = () => {
-      isMobile = mobileQuery.matches;
-      isSelectorOpen = !isMobile;
-      isComparisonOpen = !isMobile || items.length === 0;
-    };
-    updateViewport();
-    mobileQuery.addEventListener("change", updateViewport);
     void loadOptions();
-    return () => mobileQuery.removeEventListener("change", updateViewport);
   });
 </script>
 
@@ -453,7 +443,7 @@
           </div>
         {:else if options}
           <section class="control-panel" aria-label="系列の条件">
-            <details class="selector-panel" bind:open={isSelectorOpen}>
+            <details class="selector-panel" bind:open={panels.isSelectorOpen}>
               <summary
                 >{mode === "compare"
                   ? "属性を比較"
@@ -647,7 +637,7 @@
             </details>
           </section>
           <section class="comparison-panel" aria-label="比較中のデータ">
-            <details class="added-items" bind:open={isComparisonOpen}>
+            <details class="added-items" bind:open={panels.isComparisonOpen}>
               <summary
                 ><h2>
                   {mode === "compare" ? "比較系列" : "表示中の系列"}
@@ -808,91 +798,11 @@
 </div>
 
 <style>
-  .intro {
-    margin-top: 0;
-  }
-  .mode-switch {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-2);
-  }
-  .mode-switch button {
-    min-height: 2.75rem;
-    padding: var(--space-2) var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-color);
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-  }
-  .mode-switch button.active {
-    border-color: var(--focus-color);
-    background: var(--surface-muted-color);
-    font-weight: 700;
-  }
-  .mode-description {
-    margin: var(--space-2) 0 var(--space-4);
-  }
-  .add-series-button {
-    min-height: 2.75rem;
-    margin-top: var(--space-3);
-    padding: var(--space-2) var(--space-4);
-    border: 1px solid var(--focus-color);
-    border-radius: var(--radius-md);
-    background: var(--focus-color);
-    color: white;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .add-series-button:disabled {
-    border: var(--border-default);
-    background: var(--surface-muted-color);
-    color: var(--text-muted-color);
-    cursor: not-allowed;
-  }
-  .series-condition-list {
-    min-inline-size: 0;
-    margin: 0;
-    padding: var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-  }
-  .series-condition-list > legend,
-  .compare-options > legend {
-    padding-inline: var(--space-1);
-    font-weight: 600;
-  }
-  .selectors {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-3);
-    margin: var(--space-4) 0;
-  }
-  .selectors label,
-  .orientation,
-  .comparison-attribute {
-    display: grid;
-    gap: var(--space-2);
-  }
-  .comparison-controls {
-    margin: var(--space-4) 0;
-  }
   .comparison-attribute {
     max-width: 24rem;
   }
   .comparison-controls p {
     margin-bottom: 0;
-  }
-  .compare-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    margin: var(--space-3) 0;
-    padding: var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
   }
   .compare-options legend {
     padding: 0 var(--space-1);
@@ -906,17 +816,7 @@
     color: var(--text-muted-color);
   }
   select {
-    min-width: 0;
     padding: var(--space-2);
-  }
-  .orientation {
-    grid-auto-flow: column;
-    align-items: center;
-    width: max-content;
-    margin-top: var(--space-4);
-  }
-  .error {
-    color: var(--danger-color);
   }
   .error button {
     margin-left: var(--space-2);

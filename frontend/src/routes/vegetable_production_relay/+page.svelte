@@ -172,7 +172,7 @@
   <title>野菜の産地リレー | Open Data Viz</title>
 </svelte:head>
 
-<div class="page-shell">
+<div class="page-shell visualization-page visualization-page--relay">
   <main class="page-content">
     <WorkspaceHeader title="野菜の産地リレー" />
 
@@ -468,35 +468,14 @@
 </div>
 
 <style>
-  .page-shell {
+  .visualization-page--relay {
     --control-size: var(--control-height);
     --scale-value-width: 4rem;
-    height: 100dvh;
-    min-height: 0;
-  }
-  .page-content {
-    height: 100%;
-    max-width: none;
-    margin: 0;
-    padding: 0;
-    min-height: 0;
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    --workspace-columns: minmax(0, 1.2fr) minmax(24rem, 1fr);
+    --workspace-areas: "details map";
   }
   .workspace {
-    min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(24rem, 1fr);
-    grid-template-areas: "details map";
-    gap: 0;
     overflow: hidden;
-  }
-  .map-column,
-  .details-column {
-    min-width: 0;
-    min-height: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
   }
   .map-column {
     display: flex;
@@ -510,11 +489,6 @@
     min-height: 0;
     position: relative;
   }
-  .details-column {
-    grid-area: details;
-    padding: var(--space-4) var(--space-6);
-    border-right: var(--border-default);
-  }
   .map-heading {
     padding: var(--space-4) var(--space-6);
     background: var(--surface-color);
@@ -527,7 +501,7 @@
   .map-heading p {
     margin: var(--space-1) 0 0;
     font-size: 0.75rem;
-    color: #667085;
+    color: var(--text-muted-color);
   }
   .details-column h2,
   .selection-heading h3 {
@@ -627,7 +601,7 @@
     padding-inline: var(--space-1);
   }
   @media (max-width: 360px) {
-    .page-shell {
+    .visualization-page--relay {
       --control-size: 2.25rem;
       --scale-value-width: 3.25rem;
     }
@@ -665,18 +639,8 @@
     border-radius: var(--radius-md);
     background: var(--surface-color);
   }
-  @media (max-width: 800px) {
-    .page-shell {
-      height: auto;
-    }
-    .page-content {
-      height: auto;
-      min-height: 0;
-      display: block;
-    }
+  @media (max-width: 50rem) {
     .workspace {
-      display: flex;
-      flex-direction: column;
       overflow: visible;
     }
     .map-column {
@@ -684,10 +648,7 @@
       min-height: 340px;
     }
     .details-column {
-      overflow: visible;
-      padding: var(--space-4);
-      border-left: 0;
-      border-right: 0;
+      border-bottom: 0;
     }
 
     .controls {

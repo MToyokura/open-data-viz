@@ -1,4 +1,5 @@
 <script>
+  import { useResponsivePanels } from "#lib/useResponsivePanels.svelte.js";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
@@ -44,9 +45,7 @@
   let orientation = $state(
     /** @type {"vertical"|"horizontal"} */ ("horizontal"),
   );
-  let isMobile = $state(false);
-  let isSelectorOpen = $state(true);
-  let isComparisonOpen = $state(true);
+  const panels = useResponsivePanels(() => activeCombinations.length);
 
   const dimensions = $derived(
     data?.dimensions.toSorted((a, b) => a.order - b.order) ?? [],
@@ -451,16 +450,7 @@
   }
 
   onMount(() => {
-    const mobileQuery = window.matchMedia("(max-width: 50rem)");
-    const updateViewport = () => {
-      isMobile = mobileQuery.matches;
-      isSelectorOpen = !isMobile;
-      isComparisonOpen = !isMobile || activeCombinations.length === 0;
-    };
-    updateViewport();
-    mobileQuery.addEventListener("change", updateViewport);
     void loadData();
-    return () => mobileQuery.removeEventListener("change", updateViewport);
   });
 </script>
 
@@ -488,7 +478,7 @@
           </div>
         {:else if data && assetDimension}
           <section class="control-panel" aria-label="世帯属性の選択">
-            <details class="selector-panel" bind:open={isSelectorOpen}>
+            <details class="selector-panel" bind:open={panels.isSelectorOpen}>
               <summary
                 >{mode === "compare"
                   ? "属性を比較"
@@ -677,7 +667,7 @@
             class="comparison-panel"
             aria-label={comparisonMode ? "比較中のデータ" : "表示中の系列"}
           >
-            <details class="added-items" bind:open={isComparisonOpen}>
+            <details class="added-items" bind:open={panels.isComparisonOpen}>
               <summary
                 ><h2>
                   {comparisonMode ? "属性を比較" : "系列を追加"}・表示中
@@ -879,97 +869,14 @@
 </div>
 
 <style>
-  .series-condition-list {
-    min-inline-size: 0;
-    margin: 0;
-    padding: var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-  }
-  .series-condition-list > legend,
-  .compare-options > legend {
-    padding-inline: var(--space-1);
-    font-weight: 600;
-  }
-  .intro {
-    margin-top: 0;
-  }
-  .mode-switch {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-2);
-  }
-  .mode-switch button {
-    min-height: 2.75rem;
-    padding: var(--space-2) var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-color);
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-  }
-  .mode-switch button.active {
-    border-color: var(--focus-color);
-    background: var(--surface-muted-color);
-    font-weight: 700;
-  }
-  .mode-description {
-    margin: var(--space-2) 0 var(--space-4);
-  }
-  .add-series-button {
-    min-height: 2.75rem;
-    margin-top: var(--space-3);
-    padding: var(--space-2) var(--space-4);
-    border: 1px solid var(--focus-color);
-    border-radius: var(--radius-md);
-    background: var(--focus-color);
-    color: white;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .add-series-button:disabled {
-    border: var(--border-default);
-    background: var(--surface-muted-color);
-    color: var(--text-muted-color);
-    cursor: not-allowed;
-  }
-  .selectors {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-3);
-    margin: var(--space-4) 0;
-  }
   .selectors label,
   .comparison-controls label,
   .orientation {
-    display: grid;
     align-content: start;
-    gap: var(--space-2);
-  }
-  .orientation {
-    grid-auto-flow: column;
-    align-items: center;
-    width: max-content;
-    margin-top: var(--space-4);
-  }
-  select {
-    min-width: 0;
   }
   .comparison-controls {
     display: grid;
     gap: var(--space-3);
-    margin: var(--space-4) 0;
-  }
-  .compare-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    margin: var(--space-3) 0;
-    padding: var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
   }
   .compare-options label {
     display: flex;
@@ -978,7 +885,7 @@
   }
   .unavailable,
   .hint {
-    color: #555;
+    color: var(--text-muted-color);
   }
   .chart-title {
     margin: 0 0 var(--space-3);
@@ -993,9 +900,6 @@
   }
   .value-states ul {
     padding-left: 1.4rem;
-  }
-  .error {
-    color: var(--danger-color);
   }
   @media (max-width: 50rem) {
     .compare-options {

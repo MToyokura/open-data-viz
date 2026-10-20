@@ -144,32 +144,14 @@
 >
   <div
     bind:this={container}
-    class="chart"
+    class="chart chart-scroll-content"
     role="img"
     aria-label="雇用者数の年次推移"
   ></div>
 </div>
 
 <style>
-  .chart-scroll-container {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 100%;
-    margin: var(--space-4) 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    -webkit-overflow-scrolling: touch;
-  }
-  .chart-scroll-container--fit {
-    overflow-x: hidden;
-  }
-  .chart-scroll-container--scroll .chart {
-    width: 1400px;
-  }
   .chart {
-    width: 100%;
     height: 62vh;
     min-height: 360px;
   }
@@ -177,12 +159,6 @@
     .chart {
       height: 55vh;
       min-height: 320px;
-    }
-    .chart-scroll-container--scroll .chart {
-      width: 960px;
-    }
-    .chart-scroll-container--fit .chart {
-      width: 100%;
     }
   }
 </style>

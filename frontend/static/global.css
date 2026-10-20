@@ -7,6 +7,7 @@
 
   /* Color */
   --text-color: #1f1f1f;
+  --text-muted-color: #555;
   --surface-color: #fff;
   --surface-muted-color: #f5f5f5;
   --surface-hover-color: #eaeaea;
@@ -159,15 +160,19 @@ button {
 
 .visualization-page .workspace {
   display: grid;
-  grid-template-columns: minmax(20rem, 0.42fr) minmax(0, 1fr);
-  grid-template-areas: "details chart";
+  grid-template-columns: var(
+    --workspace-columns,
+    minmax(20rem, 0.42fr) minmax(0, 1fr)
+  );
+  grid-template-areas: var(--workspace-areas, "details chart");
   width: 100%;
   min-width: 0;
   min-height: 0;
 }
 
 .visualization-page .details-column,
-.visualization-page .chart-panel {
+.visualization-page .chart-panel,
+.visualization-page .map-column {
   min-width: 0;
   min-height: 0;
   overflow: auto;
@@ -233,7 +238,7 @@ button {
 }
 
 .visualization-page .added-items h2 span {
-  color: #555;
+  color: var(--text-muted-color);
   font-size: 0.875rem;
   font-weight: normal;
 }
@@ -241,7 +246,7 @@ button {
 .visualization-page .empty-comparison {
   margin: 0;
   padding: var(--space-3);
-  color: #555;
+  color: var(--text-muted-color);
 }
 
 .visualization-page .selected-list {
@@ -423,5 +428,142 @@ button:not(:disabled):hover {
 @media (max-width: 700px) {
   .page-content {
     padding: var(--page-content-padding-small);
+  }
+}
+
+/* Shared series selection controls. */
+:where(.visualization-page) .intro {
+  margin-top: 0;
+}
+
+:where(.visualization-page) .mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+:where(.visualization-page) .mode-switch button {
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-color);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(.visualization-page) .mode-switch button.active {
+  border-color: var(--focus-color);
+  background: var(--surface-muted-color);
+  font-weight: 700;
+}
+
+:where(.visualization-page) .mode-description {
+  margin: var(--space-2) 0 var(--space-4);
+}
+
+:where(.visualization-page) .add-series-button {
+  min-height: 2.75rem;
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--focus-color);
+  border-radius: var(--radius-md);
+  background: var(--focus-color);
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+:where(.visualization-page) .add-series-button:disabled {
+  border: var(--border-default);
+  background: var(--surface-muted-color);
+  color: var(--text-muted-color);
+  cursor: not-allowed;
+}
+
+:where(.visualization-page) .series-condition-list {
+  min-inline-size: 0;
+  margin: 0;
+  padding: var(--space-3);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+:where(.visualization-page) .series-condition-list > legend,
+:where(.visualization-page) .compare-options > legend {
+  padding-inline: var(--space-1);
+  font-weight: 600;
+}
+
+:where(.visualization-page) .selectors {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+:where(.visualization-page) .orientation {
+  grid-auto-flow: column;
+  align-items: center;
+  width: max-content;
+  margin-top: var(--space-4);
+}
+
+:where(.visualization-page) .compare-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0;
+  padding: var(--space-3);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+:where(.visualization-page) .comparison-controls {
+  margin: var(--space-4) 0;
+}
+
+:where(.visualization-page) select {
+  min-width: 0;
+}
+
+:where(.visualization-page) .error {
+  color: var(--danger-color);
+}
+
+:where(.visualization-page) .selectors label,
+:where(.visualization-page) .orientation,
+:where(.visualization-page) .comparison-attribute,
+:where(.visualization-page) .comparison-controls > label {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* Chart dimensions remain local; the scroll viewport is shared. */
+.chart-scroll-container {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: var(--chart-scroll-margin, var(--space-4)) 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  -webkit-overflow-scrolling: touch;
+}
+.chart-scroll-container--fit {
+  overflow-x: hidden;
+}
+.chart-scroll-container > .chart-scroll-content {
+  width: 100%;
+}
+.chart-scroll-container--scroll > .chart-scroll-content {
+  width: 1400px;
+}
+@media (max-width: 48rem) {
+  .chart-scroll-container--scroll > .chart-scroll-content {
+    width: 960px;
   }
 }

@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+import { flushSync } from "svelte";
 import { fireEvent, render, screen, within } from "@testing-library/svelte";
 import AssetPage from "./asset_distribution/+page.svelte";
 import WorkersPage from "./workers_by_age_employment_type_education_sex/+page.svelte";
@@ -93,6 +94,51 @@ for (const config of [
     group: "性別の区分",
   },
 ]) {
+  test(`${config.name}: responsive panels preserve manual choices and clean up viewport listeners`, async () => {
+    const query = window.matchMedia("(max-width: 50rem)");
+    Object.defineProperty(query, "matches", { value: true, writable: true });
+    vi.mocked(window.matchMedia).mockReturnValueOnce(query);
+    const { container, unmount } = render(config.component);
+    await screen.findByLabelText(config.fixedLabel);
+    const selector = container.querySelector("details.selector-panel");
+    const comparison = container.querySelector("details.added-items");
+    expect(selector).not.toHaveAttribute("open");
+    expect(comparison).toHaveAttribute("open");
+
+    const updateViewport = vi.mocked(query.addEventListener).mock.calls[0][1];
+    const resize = (/** @type {boolean} */ matches) => {
+      Object.defineProperty(query, "matches", { value: matches });
+      flushSync(() => {
+        if (typeof updateViewport === "function") {
+          updateViewport.call(query, new Event("change"));
+        }
+      });
+    };
+    resize(false);
+    expect(selector).toHaveAttribute("open");
+    expect(comparison).toHaveAttribute("open");
+    await fireEvent.change(screen.getByLabelText(config.fixedLabel), {
+      target: { value: "1" },
+    });
+    await fireEvent.click(screen.getByRole("button", { name: "系列に追加" }));
+    resize(true);
+    expect(selector).not.toHaveAttribute("open");
+    expect(comparison).not.toHaveAttribute("open");
+
+    await fireEvent.click(
+      within(/** @type {HTMLElement} */ (selector)).getByText(/系列を追加：/),
+    );
+    expect(selector).toHaveAttribute("open");
+    await fireEvent.click(screen.getByRole("button", { name: "すべて消去" }));
+    expect(selector).toHaveAttribute("open");
+    expect(comparison).not.toHaveAttribute("open");
+    unmount();
+    expect(query.removeEventListener).toHaveBeenCalledWith(
+      "change",
+      updateViewport,
+    );
+  });
+
   test(`${config.name}: each mode retains its own conditions and comparison choices`, async () => {
     render(config.component);
     const fixed = await screen.findByLabelText(config.fixedLabel);

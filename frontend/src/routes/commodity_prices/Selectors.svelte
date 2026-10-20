@@ -129,7 +129,7 @@
 
   .no-results {
     margin: var(--space-2) 0;
-    color: #555;
+    color: var(--text-muted-color);
     font-size: 0.875rem;
   }
 

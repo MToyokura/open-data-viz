@@ -92,6 +92,7 @@
 >
   <div
     id="chart-container"
+    class="chart-scroll-content"
     bind:this={container}
     role="img"
     aria-label="価格の推移"
@@ -100,28 +101,11 @@
 
 <style>
   .chart-scroll-container {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 100%;
-    margin: var(--space-8) 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .chart-scroll-container--fit {
-    overflow-x: hidden;
-  }
-
-  .chart-scroll-container--scroll #chart-container {
-    width: 1400px;
+    --chart-scroll-margin: var(--space-8);
   }
 
   #chart-container {
     box-sizing: border-box;
-    width: 100%;
     height: var(--chart-height, 60vh);
     min-height: 320px;
     padding: var(--space-8) 0;
@@ -131,14 +115,6 @@
     #chart-container {
       height: 55vh;
       padding: var(--space-4) 0;
-    }
-
-    .chart-scroll-container--scroll #chart-container {
-      width: 960px;
-    }
-
-    .chart-scroll-container--fit #chart-container {
-      width: 100%;
     }
   }
 </style>

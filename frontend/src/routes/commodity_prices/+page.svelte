@@ -1,7 +1,8 @@
 <script>
+  import { useResponsivePanels } from "#lib/useResponsivePanels.svelte.js";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
-  import { onMount, untrack } from "svelte";
+  import { untrack } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import Spinner from "#lib/Spinner.svelte";
   import LineChart from "./LineChart.svelte";
@@ -23,25 +24,10 @@
   );
   let commodityPrices = $state(/** @type {CommodityPrices[]} */ ([]));
   let dataNotFound = $state(false);
-  let isMobile = $state(false);
-  let isSelectorOpen = $state(true);
-  let isComparisonOpen = $state(true);
+  const panels = useResponsivePanels(() => selectedCombinations.length);
   let fetchGeneration = 0;
   /** @type {Record<string, Promise<CommodityPrices | undefined>>} */
   let inFlightRequests = Object.create(null);
-
-  onMount(() => {
-    const mobileQuery = window.matchMedia("(max-width: 50rem)");
-    const updateViewport = () => {
-      isMobile = mobileQuery.matches;
-      isSelectorOpen = !isMobile;
-      isComparisonOpen = !isMobile || selectedCombinations.length === 0;
-    };
-
-    updateViewport();
-    mobileQuery.addEventListener("change", updateViewport);
-    return () => mobileQuery.removeEventListener("change", updateViewport);
-  });
 
   let selectedCommodityPrices = $derived.by(() => {
     const selectedSeries = Object.entries(selectedAreaCodesByCat02).flatMap(
@@ -181,7 +167,7 @@
           <p>Error loading lookup data</p>
         {:else if cat02LookupResult.cat02Lookup && areaLookupResult.areaLookup}
           <section class="control-panel" aria-label="品目と地域">
-            <details class="selector-panel" bind:open={isSelectorOpen}>
+            <details class="selector-panel" bind:open={panels.isSelectorOpen}>
               <summary>品目・地域を選択</summary>
               <div class="selector-panel-content">
                 <Selectors
@@ -194,7 +180,7 @@
             </details>
           </section>
           <section class="comparison-panel" aria-label="比較中のデータ">
-            <details class="added-items" bind:open={isComparisonOpen}>
+            <details class="added-items" bind:open={panels.isComparisonOpen}>
               <summary>
                 <h2>比較中 <span>{selectedCombinations.length}系列</span></h2>
               </summary>
