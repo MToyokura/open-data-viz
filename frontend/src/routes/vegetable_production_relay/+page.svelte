@@ -1,11 +1,11 @@
 <script>
+  import LicenseLink from "#lib/LicenseLink.svelte";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
-  import LicenseLink from "#lib/LicenseLink.svelte";
   /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
+  import RelayMap from "./RelayMap.svelte";
   import VegetableSankey from "./VegetableSankey.svelte";
   import { aggregateSankey } from "./utils/aggregateSankey.js";
-  import RelayMap from "./RelayMap.svelte";
   import { useRelayData } from "./utils/useRelayData.svelte.js";
 
   const relayData = useRelayData();
@@ -213,10 +213,8 @@
           </div>
         </section>
         <section class="details-column" aria-label="詳細情報">
-          <section
-            class="controls ui-panel ui-panel--subtle"
-            aria-label="表示設定"
-          >
+          <fieldset class="controls ui-panel">
+            <legend>表示設定</legend>
             <label class="vegetable-control">
               野菜
               <select
@@ -278,18 +276,16 @@
               >
               <strong>{displayMonth(selectedMonth)}</strong>
             </div>
-          </section>
+          </fieldset>
 
-          <section
-            class="selection-panel ui-panel"
-            aria-label="選択した出荷元の詳細"
-          >
+          <fieldset class="selection-panel ui-panel">
+            <legend>産地別の報告値と消費地域別内訳</legend>
             <div class="selection-heading">
               <div>
                 <p class="eyebrow">
                   {displayMonth(selectedMonth)} · 報告値合計
                 </p>
-                <h2>{selectedPrefecture || "産地を選択"}</h2>
+                <h3>{selectedPrefecture || "産地を選択"}</h3>
                 <strong class="total">{valueLabel(selectedObservation)}</strong>
               </div>
             </div>
@@ -339,18 +335,16 @@
                 地図で都道府県を選ぶと、報告値と消費地域別の内訳を表示します。
               </p>
             {/if}
-          </section>
+          </fieldset>
 
-          <section
-            class="sankey-panel ui-panel"
-            aria-label="産地と消費地域の Sankey 図"
-          >
+          <fieldset class="sankey-panel ui-panel">
+            <legend>産地と消費地域の Sankey 図</legend>
             {#if !relayData.sankeyOpen}
               <button
                 type="button"
                 onclick={() => relayData.openSankey()}
                 aria-expanded="false"
-                aria-controls="relay-sankey">Sankey を表示</button
+                aria-controls="relay-sankey">図を表示</button
               >
             {:else}
               <h2>
@@ -383,7 +377,7 @@
                 {/if}
               </div>
             {/if}
-          </section>
+          </fieldset>
 
           <ReferencePanel title="データについて">
             <h3>操作方法</h3>
@@ -542,7 +536,8 @@
     border-radius: var(--radius-md);
     background: var(--surface-color);
   }
-  .details-column h2 {
+  .details-column h2,
+  .selection-heading h3 {
     font-size: 1rem;
   }
 
@@ -557,7 +552,7 @@
     margin-bottom: 0;
   }
   .controls {
-    background: var(--surface-muted-color);
+    background: var(--surface-color);
     width: auto;
     max-width: 100%;
     flex-wrap: wrap;
@@ -651,11 +646,13 @@
       gap: var(--space-1);
     }
   }
-  .sankey-panel {
-    margin-top: 0;
+  .details-column > fieldset {
+    min-inline-size: 0;
+    margin: 0 0 var(--space-4);
   }
-  .selection-panel {
-    margin-top: 0;
+  .details-column > fieldset > legend {
+    padding-inline: var(--space-1);
+    font-weight: 600;
   }
   .total {
     display: block;
