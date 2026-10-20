@@ -29,8 +29,14 @@
   let comparisonCodes = $state(/** @type {string[]} */ ([]));
   let removedComparisonLabels = $state(/** @type {string[]} */ ([]));
   let comparisonSelectionNotice = $state("");
-  let normalSnapshot = $state(
-    /** @type {{selections:Record<DimensionKey,string>}|null} */ (null),
+  // Conditions belonging to the mode that is currently hidden.
+  let inactiveSelections = $state(
+    /** @type {Record<DimensionKey, string>} */ ({
+      age: "",
+      employment_type: "",
+      education: "",
+      sex: "",
+    }),
   );
   let orientation = $state(/** @type {"vertical"|"horizontal"} */ ("vertical"));
   let isMobile = $state(false);
@@ -112,6 +118,7 @@
         for (const { key } of dimensionLabels)
           selections[key] = options.dimensions[key][0]?.code ?? "";
       }
+      inactiveSelections = { ...selections };
     } catch (error) {
       optionsError =
         error instanceof Error
@@ -398,25 +405,10 @@
   /** @param {"add"|"compare"} nextMode */
   function setMode(nextMode) {
     if (nextMode === mode) return;
-    if (nextMode === "compare") {
-      normalSnapshot = { selections: { ...selections } };
-      mode = "compare";
-      comparisonDimension = "";
-      comparisonCodes = [];
-      comparisonItems = [];
-      educationComparisonSetId = "education-status";
-      removedComparisonLabels = [];
-      comparisonSelectionNotice = "";
-      return;
-    }
-    if (normalSnapshot) selections = { ...normalSnapshot.selections };
-    mode = "add";
-    comparisonDimension = "";
-    comparisonCodes = [];
-    comparisonItems = [];
-    removedComparisonLabels = [];
-    comparisonSelectionNotice = "";
-    normalSnapshot = null;
+    const previousSelections = { ...selections };
+    selections = { ...inactiveSelections };
+    inactiveSelections = previousSelections;
+    mode = nextMode;
   }
 
   /** @param {string} code */
@@ -482,7 +474,7 @@
                   >
                 </div>
                 <p class="mode-description">
-                  {#if mode === "add"}条件を選び、「系列に追加」を押すとグラフに表示されます。{:else}選んだ属性の区分を比較します。ほかの条件は全系列に共通して適用されます。比較を終了すると開始前の条件と系列に戻ります。{/if}
+                  {#if mode === "add"}条件を選び、「系列に追加」を押すとグラフに表示されます。{:else}選んだ属性の区分を比較します。ほかの条件は全系列に共通して適用されます。各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。{/if}
                 </p>
                 {#if mode === "compare"}<section
                     class="comparison-controls"
@@ -510,7 +502,7 @@
                     </div>
                     {#if comparisonDimension}
                       <p class="muted">
-                        比較中に変更した固定条件は、比較を終了すると元に戻ります。
+                        比較中に変更した固定条件は、このモードの選択として保持されます。
                       </p>
                       <fieldset class="compare-options">
                         <legend

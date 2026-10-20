@@ -30,11 +30,8 @@
   let normalCombinations = $state.raw(
     /** @type {import("./utils/data.js").Combination[]} */ ([]),
   );
-  let normalSnapshot = $state.raw(
-    /** @type {{ selections: Record<string, string>, combinations: import("./utils/data.js").Combination[] }|null} */ (
-      null
-    ),
-  );
+  // Conditions belonging to the mode that is currently hidden.
+  let inactiveSelections = $state(/** @type {Record<string, string>} */ ({}));
   let removedCompareLabels = $state(/** @type {string[]} */ ([]));
   let comparisonSelectionNotice = $state("");
   let seriesItems = $state.raw(
@@ -277,6 +274,7 @@
           .filter((dimension) => dimension.role === "filter")
           .map((dimension) => [dimension.id, dimension.default_code ?? ""]),
       );
+      inactiveSelections = { ...selections };
       const initialCombination = combinationFor(selections);
       normalCombinations =
         initialCombination?.status === "published" ? [initialCombination] : [];
@@ -380,30 +378,10 @@
   /** @param {"add"|"compare"} nextMode */
   function setMode(nextMode) {
     if (nextMode === mode) return;
-    if (nextMode === "compare") {
-      normalSnapshot = {
-        selections: { ...selections },
-        combinations: [...normalCombinations],
-      };
-      mode = "compare";
-      compareDimensionId = "";
-      compareSetId = "";
-      compareCodes = [];
-      removedCompareLabels = [];
-      comparisonSelectionNotice = "";
-      return;
-    }
-    if (normalSnapshot) {
-      selections = { ...normalSnapshot.selections };
-      normalCombinations = [...normalSnapshot.combinations];
-    }
-    mode = "add";
-    compareDimensionId = "";
-    compareSetId = "";
-    compareCodes = [];
-    removedCompareLabels = [];
-    comparisonSelectionNotice = "";
-    normalSnapshot = null;
+    const previousSelections = { ...selections };
+    selections = { ...inactiveSelections };
+    inactiveSelections = previousSelections;
+    mode = nextMode;
   }
 
   /** @param {string} code */
@@ -532,7 +510,7 @@
                   >
                 </div>
                 <p class="mode-description">
-                  {#if mode === "add"}属性条件を選び、「系列に追加」を押すとグラフに追加されます。{:else}比較する属性の区分を並べます。ほかの属性は全系列に共通する固定条件です。終了すると比較開始前の条件と系列に戻ります。{/if}
+                  {#if mode === "add"}属性条件を選び、「系列に追加」を押すとグラフに追加されます。{:else}比較する属性の区分を並べます。ほかの属性は全系列に共通する固定条件です。各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。{/if}
                 </p>
                 {#if mode === "compare"}<section
                     class="comparison-controls"
