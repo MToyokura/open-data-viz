@@ -1,0 +1,356 @@
+{
+  "GET_META_INFO": {
+    "METADATA_INF": {
+      "CLASS_INF": {
+        "CLASS_OBJ": [
+          {
+            "@id": "tab",
+            "@name": "表章項目",
+            "CLASS": {
+              "@code": "900",
+              "@level": "",
+              "@name": "金額",
+              "@unit": "百万円"
+            }
+          },
+          {
+            "@id": "cat01",
+            "@name": "社会保障制度",
+            "CLASS": [
+              {
+                "@code": "11",
+                "@level": "2",
+                "@name": "社会保険_1.健康保険_(A)全国健康保険協会管掌健康保険",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "12",
+                "@level": "2",
+                "@name": "社会保険_1.健康保険_(B)組合管掌健康保険",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "13",
+                "@level": "2",
+                "@name": "社会保険_2.国民健康保険",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "14",
+                "@level": "2",
+                "@name": "社会保険_2.国民健康保険_退職者医療制度(再掲)",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "15",
+                "@level": "2",
+                "@name": "社会保険_3.後期高齢者医療制度",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "16",
+                "@level": "2",
+                "@name": "社会保険_4.介護保険",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "17",
+                "@level": "2",
+                "@name": "社会保険_5.厚生年金保険",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "18",
+                "@level": "2",
+                "@name": "社会保険_6.厚生年金基金",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "19",
+                "@level": "2",
+                "@name": "社会保険_7.石炭鉱業年金基金",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "20",
+                "@level": "2",
+                "@name": "社会保険_8.国民年金",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "21",
+                "@level": "2",
+                "@name": "社会保険_9.国民年金基金",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "22",
+                "@level": "2",
+                "@name": "社会保険_10.農業者年金基金",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "23",
+                "@level": "2",
+                "@name": "社会保険_11.船員保険",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "24",
+                "@level": "2",
+                "@name": "社会保険_12.農林漁業団体職員共済組合",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "25",
+                "@level": "2",
+                "@name": "社会保険_13.日本私立学校振興･共済事業団",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "26",
+                "@level": "2",
+                "@name": "社会保険_14.雇用保険",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "27",
+                "@level": "2",
+                "@name": "社会保険_15.労働者災害補償保険",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "28",
+                "@level": "2",
+                "@name": "家族手当_16.児童手当",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "29",
+                "@level": "2",
+                "@name": "公務員_17.国家公務員共済組合",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "30",
+                "@level": "2",
+                "@name": "公務員_18.存続組合等",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "31",
+                "@level": "2",
+                "@name": "公務員_19.地方公務員等共済組合",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "32",
+                "@level": "2",
+                "@name": "公務員_20.旧令共済組合等",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "33",
+                "@level": "2",
+                "@name": "公務員_21.国家公務員災害補償等",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "34",
+                "@level": "2",
+                "@name": "公務員_22.地方公務員等災害補償",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "35",
+                "@level": "2",
+                "@name": "公務員_23.旧公共企業体職員業務災害",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "36",
+                "@level": "2",
+                "@name": "公務員_24.国家公務員恩給",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "37",
+                "@level": "2",
+                "@name": "公務員_25.地方公務員恩給",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "38",
+                "@level": "2",
+                "@name": "公衆保健ｻｰﾋﾞｽ_26.公衆衛生",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "39",
+                "@level": "2",
+                "@name": "公的扶助及び社会福祉_27.生活保護",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "40",
+                "@level": "2",
+                "@name": "公的扶助及び社会福祉_28.社会福祉",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "41",
+                "@level": "2",
+                "@name": "雇用対策_29.雇用対策",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "42",
+                "@level": "2",
+                "@name": "戦争犠牲者_30.戦争犠牲者",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "43",
+                "@level": "2",
+                "@name": "他の社会保障制度",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "44",
+                "@level": "2",
+                "@name": "他の社会保障制度_地方単独事業(再掲)",
+                "@parentCode": "45"
+              },
+              {
+                "@code": "45",
+                "@level": "1",
+                "@name": "総計"
+              }
+            ]
+          },
+          {
+            "@id": "cat02",
+            "@name": "収入項目",
+            "CLASS": [
+              {
+                "@code": "11",
+                "@level": "3",
+                "@name": "拠出_被保険者",
+                "@parentCode": "18"
+              },
+              {
+                "@code": "12",
+                "@level": "3",
+                "@name": "拠出_事業主",
+                "@parentCode": "18"
+              },
+              {
+                "@code": "13",
+                "@level": "3",
+                "@name": "社会保障特別税",
+                "@parentCode": "18"
+              },
+              {
+                "@code": "14",
+                "@level": "3",
+                "@name": "国庫負担",
+                "@parentCode": "18"
+              },
+              {
+                "@code": "15",
+                "@level": "3",
+                "@name": "他の公費負担",
+                "@parentCode": "18"
+              },
+              {
+                "@code": "16",
+                "@level": "3",
+                "@name": "資産収入",
+                "@parentCode": "18"
+              },
+              {
+                "@code": "17",
+                "@level": "3",
+                "@name": "その他",
+                "@parentCode": "18"
+              },
+              {
+                "@code": "18",
+                "@level": "2",
+                "@name": "収入小計",
+                "@parentCode": "20"
+              },
+              {
+                "@code": "19",
+                "@level": "2",
+                "@name": "他制度からの移転",
+                "@parentCode": "20"
+              },
+              {
+                "@code": "20",
+                "@level": "1",
+                "@name": "収入合計"
+              },
+              {
+                "@code": "41",
+                "@level": "1",
+                "@name": "収支差"
+              }
+            ]
+          }
+        ]
+      },
+      "TABLE_INF": {
+        "@id": "0004050702",
+        "COLLECT_AREA": "該当なし",
+        "CYCLE": "年度次",
+        "DESCRIPTION": "",
+        "GOV_ORG": {
+          "$": "厚生労働省",
+          "@code": "00450"
+        },
+        "MAIN_CATEGORY": {
+          "$": "社会保障・衛生",
+          "@code": "15"
+        },
+        "OPEN_DATE": "2026-07-29",
+        "OVERALL_TOTAL_NUMBER": 385,
+        "SMALL_AREA": 0,
+        "STATISTICS_NAME": "社会保障費用統計 令和6年度社会保障費用統計",
+        "STATISTICS_NAME_SPEC": {
+          "TABULATION_CATEGORY": "社会保障費用統計",
+          "TABULATION_SUB_CATEGORY1": "令和6年度社会保障費用統計"
+        },
+        "STAT_NAME": {
+          "$": "社会保障費用統計",
+          "@code": "00450437"
+        },
+        "SUB_CATEGORY": {
+          "$": "社会保障",
+          "@code": "01"
+        },
+        "SURVEY_DATE": "202404-202503",
+        "TITLE": {
+          "$": "集計表 2024年度社会保障給付費収支表－収入（集計表2）",
+          "@no": "2"
+        },
+        "TITLE_SPEC": {
+          "TABLE_CATEGORY": "集計表",
+          "TABLE_EXPLANATION": "本データは、各制度の2024年度決算値を、ILO事務局「第18次社会保障費用調査」の分類に従って集計したものである。",
+          "TABLE_NAME": "2024年度社会保障給付費収支表－収入（集計表2）"
+        },
+        "UPDATED_DATE": "2026-07-29"
+      }
+    },
+    "PARAMETER": {
+      "DATA_FORMAT": "J",
+      "LANG": "J",
+      "STATS_DATA_ID": "0004050702"
+    },
+    "RESULT": {
+      "DATE": "2026-11-14T20:14:18.271+09:00",
+      "ERROR_MSG": "正常に終了しました。",
+      "STATUS": 0
+    }
+  }
+}

@@ -18,6 +18,12 @@ fn main() {
     if modules::projects::workers_by_age_employment_type_education_sex::run_inspection(&args) {
         return;
     }
+    if modules::projects::social_security_budget_flow::run_inspection(&args) {
+        return;
+    }
+    if modules::projects::social_security_budget_flow::run(&args) {
+        return;
+    }
 
     match args.first().map(String::as_str) {
         Some("--help") | Some("-h") => {

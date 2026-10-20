@@ -14,6 +14,7 @@ Projects:
   workers_by_age_employment_type_education_sex
   vegetable_production_relay
   prefectures
+  social_security_budget_flow
 
 Without --only, all projects are published.
 USAGE
@@ -25,6 +26,7 @@ PROJECTS=(
   workers_by_age_employment_type_education_sex
   vegetable_production_relay
   prefectures
+  social_security_budget_flow
 )
 declare -A SELECTED_PROJECTS=()
 ONLY_PROJECTS_SET=0
@@ -145,6 +147,9 @@ if should_publish vegetable_production_relay; then
 fi
 if should_publish prefectures; then
   copy_file "$OUTPUT/prefectures/N03-20260101_prefecture_simplified.geojson" prefectures/N03-20260101_prefecture_simplified.geojson
+fi
+if should_publish social_security_budget_flow; then
+  copy_file "$OUTPUT/social_security_budget_flow/catalog.json" social_security_budget_flow/catalog.json
 fi
 
 mapfile -d '' files < <(find "$PUBLISH_DIR" -type f \( -name '*.json' -o -name '*.geojson' \) -print0)

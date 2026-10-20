@@ -18,6 +18,10 @@
       title: "日本の純資産分布",
       href: `${VITE_ROOT_PATH}/asset_distribution`,
     },
+    {
+      title: "社会保障制度の財源・支出",
+      href: `${VITE_ROOT_PATH}/social_security_budget_flow`,
+    },
   ];
 </script>
 

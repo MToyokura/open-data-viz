@@ -12,6 +12,7 @@
     isRelay ||
       page.url.pathname.includes("/commodity_prices") ||
       page.url.pathname.includes("/asset_distribution") ||
+      page.url.pathname.includes("/social_security_budget_flow") ||
       page.url.pathname.includes(
         "/workers_by_age_employment_type_education_sex",
       ),

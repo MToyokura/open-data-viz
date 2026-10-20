@@ -1,0 +1,20 @@
+{
+  "captured_at_unix": 1794654858,
+  "method": "existing estat_api getMetaInfo + getStatsData; sample limit 100",
+  "tables": [
+    {
+      "metadata_file": "0004050702_metadata.json",
+      "reported_total_records": "385",
+      "sample_file": "0004050702_sample.json",
+      "sample_records": 100,
+      "stats_data_id": "0004050702"
+    },
+    {
+      "metadata_file": "0004050703_metadata.json",
+      "reported_total_records": "735",
+      "sample_file": "0004050703_sample.json",
+      "sample_records": 100,
+      "stats_data_id": "0004050703"
+    }
+  ]
+}
