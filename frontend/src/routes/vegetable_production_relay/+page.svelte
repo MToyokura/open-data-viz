@@ -184,17 +184,15 @@
           {:else if relayData.isLoading}
             <p class="map-loading" role="status">データを読み込んでいます…</p>
           {/if}
-          <div class="map-view">
-            <div class="map-heading">
-              <div>
-                <h2>
-                  {selectedProductLabel} · {displayMonth(
-                    selectedMonth,
-                  )}の出荷数量
-                </h2>
-                <p>円の面積は報告値の合計に比例します</p>
-              </div>
+          <div class="map-heading">
+            <div>
+              <h2>
+                {selectedProductLabel} · {displayMonth(selectedMonth)}の出荷数量
+              </h2>
+              <p>円の面積は報告値の合計に比例します</p>
             </div>
+          </div>
+          <div class="map-view">
             {#if mapError}
               <p class="error" role="alert">{mapError}</p>
             {:else if !geojson}
@@ -507,12 +505,15 @@
     overscroll-behavior: contain;
   }
   .map-column {
+    display: flex;
+    flex-direction: column;
     position: relative;
     overflow: hidden;
     grid-area: map;
   }
   .map-view {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     position: relative;
   }
   .details-column {
@@ -521,22 +522,13 @@
     border-right: var(--border-default);
   }
   .map-heading {
-    position: absolute;
-    top: var(--space-4);
-    left: var(--space-4);
-    right: var(--space-4);
-    z-index: 500;
-    width: fit-content;
-    max-width: calc(100% - 2rem);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-4) var(--space-6);
     background: var(--surface-color);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    pointer-events: none;
+    border-bottom: var(--border-default);
   }
   .map-heading h2 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
   }
   .map-heading p {
     margin: var(--space-1) 0 0;
