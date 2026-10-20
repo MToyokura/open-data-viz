@@ -77,6 +77,7 @@
   function dimensionCategoryLabel(dimension, code) {
     const category = dimension?.categories.find((item) => item.code === code);
     const label = category?.label ?? code;
+    if (label === "平均") return "全体（元データ表記：平均）";
     if (dimension?.id !== "cat02") return label;
     if (code === "0") return label;
     if (code === "2") return "卒業（全体）";
@@ -787,7 +788,7 @@
                 <tr>
                   <th>学歴区分</th>
                   <td>
-                    学歴区分の「平均」は公式分類名です。選択すると、この区分で公表された値を表示します。公式資料では、一部を除き「平均（総数）」に不詳を含むため、総数と内訳の合計は必ずしも一致しないと説明されています。
+                    「全体（元データ表記：平均）」は、元データで「平均」と呼ばれる区分です。選択すると、この区分で公表された世帯数分布を表示します。公式資料では、一部を除き「平均（総数）」に不詳を含むため、総数と内訳の合計は必ずしも一致しないと説明されています。
                     <a
                       href="https://www.stat.go.jp/data/zenkokukakei/2024/pdf/riyou2024.pdf"
                       target="_blank"
