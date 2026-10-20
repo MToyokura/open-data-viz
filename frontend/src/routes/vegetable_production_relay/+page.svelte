@@ -202,6 +202,7 @@
             {:else}
               <RelayMap
                 {geojson}
+                {selectedMonth}
                 {observationsByPrefecture}
                 sourceUnit={yearData?.source_unit ?? null}
                 {scale}

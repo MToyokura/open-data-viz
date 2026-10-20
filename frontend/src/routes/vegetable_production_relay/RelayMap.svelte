@@ -27,9 +27,18 @@
   /** @type {import("leaflet").TooltipOptions} */
   const TOOLTIP_OPTIONS = { direction: "top", sticky: true };
 
-  /** @type {{geojson: GeoCollection, observationsByPrefecture: Record<string, PrefectureMonth>, sourceUnit: string | null, scale: number, onSelect: (name: string) => void}} */
-  let { geojson, observationsByPrefecture, sourceUnit, scale, onSelect } =
-    $props();
+  /** @type {{geojson: GeoCollection, selectedMonth: string, observationsByPrefecture: Record<string, PrefectureMonth>, sourceUnit: string | null, scale: number, onSelect: (name: string) => void}} */
+  let {
+    geojson,
+    selectedMonth,
+    observationsByPrefecture,
+    sourceUnit,
+    scale,
+    onSelect,
+  } = $props();
+
+  /** @type {number | undefined} */
+  let previousMonthNumber;
 
   /** @type {HTMLDivElement} */
   let host;
@@ -67,11 +76,12 @@
     };
   }
 
-  /** @param {string} name @param {LeafletCircleMarker} marker @param {number} targetRadius @param {number} targetOpacity */
-  function animateMarker(name, marker, targetRadius, targetOpacity) {
+  /** @param {string} name @param {LeafletCircleMarker} marker @param {number} targetRadius @param {number} targetOpacity @param {boolean} animate */
+  function animateMarker(name, marker, targetRadius, targetOpacity, animate) {
     const previousTarget = markerTargets.get(name);
     const hasActiveAnimation = markerAnimations.has(name);
     if (
+      animate &&
       previousTarget?.radius === targetRadius &&
       previousTarget.opacity === targetOpacity &&
       (hasActiveAnimation || Math.abs(marker.getRadius() - targetRadius) < 0.01)
@@ -81,9 +91,9 @@
     markerTargets.set(name, { radius: targetRadius, opacity: targetOpacity });
 
     const previousFrame = markerAnimations.get(name);
-    if (previousFrame !== undefined) {
+    if (!animate || previousFrame !== undefined) {
       // Prefer the latest value when updates arrive faster than the animation.
-      cancelAnimationFrame(previousFrame);
+      if (previousFrame !== undefined) cancelAnimationFrame(previousFrame);
       markerAnimations.delete(name);
       marker.setRadius(targetRadius);
       marker.setStyle({ fillOpacity: targetOpacity });
@@ -242,6 +252,12 @@
     const colors = mapColors;
     const currentObservations = observationsByPrefecture;
     const currentScale = scale;
+    const [year, month] = selectedMonth.split("-").map(Number);
+    const monthNumber = year * 12 + month;
+    const animate =
+      previousMonthNumber === undefined ||
+      Math.abs(monthNumber - previousMonthNumber) <= 1;
+    previousMonthNumber = monthNumber;
 
     boundary?.eachLayer((layer) => {
       const feature =
@@ -289,7 +305,7 @@
         markers.set(name, marker);
       }
 
-      animateMarker(name, marker, targetRadius, 0.85);
+      animateMarker(name, marker, targetRadius, 0.85, animate);
     }
 
     for (const [name, marker] of markers) {
