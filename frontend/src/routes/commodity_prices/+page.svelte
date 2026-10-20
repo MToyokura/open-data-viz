@@ -225,7 +225,7 @@
                 {/if}
               </fieldset>
               <button onclick={handleReset} class="reset-button"
-                >リセット</button
+                >すべて消去</button
               >
               {#if dataNotFound}
                 <p class="data-not-found">データが見つかりませんでした</p>
