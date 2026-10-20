@@ -103,7 +103,7 @@
     const startRadius = marker.getRadius();
     const startOpacity = Number(marker.options.fillOpacity ?? 0.85);
     const startTime = performance.now();
-    const duration = 200;
+    const duration = 125;
 
     /** @param {number} now */
     const step = (now) => {
