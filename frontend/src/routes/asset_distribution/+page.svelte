@@ -80,8 +80,7 @@
     if (dimension?.id !== "cat02") return label;
     if (code === "0") return label;
     if (code === "2") return "卒業（全体）";
-    if (["21", "22", "23"].includes(code))
-      return `卒業者の内訳 > ${label}`;
+    if (["21", "22", "23"].includes(code)) return `卒業者の内訳 > ${label}`;
     return label;
   }
   const comparisonDimension = $derived(
@@ -792,7 +791,8 @@
                     <a
                       href="https://www.stat.go.jp/data/zenkokukakei/2024/pdf/riyou2024.pdf"
                       target="_blank"
-                      rel="noopener noreferrer">出典：利用上の注意（12ページ）</a
+                      rel="noopener noreferrer"
+                      >出典：利用上の注意（12ページ）</a
                     >
                   </td>
                 </tr>
