@@ -529,13 +529,6 @@
     font-size: 0.75rem;
     color: #667085;
   }
-  .details-column > section {
-    margin: 0 0 var(--space-4);
-    padding: var(--space-4);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-color);
-  }
   .details-column h2,
   .selection-heading h3 {
     font-size: 1rem;
@@ -695,9 +688,6 @@
       padding: var(--space-4);
       border-left: 0;
       border-right: 0;
-    }
-    .details-column > section {
-      padding: var(--space-4);
     }
 
     .controls {
