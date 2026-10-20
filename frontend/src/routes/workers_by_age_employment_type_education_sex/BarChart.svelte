@@ -50,7 +50,7 @@
               ? "この年のデータなし"
               : row.value === null
                 ? row.reason
-                  ? "注記あり（グラフ下の「データ利用上の注意」を参照）"
+                  ? "注記あり（「データについて」の「利用上の注意」を参照）"
                   : "欠損"
                 : `${row.value.toLocaleString()} ${item.data?.unit ?? ""}`;
             return `${marker}${item.label}: ${value}`;

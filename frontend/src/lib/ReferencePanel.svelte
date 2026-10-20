@@ -17,6 +17,20 @@
     font-size: 1.1rem;
   }
 
+  .reference :global(h3) {
+    margin: var(--space-4) 0 var(--space-3);
+    font-size: 1rem;
+  }
+
+  .reference :global(.reference-notes) {
+    margin: 0;
+    padding-left: 1.5em;
+  }
+
+  .reference :global(.reference-notes li + li) {
+    margin-top: var(--space-3);
+  }
+
   :global(.reference-table) {
     margin-top: var(--space-4);
   }

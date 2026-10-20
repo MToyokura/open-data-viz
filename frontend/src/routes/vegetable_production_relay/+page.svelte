@@ -387,24 +387,33 @@
             {/if}
           </section>
 
-          <section class="notes">
-            <h2>備考</h2>
+          <ReferencePanel title="データについて">
+            <h3>操作方法</h3>
             <p>
               都道府県または円をクリック・タップすると、詳細パネルにその産地の報告値と内訳を表示します。
               地図上のスクロールで拡大・縮小できます。円の大きさは＋／−ボタンで調整できます。
             </p>
-            <p>
-              報告値合計は、産地都道府県ごとに、主要消費地域9区分のうち数値が報告された区分だけを合計したものです。
-              表示単位未満、該当なし、不詳・調査なしの区分は含めていません。農業生産量や全国計を示す値ではありません。
-            </p>
-            <p>
-              令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
-            </p>
-          </section>
-
-          <ReferencePanel title="出典情報等" marginTop="0">
+            <h3>利用上の注意</h3>
+            <ul class="reference-notes">
+              <li>
+                報告値合計は、産地都道府県ごとに、主要消費地域9区分のうち数値が報告された区分だけを合計したものです。
+                表示単位未満、該当なし、不詳・調査なしの区分は含めていません。農業生産量や全国計を示す値ではありません。
+              </li>
+              <li>
+                令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
+              </li>
+            </ul>
+            <h3>出典</h3>
             <table class="reference-table ui-table">
               <tbody>
+                <tr>
+                  <th>統計名</th>
+                  <td>青果物卸売市場調査</td>
+                </tr>
+                <tr>
+                  <th>表題</th>
+                  <td>{selectedProductLabel}</td>
+                </tr>
                 <tr>
                   <th>統計表ID</th>
                   <td>
@@ -414,12 +423,23 @@
                         <a
                           href={`https://www.e-stat.go.jp/dbview?sid=${yearData.table_id}`}
                           target="_blank"
-                          rel="noopener noreferrer"
-                          >https://www.e-stat.go.jp/dbview?sid={yearData.table_id}</a
+                          rel="noopener noreferrer">e-Statで統計表を見る</a
                         >
                       </div>
                     {/if}
                   </td>
+                </tr>
+                <tr>
+                  <th>対象年／期間</th>
+                  <td>{yearData ? `${yearData.year}年（月次）` : ""}</td>
+                </tr>
+                <tr>
+                  <th>単位</th>
+                  <td>{yearData?.source_unit ?? ""}</td>
+                </tr>
+                <tr>
+                  <th>表分類</th>
+                  <td>野菜の主要消費地域別・産地別の卸売数量及び卸売価格</td>
                 </tr>
                 <tr>
                   <th>地図データ</th>
@@ -436,7 +456,7 @@
                         href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html"
                         target="_blank"
                         rel="noopener noreferrer"
-                        >https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html</a
+                        >国土数値情報 行政区域データ（2026年版）</a
                       >
                     </div>
                   </td>
@@ -662,10 +682,6 @@
     border: var(--border-default);
     border-radius: var(--radius-md);
     background: var(--surface-color);
-  }
-  .notes {
-    margin: var(--space-8) auto var(--space-4);
-    line-height: 1.6;
   }
   @media (max-width: 800px) {
     .page-shell {

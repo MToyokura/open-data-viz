@@ -1,4 +1,5 @@
 <script>
+  import ReferencePanel from "#lib/ReferencePanel.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
@@ -695,16 +696,16 @@
             </details>
           </section>
         {/if}
-        <section class="reference ui-panel ui-panel--subtle">
-          <h2>データ利用上の注意</h2>
-          <ul class="notes">
+        <ReferencePanel title="データについて">
+          <h3>利用上の注意</h3>
+          <ul class="reference-notes">
             <li>
               {educationHierarchyNote}
               <a
                 href="https://www.stat.go.jp/data/roudou/change/2013/pdf/20121228.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                >出典：2013年からの変更内容（3ページ・表7）</a
+                >2013年からの変更内容（3ページ・表7）</a
               >、<a
                 href="https://www.stat.go.jp/data/roudou/rireki/nen/dt/pdf/2012.pdf"
                 target="_blank"
@@ -721,18 +722,9 @@
               <li>{note}</li>
             {/each}
           </ul>
-          <h2>出典情報</h2>
+          <h3>出典</h3>
           <table class="reference-table ui-table">
             <tbody>
-              <tr
-                ><th>統計表ID</th><td
-                  ><a
-                    href="https://www.e-stat.go.jp/dbview?sid=0003006608"
-                    target="_blank"
-                    rel="noopener noreferrer">0003006608（e-Stat）</a
-                  ></td
-                ></tr
-              >
               <tr><th>統計名</th><td>労働力調査</td></tr>
               <tr
                 ><th>表題</th><td
@@ -740,13 +732,27 @@
                     "年齢階級，教育，雇用形態別雇用者数"}</td
                 ></tr
               >
-              <tr
-                ><th>単位・対象期間</th><td
-                  >{options
-                    ? `${options.metadata.unit}・${options.metadata.period}`
-                    : ""}</td
-                ></tr
-              >
+              <tr>
+                <th>統計表ID</th>
+                <td>
+                  <div>0003006608</div>
+                  <div>
+                    <a
+                      href="https://www.e-stat.go.jp/dbview?sid=0003006608"
+                      target="_blank"
+                      rel="noopener noreferrer">e-Statで統計表を見る</a
+                    >
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th>対象年／期間</th>
+                <td>{options?.metadata.period ?? ""}</td>
+              </tr>
+              <tr>
+                <th>単位</th>
+                <td>{options?.metadata.unit ?? ""}</td>
+              </tr>
               <tr
                 ><th>労働力調査について</th><td
                   ><a
@@ -758,7 +764,7 @@
               >
             </tbody>
           </table>
-        </section>
+        </ReferencePanel>
         <LicenseLink />
       </aside>
       <section class="chart-panel" aria-label="雇用者数の年次推移">
@@ -920,18 +926,5 @@
   }
   .empty {
     margin-top: var(--space-4);
-  }
-  .reference {
-    margin-top: var(--space-8);
-  }
-  .reference h2 {
-    margin: 0 0 var(--space-3);
-    font-size: 1.1rem;
-  }
-  .reference-table a {
-    word-break: break-all;
-  }
-  .notes {
-    margin-top: 0;
   }
 </style>

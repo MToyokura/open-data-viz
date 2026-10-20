@@ -734,60 +734,38 @@
         {/if}
 
         {#if data}
-          <ReferencePanel title="データ利用上の注意" marginTop="var(--space-4)">
+          <ReferencePanel title="データについて">
+            <h3>利用上の注意</h3>
+            <ul class="reference-notes">
+              <li>
+                <strong>階級の定義：</strong>{String(
+                  data.metadata.asset_basis ?? "純資産総額",
+                )}。最低階級は公式の再掲内訳である「0万円未満」「0万円」「0万円超25万円未満」の3区分で表示します。元の「25万円未満」は内訳と重ねて表示せず、二重計上を防いでいます。「0万円未満」は純資産総額がマイナスの世帯です。資産額不詳の世帯は金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。
+              </li>
+              <li>
+                <strong>学歴区分：</strong>
+                「全体（元データ表記：平均）」は、元データで「平均」と呼ばれる区分です。選択すると、この区分で公表された世帯数分布を表示します。公式資料では、一部を除き「平均（総数）」に不詳を含むため、総数と内訳の合計は必ずしも一致しないと説明されています。
+                <a
+                  href="https://www.stat.go.jp/data/zenkokukakei/2024/pdf/riyou2024.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer">利用上の注意（12ページ）</a
+                >
+              </li>
+              <li>
+                <strong>世帯数の推計：</strong
+                >世帯数は調査世帯の単純な回答数ではなく、集計用乗率を使った推計値です。
+              </li>
+              <li>
+                <strong>値の表記：</strong
+                >「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。世帯数は推計値で、公表値の丸めにより内訳の合計と総数が一致しない場合があります。公表値の差は補正していません。
+              </li>
+            </ul>
+            <h3>出典</h3>
             <table class="reference-table ui-table">
               <tbody>
                 <tr>
-                  <th>調査年・公表日</th>
-                  <td
-                    >{String(data.metadata.year ?? "")}年（公表日: {String(
-                      data.metadata.published_at ?? "",
-                    )}）</td
-                  >
-                </tr>
-                <tr>
-                  <th>対象・表章項目</th>
-                  <td
-                    >{String(data.metadata.area ?? "全国")}、{String(
-                      data.metadata.measure ?? "世帯数",
-                    )}（{String(data.metadata.unit ?? "世帯")}）</td
-                  >
-                </tr>
-                <tr>
-                  <th>階級の定義</th>
-                  <td
-                    >{String(
-                      data.metadata.asset_basis ?? "純資産総額",
-                    )}。最低階級は公式の再掲内訳である「0万円未満」「0万円」「0万円超25万円未満」の3区分で表示します。元の「25万円未満」は内訳と重ねて表示せず、二重計上を防いでいます。「0万円未満」は純資産総額がマイナスの世帯です。資産額不詳の世帯は金額階級の棒には含まれません。階級の境界と開放端は統計表の公式表記を使っています。</td
-                  >
-                </tr>
-                <tr>
-                  <th>学歴区分</th>
-                  <td>
-                    「全体（元データ表記：平均）」は、元データで「平均」と呼ばれる区分です。選択すると、この区分で公表された世帯数分布を表示します。公式資料では、一部を除き「平均（総数）」に不詳を含むため、総数と内訳の合計は必ずしも一致しないと説明されています。
-                    <a
-                      href="https://www.stat.go.jp/data/zenkokukakei/2024/pdf/riyou2024.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      >出典：利用上の注意（12ページ）</a
-                    >
-                  </td>
-                </tr>
-                <tr>
-                  <th>世帯数の推計</th>
-                  <td
-                    >世帯数は調査世帯の単純な回答数ではなく、集計用乗率を使った推計値です。</td
-                  >
-                </tr>
-                <tr>
-                  <th>値の表記</th>
-                  <td
-                    >「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。世帯数は推計値で、公表値の丸めにより内訳の合計と総数が一致しない場合があります。公表値の差は補正していません。</td
-                  >
-                </tr>
-                <tr>
                   <th>統計名</th>
-                  <td>総務省統計局「令和6年全国家計構造調査」</td>
+                  <td>全国家計構造調査</td>
                 </tr>
                 <tr>
                   <th>表題</th>
@@ -801,11 +779,30 @@
                       <a
                         href="https://www.e-stat.go.jp/dbview?sid=0004056120"
                         target="_blank"
-                        rel="noopener noreferrer"
-                        >https://www.e-stat.go.jp/dbview?sid=0004056120</a
+                        rel="noopener noreferrer">e-Statで統計表を見る</a
                       >
                     </div>
                   </td>
+                </tr>
+                <tr>
+                  <th>対象年／期間</th>
+                  <td>{String(data.metadata.year ?? "")}年</td>
+                </tr>
+                <tr>
+                  <th>単位</th>
+                  <td>{String(data.metadata.unit ?? "世帯")}</td>
+                </tr>
+                <tr>
+                  <th>公表日</th>
+                  <td>{String(data.metadata.published_at ?? "")}</td>
+                </tr>
+                <tr>
+                  <th>対象・表章項目</th>
+                  <td
+                    >{String(data.metadata.area ?? "全国")}、{String(
+                      data.metadata.measure ?? "世帯数",
+                    )}</td
+                  >
                 </tr>
               </tbody>
             </table>
