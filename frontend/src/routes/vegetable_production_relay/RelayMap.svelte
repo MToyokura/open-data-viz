@@ -81,7 +81,14 @@
     markerTargets.set(name, { radius: targetRadius, opacity: targetOpacity });
 
     const previousFrame = markerAnimations.get(name);
-    if (previousFrame !== undefined) cancelAnimationFrame(previousFrame);
+    if (previousFrame !== undefined) {
+      // Prefer the latest value when updates arrive faster than the animation.
+      cancelAnimationFrame(previousFrame);
+      markerAnimations.delete(name);
+      marker.setRadius(targetRadius);
+      marker.setStyle({ fillOpacity: targetOpacity });
+      return;
+    }
 
     const startRadius = marker.getRadius();
     const startOpacity = Number(marker.options.fillOpacity ?? 0.85);
