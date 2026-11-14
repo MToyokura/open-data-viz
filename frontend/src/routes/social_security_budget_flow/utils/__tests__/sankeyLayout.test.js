@@ -15,8 +15,8 @@ describe("buildSplitSankey", () => {
 
     expect(layout.scale).toBeGreaterThan(0);
     expect(layout.left.entries[0].thickness / 60).toBe(layout.right.entries[0].thickness / 50);
-    expect(layout.left.entries.every((entry) => entry.path.includes("465"))).toBe(true);
-    expect(layout.right.entries.every((entry) => entry.path.includes("535"))).toBe(true);
+    expect(layout.left.entries.every((entry) => entry.path.includes("480"))).toBe(true);
+    expect(layout.right.entries.every((entry) => entry.path.includes("520"))).toBe(true);
     expect(layout.totalIncome).toBe(100);
     expect(layout.totalExpenditure).toBe(100);
     expect(layout.left.stackYStart).toBe(layout.right.stackYStart);

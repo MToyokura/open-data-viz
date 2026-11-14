@@ -3,8 +3,10 @@ import { EXPENDITURE_GROUPS, INCOME_GROUPS, groupLabel, summarizeItems, totalVal
 const ROW_HEIGHT = 38;
 const GROUP_GAP = 16;
 const TOP = 48;
+const GROUP_HEADER_HEIGHT = 24;
+const ITEM_VERTICAL_INSET = 5;
 const CENTER_X = 500;
-const CENTER_GAP = 70;
+const CENTER_GAP = 40;
 const LEFT_NODE_X = 190;
 const RIGHT_NODE_X = 810;
 
@@ -28,11 +30,11 @@ function assignRows(groups, scale) {
   for (const group of groups) {
     const frameTop = y;
     headers.push({ label: group.label, y: y + 15 });
-    y += 24;
+    y += GROUP_HEADER_HEIGHT;
     let lastBottom = y;
     for (const item of group.items) {
       const thickness = item.value * scale;
-      const slotHeight = Math.max(ROW_HEIGHT, thickness + 10);
+      const slotHeight = Math.max(ROW_HEIGHT, thickness + ITEM_VERTICAL_INSET * 2);
       entries.push({ ...item, groupLabel: group.label, rowY: y + slotHeight / 2, thickness });
       y += slotHeight;
       lastBottom = y;
@@ -59,7 +61,7 @@ function ribbonPath(x1, x2, y1, y2, thickness) {
 function sideLayout(items, order, direction, scale) {
   const { entries, headers, groupFrames } = assignRows(groupedItems(items, order), scale);
   const total = totalValue(items);
-  let stackY = TOP;
+  let stackY = TOP + GROUP_HEADER_HEIGHT + ITEM_VERTICAL_INSET;
   const nodeX = direction === "left" ? LEFT_NODE_X : RIGHT_NODE_X;
   const ribbons = entries.map((item) => {
     const thickness = item.thickness;
@@ -72,7 +74,7 @@ function sideLayout(items, order, direction, scale) {
       path: ribbonPath(direction === "left" ? CENTER_X : CENTER_X, nodeX, centerY, item.rowY, thickness),
     };
   });
-  return { entries: ribbons, headers, groupFrames, total, stackYStart: TOP, nodeX, direction };
+  return { entries: ribbons, headers, groupFrames, total, stackYStart: TOP + GROUP_HEADER_HEIGHT + ITEM_VERTICAL_INSET, nodeX, direction };
 }
 
 /** Calculate two visually separated half-Sankey diagrams on one common money scale. */

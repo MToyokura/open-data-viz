@@ -147,7 +147,7 @@
   {#if activeItem}
     <aside class={['item-detail', { pinned }]} role={pinned ? "dialog" : "tooltip"} aria-live="polite" aria-label="選択中の項目詳細" style:left="{tooltipX}px" style:top="{tooltipY}px" bind:clientWidth={tooltipWidth} bind:clientHeight={tooltipHeight}>
       <div><strong>{activeItem.label}</strong><strong>{formatExactYen(activeItem.value)}</strong><span>{activeSide}の表示項目計に占める割合：{amountShare(activeItem.value, activeSide === "収入" ? incomeTotal : expenditureTotal)}</span></div>
-      <p>{formatExactAmount(activeItem.value)} · 項目コード：{activeItem.id}</p>
+      <p>項目コード：{activeItem.id}</p>
       {#if pinned}<button type="button" onclick={() => { pinned = false; activeItem = null; activeSide = ""; }}>詳細を閉じる</button>{/if}
     </aside>
   {/if}
