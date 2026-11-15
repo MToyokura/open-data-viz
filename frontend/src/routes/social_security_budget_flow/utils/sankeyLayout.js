@@ -1,10 +1,10 @@
 import { EXPENDITURE_GROUPS, INCOME_GROUPS, groupLabel, summarizeItems, totalValue } from "./amountComparison.js";
 
-const ROW_HEIGHT = 38;
-const GROUP_GAP = 16;
+const ROW_HEIGHT = 54;
+const GROUP_GAP = 24;
 const TOP = 48;
-const GROUP_HEADER_HEIGHT = 24;
-const ITEM_VERTICAL_INSET = 5;
+const GROUP_HEADER_HEIGHT = 26;
+const ITEM_VERTICAL_INSET = 20;
 const CENTER_X = 500;
 const CENTER_GAP = 40;
 const LEFT_NODE_X = 190;

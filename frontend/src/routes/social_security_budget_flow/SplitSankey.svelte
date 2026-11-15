@@ -82,7 +82,8 @@
     <div class="center-title"><span>2024年度</span><strong>{program.name}</strong><span>表示項目合計の差（収入計 − 支出計）：{layout.totalDifference < 0 ? "−" : ""}{formatApproximateAmount(Math.abs(layout.totalDifference))}</span></div>
     <div><span>支出の表示項目計</span><strong>{formatApproximateAmount(expenditureTotal)}</strong></div>
   </header>
-  <div class="chart-scroll">
+  <p class="scroll-hint">図の全体が表示されない場合は、左右にスクロールできます。</p>
+  <div class="chart-scroll" role="region" aria-label="左右にスクロールできる財源・支出図">
     <svg viewBox="0 0 {layout.width} {layout.height}" role="group" aria-label="収入は中央へ集まり、支出は中央から分かれる金額比例の帯">
       <text class="side-title" x="8" y="30">収入</text><text class="side-title" x="{layout.width - 8}" y="30" text-anchor="end">支出</text>
       {#each layout.left.groupFrames as frame (frame.label)}<rect class="group-frame-fill" x="0" y={frame.top} width="195" height={frame.bottom - frame.top} rx="7"></rect>{/each}
@@ -92,8 +93,8 @@
           <path d={item.path} fill={groupColors[item.group] ?? "#536c3f"} fill-opacity="0.72"></path>
           <rect x={layout.left.nodeX - 5} y={item.rowY - item.thickness / 2} width="10" height={Math.max(item.thickness, 0)} fill={groupColors[item.group] ?? "#536c3f"}></rect>
           <line x1="160" x2={layout.left.nodeX - 6} y1={item.rowY} y2={item.rowY} stroke="#667781" stroke-width="1"></line>
-          <text class="item-label" x="8" y={item.rowY - 5}>{item.label}</text>
-          <text class="item-amount" x="8" y={item.rowY + 13}>{formatApproximateAmount(item.value)} ・{amountShare(item.value, incomeTotal)}</text>
+          <text class="item-label" x="8" y={item.rowY - 7}>{item.label}</text>
+          <text class="item-amount" x="8" y={item.rowY + 15}>{formatApproximateAmount(item.value)} ・{amountShare(item.value, incomeTotal)}</text>
         </g>
       {/each}
       {#each layout.right.entries as item (item.id)}
@@ -101,8 +102,8 @@
           <path d={item.path} fill={groupColors[item.group] ?? "#536c3f"} fill-opacity="0.72"></path>
           <rect x={layout.right.nodeX - 5} y={item.rowY - item.thickness / 2} width="10" height={Math.max(item.thickness, 0)} fill={groupColors[item.group] ?? "#536c3f"}></rect>
           <line x1={layout.right.nodeX + 6} x2="840" y1={item.rowY} y2={item.rowY} stroke="#667781" stroke-width="1"></line>
-          <text class="item-label" x="{layout.width - 8}" y={item.rowY - 5} text-anchor="end">{item.label}</text>
-          <text class="item-amount" x="{layout.width - 8}" y={item.rowY + 13} text-anchor="end">{formatApproximateAmount(item.value)} ・{amountShare(item.value, expenditureTotal)}</text>
+          <text class="item-label" x="{layout.width - 8}" y={item.rowY - 7} text-anchor="end">{item.label}</text>
+          <text class="item-amount" x="{layout.width - 8}" y={item.rowY + 15} text-anchor="end">{formatApproximateAmount(item.value)} ・{amountShare(item.value, expenditureTotal)}</text>
         </g>
       {/each}
       {#each layout.left.headers as heading (heading.label)}<text class="group-title" x="8" y={heading.y}>{heading.label}</text>{/each}
@@ -132,12 +133,18 @@
   .summary strong { overflow-wrap: anywhere; }
   .center-title strong { font-size: 1.12rem; }
   .explanation { max-width: 100%; color: #46545d; font-size: .9rem; line-height: 1.7; overflow-wrap: anywhere; }
-  .chart-scroll { width: 100%; overflow-x: auto; }
-  svg { display: block; width: 100%; min-width: 720px; height: auto; overflow: visible; }
-  .side-title { fill: #263b49; font-size: 18px; font-weight: 700; }
-  .item-label { fill: #17242c; font-size: 14px; font-weight: 600; }
-  .item-amount { fill: #46545d; font-size: 12px; }
-  .group-title { fill: #344650; font-size: 13px; font-weight: 700; }
+  .chart-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1000px minmax(0, 1fr);
+    width: 100%;
+    overflow-x: auto;
+  }
+  .scroll-hint { margin: 0 0 var(--space-2); color: #52616b; font-size: .85rem; }
+  svg { grid-column: 2; display: block; width: 1000px; max-width: none; height: auto; overflow: visible; }
+  .side-title { fill: #263b49; font-size: 19px; font-weight: 700; }
+  .item-label { fill: #17242c; font-size: 16px; font-weight: 600; }
+  .item-amount { fill: #46545d; font-size: 13px; }
+  .group-title { fill: #344650; font-size: 14px; font-weight: 700; }
   .group-frame-fill { fill: #f6f8f9; }
   .group-frame { fill: none; stroke: #c9d2d7; stroke-width: 1; }
   g[role="button"] { cursor: pointer; }
@@ -152,6 +159,5 @@
   @media (max-width: 760px) {
     .summary { grid-template-columns: 1fr 1fr; }
     .center-title { grid-column: 1 / -1; grid-row: 1; }
-    .chart-scroll svg { width: 1000px; min-width: 1000px; }
   }
 </style>
