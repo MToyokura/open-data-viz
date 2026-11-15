@@ -248,7 +248,7 @@
   <main class="page-content">
     <WorkspaceHeader title="野菜の産地リレー" />
 
-    {#if aggregation}
+    {#if aggregation || relayData.isLoading}
       <div class="workspace">
         <section class="map-column" aria-label="出荷数量マップ">
           {#if dataError}
@@ -257,11 +257,6 @@
               message={dataError}
               onretry={reloadPage}
               retryLabel="ページを再読み込み"
-            />
-          {:else if relayData.isLoading}
-            <LoadState
-              state="loading"
-              message="出荷データを読み込んでいます…"
             />
           {/if}
           <div class="map-heading">
@@ -275,7 +270,15 @@
               </p>
             </div>
           </div>
-          <div class="map-view">
+          <div class="map-view" aria-busy={relayData.isLoading}>
+            {#if relayData.isLoading && geojson && relayData.selectedProduct}
+              <div class="map-loading">
+                <LoadState
+                  state="loading"
+                  message="出荷データを読み込んでいます…"
+                />
+              </div>
+            {/if}
             {#if mapError}
               <LoadState
                 state="error"
@@ -283,11 +286,12 @@
                 onretry={reloadPage}
                 retryLabel="ページを再読み込み"
               />
-            {:else if !geojson}
+            {:else if !geojson || !relayData.selectedProduct}
               <LoadState state="loading" message="地図を読み込んでいます…" />
             {:else}
               <RelayMap
                 {geojson}
+                selectedProduct={relayData.selectedProduct}
                 {selectedMonth}
                 {observationsByPrefecture}
                 sourceUnit={yearData?.source_unit ?? null}
@@ -477,10 +481,8 @@
         onretry={reloadPage}
         retryLabel="ページを再読み込み"
       />
-    {:else if relayData.isLoading}
-      <LoadState state="loading" message="出荷データを読み込んでいます…" />
     {/if}
-    {#if !aggregation}{@render relayReference()}{/if}
+    {#if !aggregation && !relayData.isLoading}{@render relayReference()}{/if}
   </main>
 </div>
 
@@ -505,6 +507,21 @@
     flex: 1;
     min-height: 0;
     position: relative;
+  }
+  .map-loading {
+    position: absolute;
+    inset-block-start: var(--space-3);
+    inset-inline-start: var(--space-3);
+    z-index: 1000;
+    pointer-events: none;
+  }
+  .map-loading :global(.load-state) {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-color);
+    box-shadow: var(--tooltip-shadow);
   }
   .map-heading {
     padding: var(--space-4) var(--space-6);

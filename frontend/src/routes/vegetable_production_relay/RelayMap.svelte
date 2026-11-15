@@ -27,9 +27,10 @@
   /** @type {import("leaflet").TooltipOptions} */
   const TOOLTIP_OPTIONS = { direction: "top", sticky: true };
 
-  /** @type {{geojson: GeoCollection, selectedMonth: string, observationsByPrefecture: Record<string, PrefectureMonth>, sourceUnit: string | null, scale: number, onSelect: (name: string) => void}} */
+  /** @type {{geojson: GeoCollection, selectedProduct: string, selectedMonth: string, observationsByPrefecture: Record<string, PrefectureMonth>, sourceUnit: string | null, scale: number, onSelect: (name: string) => void}} */
   let {
     geojson,
+    selectedProduct,
     selectedMonth,
     observationsByPrefecture,
     sourceUnit,
@@ -65,6 +66,11 @@
   /** @type {SvelteMap<string, LatLng>} */
   const centroidLocations = new SvelteMap();
   let geometryVersion = $state(0);
+  let productFitPending = $state(false);
+  /** @type {import("leaflet").LatLngBounds | undefined} */
+  let mapBounds;
+  /** @type {string | undefined} */
+  let previousProduct;
 
   function readMapColors() {
     const styles = getComputedStyle(host);
@@ -170,6 +176,9 @@
   // the map is initialized or a different GeoJSON object is supplied.
   $effect(() => {
     if (!mapReady || !leaflet || !map || !geojson || !mapColors) return;
+    untrack(() => {
+      geometryVersion = 0;
+    });
 
     const colors = mapColors;
     const {
@@ -227,14 +236,44 @@
       for (const marker of markers.values()) marker.bringToFront();
     });
 
-    const bounds = boundary.getBounds();
-    if (insetSeparator) bounds.extend(insetSeparator.getBounds());
-    if (bounds.isValid()) map.fitBounds(bounds, { padding: [12, 12] });
+    mapBounds = boundary.getBounds();
+    if (insetSeparator) mapBounds.extend(insetSeparator.getBounds());
+    const finishGeometrySetup = () => {
+      untrack(() => {
+        geometryVersion += 1;
+      });
+    };
+    if (mapBounds.isValid()) {
+      // Add circles only after Leaflet finishes fitting the map to the bounds.
+      map.once("moveend", finishGeometrySetup);
+      map.fitBounds(mapBounds, { padding: [12, 12] });
+    } else {
+      finishGeometrySetup();
+    }
+  });
 
-    // Signal that the marker effect should consume the new locations.
-    untrack(() => {
-      geometryVersion += 1;
+  // Keep the Leaflet map and boundary layers mounted when the product changes.
+  // Refit the existing map, then let the observation effect draw the new circles.
+  $effect(() => {
+    if (!mapReady || !map || !geometryVersion || !mapBounds) return;
+    if (previousProduct === undefined) {
+      previousProduct = selectedProduct;
+      return;
+    }
+    if (previousProduct === selectedProduct) return;
+    previousProduct = selectedProduct;
+
+    for (const frame of markerAnimations.values()) cancelAnimationFrame(frame);
+    markerAnimations.clear();
+    markerTargets.clear();
+    for (const marker of markers.values()) marker.remove();
+    markers.clear();
+
+    productFitPending = true;
+    map.once("moveend", () => {
+      productFitPending = false;
     });
+    map.fitBounds(mapBounds, { padding: [12, 12] });
   });
 
   // Dynamic data: refresh labels, positions, and marker animations without
@@ -246,6 +285,7 @@
       !map ||
       !circles ||
       !geometryVersion ||
+      productFitPending ||
       !mapColors
     )
       return;
