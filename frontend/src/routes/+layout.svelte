@@ -33,7 +33,7 @@
 
 {#if !isWorkspace && !isHome}
   <nav class="site-nav">
-    <a href={`${VITE_ROOT_PATH}/`} aria-label="Home">
+    <a href={`${VITE_ROOT_PATH}/`} aria-label="ホームに戻る">
       <img src={homeIcon} alt="" />
     </a>
   </nav>

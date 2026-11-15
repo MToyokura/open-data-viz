@@ -418,7 +418,7 @@ button:not(:disabled):hover {
   background: var(--surface-hover-color);
 }
 
-:where(button, input, select, textarea):focus-visible {
+:where(a, button, input, select, textarea):focus-visible {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;
 }
