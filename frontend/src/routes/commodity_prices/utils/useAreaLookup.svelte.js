@@ -27,7 +27,9 @@ export function useAreaLookup() {
   let isLoading = $state(true);
   let error = $state(/** @type {Error | undefined} */ (undefined));
 
-  onMount(async () => {
+  async function load() {
+    isLoading = true;
+    error = undefined;
     try {
       areaLookup = await fetchAreaLookup();
     } catch (e) {
@@ -35,7 +37,9 @@ export function useAreaLookup() {
     } finally {
       isLoading = false;
     }
-  });
+  }
+
+  onMount(load);
 
   // Return functions that return the current state values
   return {
@@ -48,5 +52,6 @@ export function useAreaLookup() {
     get error() {
       return error;
     },
+    retry: load,
   };
 }

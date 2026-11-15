@@ -5,7 +5,7 @@ import { CAT02_LOOKUP_DATA_PATH } from "../constants/constants.js";
 
 // Fetch cat02_lookup.json
 /** @returns {Promise<Cat02Lookup>} */
-export async function fetchCat02Lookup() {
+async function fetchCat02Lookup() {
   try {
     const response = await fetch(CAT02_LOOKUP_DATA_PATH);
 
@@ -27,7 +27,9 @@ export function useCat02Lookup() {
   let isLoading = $state(true);
   let error = $state(/** @type {Error | undefined} */ (undefined));
 
-  onMount(async () => {
+  async function load() {
+    isLoading = true;
+    error = undefined;
     try {
       cat02Lookup = await fetchCat02Lookup();
     } catch (e) {
@@ -35,7 +37,9 @@ export function useCat02Lookup() {
     } finally {
       isLoading = false;
     }
-  });
+  }
+
+  onMount(load);
 
   // Return functions that return the current state values
   return {
@@ -48,5 +52,6 @@ export function useCat02Lookup() {
     get error() {
       return error;
     },
+    retry: load,
   };
 }

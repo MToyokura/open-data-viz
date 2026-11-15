@@ -19,15 +19,15 @@ export async function fetchCommodityPrices({ cat02Code, areaCode }) {
       },
     );
 
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
+    if (response.status === 404) return undefined;
+    if (!response.ok)
+      throw new Error(`データを取得できませんでした (HTTP ${response.status})`);
 
     /** @type {CommodityPrices} */
     const data = await response.json();
     return data;
   } catch (error) {
     console.error("Error fetching data:", error);
-    return undefined;
+    throw error;
   }
 }

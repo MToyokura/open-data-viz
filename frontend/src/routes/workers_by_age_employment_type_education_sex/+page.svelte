@@ -1,11 +1,12 @@
 <script>
   import { useResponsivePanels } from "#lib/useResponsivePanels.svelte.js";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import ReferenceTable from "#lib/ReferenceTable.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import { onMount } from "svelte";
-  import Spinner from "#lib/Spinner.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   import BarChart from "./BarChart.svelte";
   import { fetchOptions, fetchSeries } from "./utils/fetchData.js";
 
@@ -83,6 +84,40 @@
             ) ?? [],
       ),
     ),
+  ]);
+  let referenceRows = $derived([
+    { label: "統計名", value: "労働力調査" },
+    {
+      label: "表題",
+      value: options?.metadata.title ?? "年齢階級，教育，雇用形態別雇用者数",
+    },
+    {
+      label: "統計表ID",
+      id: "0003006608",
+      url: "https://www.e-stat.go.jp/dbview?sid=0003006608",
+      linkLabel: "e-Statで統計表を見る",
+    },
+    {
+      label: "対象年／期間",
+      value:
+        options?.metadata.period ||
+        (optionsLoading ? "取得中…" : "期間情報を取得できませんでした"),
+    },
+    {
+      label: "単位",
+      value:
+        options?.metadata.unit ||
+        (optionsLoading ? "取得中…" : "単位情報を取得できませんでした"),
+    },
+    {
+      label: "労働力調査について",
+      links: [
+        {
+          label: "総務省統計局 労働力調査",
+          href: "https://www.stat.go.jp/data/roudou/",
+        },
+      ],
+    },
   ]);
 
   const comparisonChoices = $derived.by(() => {
@@ -430,17 +465,23 @@
   <title>年齢階級，教育，雇用形態別雇用者数 | Open Data Viz</title>
 </svelte:head>
 
-<div class="visualization-page visualization-page--workers">
+<div
+  class="visualization-page visualization-page--chart-first visualization-page--workers"
+>
   <main class="page-content">
     <WorkspaceHeader title="年齢階級，教育，雇用形態別雇用者数" />
     <div class="workspace">
       <aside class="details-column" aria-label="比較条件">
-        {#if optionsLoading}<Spinner />
+        {#if optionsLoading}<LoadState
+            state="loading"
+            message="選択肢を読み込んでいます…"
+          />
         {:else if optionsError}
-          <div class="error" role="alert">
-            <p>{optionsError}</p>
-            <button onclick={loadOptions}>再試行</button>
-          </div>
+          <LoadState
+            state="error"
+            message={optionsError}
+            onretry={loadOptions}
+          />
         {:else if options}
           <section class="control-panel" aria-label="系列の条件">
             <details class="selector-panel" bind:open={panels.isSelectorOpen}>
@@ -465,7 +506,7 @@
                   >
                 </div>
                 <p class="mode-description">
-                  {#if mode === "add"}条件を選び、「系列に追加」を押すとグラフに表示されます。{:else}選んだ属性の区分を比較します。ほかの条件は全系列に共通して適用されます。各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。{/if}
+                  {#if mode === "add"}条件を選び、「系列に追加」を押すとグラフに表示されます。{:else}区分を選ぶと比較系列がすぐに反映されます。ほかの条件は全系列に共通して適用されます。{/if}各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。
                 </p>
                 {#if mode === "compare"}<section
                     class="comparison-controls"
@@ -636,16 +677,16 @@
               </div>
             </details>
           </section>
-          <section class="comparison-panel" aria-label="比較中のデータ">
+          <section class="comparison-panel" aria-label="選択中の系列">
             <details class="added-items" bind:open={panels.isComparisonOpen}>
               <summary
                 ><h2>
-                  {mode === "compare" ? "比較系列" : "表示中の系列"}
+                  選択中の系列
                   <span>{items.length}系列</span>
                 </h2></summary
               >
               <fieldset class="selected-list">
-                <legend>選択中一覧</legend>
+                <legend>選択中の系列</legend>
                 {#if items.length === 0}
                   <p class="empty-comparison">
                     {#if mode === "compare" && !comparisonDimension}比較する属性を選んでください。{:else if mode === "compare"}比較する区分を選んでください。{:else}系列が追加されていません。{/if}
@@ -654,8 +695,9 @@
                 <ul>
                   {#each items as item (item.key)}<li>
                       <span>{item.label}</span>
-                      {#if item.status === "loading"}<span class="muted"
-                          >取得中…</span
+                      {#if item.status === "loading"}<span
+                          class="muted"
+                          role="status">取得中…</span
                         >
                       {:else if item.status === "error"}<span
                           class="error"
@@ -671,7 +713,7 @@
                       {/if}
                       <button
                         class="icon-button"
-                        aria-label={`${item.label}を削除`}
+                        aria-label={`${item.label}を選択中一覧から削除`}
                         onclick={() => removeItem(item.key)}
                         ><img src={deleteIcon} alt="" /></button
                       >
@@ -713,47 +755,7 @@
             {/each}
           </ul>
           <h3>出典</h3>
-          <table class="reference-table ui-table">
-            <tbody>
-              <tr><th>統計名</th><td>労働力調査</td></tr>
-              <tr
-                ><th>表題</th><td
-                  >{options?.metadata.title ??
-                    "年齢階級，教育，雇用形態別雇用者数"}</td
-                ></tr
-              >
-              <tr>
-                <th>統計表ID</th>
-                <td>
-                  <div>0003006608</div>
-                  <div>
-                    <a
-                      href="https://www.e-stat.go.jp/dbview?sid=0003006608"
-                      target="_blank"
-                      rel="noopener noreferrer">e-Statで統計表を見る</a
-                    >
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <th>対象年／期間</th>
-                <td>{options?.metadata.period ?? ""}</td>
-              </tr>
-              <tr>
-                <th>単位</th>
-                <td>{options?.metadata.unit ?? ""}</td>
-              </tr>
-              <tr
-                ><th>労働力調査について</th><td
-                  ><a
-                    href="https://www.stat.go.jp/data/roudou/"
-                    target="_blank"
-                    rel="noopener noreferrer">総務省統計局 労働力調査</a
-                  ></td
-                ></tr
-              >
-            </tbody>
-          </table>
+          <ReferenceTable rows={referenceRows} />
         </ReferencePanel>
         <LicenseLink />
       </aside>

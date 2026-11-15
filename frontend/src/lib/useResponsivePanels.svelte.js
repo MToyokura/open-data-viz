@@ -5,6 +5,7 @@ export function useResponsivePanels(getSeriesCount) {
   const panels = $state({ isSelectorOpen: true, isComparisonOpen: true });
 
   onMount(() => {
+    // Keep this in sync with the shared workspace column switch.
     const query = window.matchMedia("(max-width: 50rem)");
     const updateViewport = () => {
       panels.isSelectorOpen = !query.matches;

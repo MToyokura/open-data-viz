@@ -6,7 +6,7 @@
 </script>
 
 <header class="page-heading">
-  <a href={`${VITE_ROOT_PATH}/`} aria-label="Home">
+  <a href={`${VITE_ROOT_PATH}/`} aria-label="ホームに戻る">
     <img src={homeIcon} alt="" />
   </a>
   <h1>{title}</h1>
@@ -15,7 +15,8 @@
 <style>
   .page-heading {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 2rem minmax(0, 1fr) 2rem;
+    gap: var(--space-2);
     align-items: center;
     padding: var(--space-4) var(--space-6);
     border-bottom: var(--border-default);
@@ -25,6 +26,11 @@
     grid-column: 1;
     grid-row: 1;
     justify-self: start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 2rem;
     color: inherit;
   }
 
@@ -37,11 +43,15 @@
   h1 {
     grid-column: 2;
     grid-row: 1;
-    justify-self: center;
+    min-width: 0;
+    justify-self: stretch;
     margin: 0;
     font-size: 1.25rem;
+    text-align: center;
+    overflow-wrap: anywhere;
   }
 
+  /* Matches the shared workspace column switch. */
   @media (max-width: 50rem) {
     .page-heading {
       padding: var(--space-3) var(--space-4);

@@ -1,11 +1,12 @@
 <script>
   import { useResponsivePanels } from "#lib/useResponsivePanels.svelte.js";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import ReferenceTable from "#lib/ReferenceTable.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import { onMount } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
-  import Spinner from "#lib/Spinner.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   import DistributionChart from "./DistributionChart.svelte";
   import {
     fetchAssetDistribution,
@@ -40,12 +41,43 @@
   );
   let seriesLoading = $state(false);
   let seriesFailures = $state.raw(/** @type {Record<string, string>} */ ({}));
+  let seriesEmpty = $state.raw(/** @type {Record<string, true>} */ ({}));
   /** @type {Record<string, Promise<import("./utils/data.js").DistributionItem[]>|undefined>} */
   let inFlightSeries = Object.create(null);
   let orientation = $state(
     /** @type {"vertical"|"horizontal"} */ ("horizontal"),
   );
   const panels = useResponsivePanels(() => activeCombinations.length);
+
+  let referenceRows = $derived([
+    { label: "統計名", value: "全国家計構造調査" },
+    { label: "表題", value: "表7-131-1-1「資産額階級別世帯数」" },
+    {
+      label: "統計表ID",
+      id: "0004056120",
+      url: "https://www.e-stat.go.jp/dbview?sid=0004056120",
+      linkLabel: "e-Statで統計表を見る",
+    },
+    {
+      label: "対象年／期間",
+      value: String(data?.metadata.year || 2024) + "年",
+    },
+    { label: "単位", value: String(data?.metadata.unit || "世帯") },
+    {
+      label: "公表日",
+      value: String(
+        data?.metadata.published_at ||
+          (loading ? "取得中…" : "公表日情報を取得できませんでした"),
+      ),
+    },
+    {
+      label: "対象・表章項目",
+      value:
+        String(data?.metadata.area || "全国") +
+        "、" +
+        String(data?.metadata.measure || "世帯数"),
+    },
+  ]);
 
   const dimensions = $derived(
     data?.dimensions.toSorted((a, b) => a.order - b.order) ?? [],
@@ -264,6 +296,7 @@
     loading = true;
     error = "";
     seriesFailures = {};
+    seriesEmpty = {};
     seriesItems = {};
     normalCombinations = [];
     try {
@@ -292,7 +325,9 @@
     const combinations = activeCombinations;
     const missing = combinations.filter(
       (combination) =>
-        !seriesItems[combination.id] && !seriesFailures[combination.id],
+        !seriesItems[combination.id] &&
+        !seriesFailures[combination.id] &&
+        !seriesEmpty[combination.id],
     );
     if (manifest) {
       for (const combination of missing) {
@@ -302,7 +337,11 @@
         inFlightSeries[id] = request;
         void request
           .then((items) => {
-            seriesItems = { ...seriesItems, [id]: items };
+            if (items.length === 0) {
+              seriesEmpty = { ...seriesEmpty, [id]: true };
+            } else {
+              seriesItems = { ...seriesItems, [id]: items };
+            }
           })
           .catch((cause) => {
             seriesFailures = {
@@ -338,6 +377,9 @@
     );
     seriesFailures = Object.fromEntries(
       Object.entries(seriesFailures).filter(([id]) => !activeIds.has(id)),
+    );
+    seriesEmpty = Object.fromEntries(
+      Object.entries(seriesEmpty).filter(([id]) => !activeIds.has(id)),
     );
   }
 
@@ -470,12 +512,12 @@
 
     <div class="workspace">
       <aside class="details-column" aria-label="比較条件">
-        {#if loading}<Spinner />
+        {#if loading}<LoadState
+            state="loading"
+            message="選択肢を読み込んでいます…"
+          />
         {:else if error}
-          <div class="error" role="alert">
-            <p>{error}</p>
-            <button onclick={loadData}>再試行</button>
-          </div>
+          <LoadState state="error" message={error} onretry={loadData} />
         {:else if data && assetDimension}
           <section class="control-panel" aria-label="世帯属性の選択">
             <details class="selector-panel" bind:open={panels.isSelectorOpen}>
@@ -500,7 +542,7 @@
                   >
                 </div>
                 <p class="mode-description">
-                  {#if mode === "add"}属性条件を選び、「系列に追加」を押すとグラフに追加されます。{:else}比較する属性の区分を並べます。ほかの属性は全系列に共通する固定条件です。各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。{/if}
+                  {#if mode === "add"}属性条件を選び、「系列に追加」を押すとグラフに追加されます。{:else}区分を選ぶと比較系列がすぐに反映されます。ほかの属性は全系列に共通する固定条件です。{/if}各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。
                 </p>
                 {#if mode === "compare"}<section
                     class="comparison-controls"
@@ -670,12 +712,12 @@
             <details class="added-items" bind:open={panels.isComparisonOpen}>
               <summary
                 ><h2>
-                  {comparisonMode ? "属性を比較" : "系列を追加"}・表示中
+                  選択中の系列
                   <span>{activeCombinations.length}系列</span>
                 </h2></summary
               >
               <fieldset class="selected-list">
-                <legend>選択中一覧</legend>
+                <legend>選択中の系列</legend>
                 {#if activeCombinations.length}
                   <ul>
                     {#each activeCombinations as combination (combination.id)}
@@ -691,6 +733,8 @@
                             onclick={() => retrySeries(combination.id)}
                             >再試行</button
                           >
+                        {:else if seriesEmpty[combination.id]}
+                          <span class="hint" role="status">該当データなし</span>
                         {:else if !seriesItems[combination.id]}
                           <span class="hint" role="status">取得中…</span>
                         {/if}
@@ -723,8 +767,8 @@
           </section>
         {/if}
 
-        {#if data}
-          <ReferencePanel title="データについて">
+        <ReferencePanel title="データについて">
+          {#if data}
             <h3>利用上の注意</h3>
             <ul class="reference-notes">
               <li>
@@ -750,64 +794,18 @@
                 >「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。世帯数は推計値で、公表値の丸めにより内訳の合計と総数が一致しない場合があります。公表値の差は補正していません。
               </li>
             </ul>
-            <h3>出典</h3>
-            <table class="reference-table ui-table">
-              <tbody>
-                <tr>
-                  <th>統計名</th>
-                  <td>全国家計構造調査</td>
-                </tr>
-                <tr>
-                  <th>表題</th>
-                  <td>表7-131-1-1「資産額階級別世帯数」</td>
-                </tr>
-                <tr>
-                  <th>統計表ID</th>
-                  <td>
-                    <div>0004056120</div>
-                    <div>
-                      <a
-                        href="https://www.e-stat.go.jp/dbview?sid=0004056120"
-                        target="_blank"
-                        rel="noopener noreferrer">e-Statで統計表を見る</a
-                      >
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <th>対象年／期間</th>
-                  <td>{String(data.metadata.year ?? "")}年</td>
-                </tr>
-                <tr>
-                  <th>単位</th>
-                  <td>{String(data.metadata.unit ?? "世帯")}</td>
-                </tr>
-                <tr>
-                  <th>公表日</th>
-                  <td>{String(data.metadata.published_at ?? "")}</td>
-                </tr>
-                <tr>
-                  <th>対象・表章項目</th>
-                  <td
-                    >{String(data.metadata.area ?? "全国")}、{String(
-                      data.metadata.measure ?? "世帯数",
-                    )}</td
-                  >
-                </tr>
-              </tbody>
-            </table>
-          </ReferencePanel>
-        {/if}
+          {/if}
+          <h3>出典</h3>
+          <ReferenceTable rows={referenceRows} />
+        </ReferencePanel>
         <LicenseLink />
       </aside>
 
       <section class="chart-panel" aria-label="純資産額階級別の世帯数">
         {#if loading}
-          <div class="empty-chart"><Spinner /></div>
+          <div class="empty-chart" aria-busy="true"></div>
         {:else if error}
-          <div class="empty-chart">
-            <p class="error">データを読み込めませんでした。</p>
-          </div>
+          <div class="empty-chart"></div>
         {:else if currentSeries.length > 0 || seriesLoading}
           <h2 class="chart-title">純資産額階級別の世帯数</h2>
           {#if comparisonMode}<p class="hint" role="status">
@@ -859,7 +857,11 @@
                   : "世帯属性を選ぶと、ここにグラフが表示されます。"}
             </p>
             {#if !comparisonMode && data}<p class="hint" role="status">
-                表示できる公表系列がありません。
+                {#if activeCombinations.length}
+                  選択系列の状態を選択中一覧で確認してください。
+                {:else}
+                  表示できる公表系列がありません。
+                {/if}
               </p>{/if}
           </div>
         {/if}

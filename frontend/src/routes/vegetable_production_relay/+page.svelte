@@ -1,7 +1,9 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import ReferenceTable from "#lib/ReferenceTable.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import RelayMap from "./RelayMap.svelte";
   import VegetableSankey from "./VegetableSankey.svelte";
@@ -30,9 +32,59 @@
   let selectedPrefecture = $state("");
   let scale = $state(5);
 
+  function reloadPage() {
+    window.location.reload();
+  }
+
   let yearData = $derived(
     years.find((item) => item.year === Number(selectedMonth.slice(0, 4))),
   );
+  let referenceRows = $derived([
+    { label: "統計名", value: "青果物卸売市場調査" },
+    { label: "表題", value: selectedProductLabel },
+    {
+      label: "統計表ID",
+      ...(yearData
+        ? {
+            id: yearData.table_id,
+            url: `https://www.e-stat.go.jp/dbview?sid=${yearData.table_id}`,
+            linkLabel: "e-Statで統計表を見る",
+          }
+        : {
+            value: relayData.isLoading
+              ? "取得中…"
+              : "選択年の統計表情報を取得できませんでした",
+          }),
+    },
+    {
+      label: "対象年／期間",
+      value: yearData
+        ? `${yearData.year}年（月次）`
+        : relayData.isLoading
+          ? "取得中…"
+          : "選択年の期間情報を取得できませんでした",
+    },
+    {
+      label: "表分類",
+      value: "野菜の主要消費地域別・産地別の卸売数量及び卸売価格",
+    },
+  ]);
+  const mapSourceRows = [
+    {
+      label: "地図データ",
+      value: "国土交通省「国土数値情報 行政区域データ（N03）」2026年版",
+      links: [
+        {
+          label: "CC BY 4.0",
+          href: "https://creativecommons.org/licenses/by/4.0/deed.ja",
+        },
+        {
+          label: "国土数値情報 行政区域データ（2026年版）",
+          href: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html",
+        },
+      ],
+    },
+  ];
   let monthIndex = $derived(months.indexOf(selectedMonth));
   let monthObservations = $derived(
     yearData?.months.filter((item) => item.month === selectedMonth) ?? [],
@@ -172,6 +224,26 @@
   <title>野菜の産地リレー | Open Data Viz</title>
 </svelte:head>
 
+{#snippet relayReference()}
+  <ReferencePanel title="データについて">
+    <h3>利用上の注意</h3>
+    <ul class="reference-notes">
+      <li>
+        報告値合計は、産地都道府県ごとに、主要消費地域9区分のうち数値が報告された区分だけを合計したものです。
+        表示単位未満、該当なし、不詳・調査なしの区分は含めていません。農業生産量や全国計を示す値ではありません。
+      </li>
+      <li>
+        令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
+      </li>
+    </ul>
+    <h3>出典</h3>
+    <ReferenceTable rows={referenceRows} />
+    <h3>地図データ</h3>
+    <ReferenceTable rows={mapSourceRows} />
+  </ReferencePanel>
+  <LicenseLink />
+{/snippet}
+
 <div class="page-shell visualization-page visualization-page--relay">
   <main class="page-content">
     <WorkspaceHeader title="野菜の産地リレー" />
@@ -180,9 +252,17 @@
       <div class="workspace">
         <section class="map-column" aria-label="出荷数量マップ">
           {#if dataError}
-            <p class="error" role="alert">{dataError}</p>
+            <LoadState
+              state="error"
+              message={dataError}
+              onretry={reloadPage}
+              retryLabel="ページを再読み込み"
+            />
           {:else if relayData.isLoading}
-            <p class="map-loading" role="status">データを読み込んでいます…</p>
+            <LoadState
+              state="loading"
+              message="出荷データを読み込んでいます…"
+            />
           {/if}
           <div class="map-heading">
             <div>
@@ -190,13 +270,21 @@
                 {selectedProductLabel} · {displayMonth(selectedMonth)}の出荷数量
               </h2>
               <p>円の面積は報告値の合計に比例します</p>
+              <p class="map-instructions">
+                都道府県または円を選ぶと、詳細パネルに報告値と消費地域別の内訳を表示します。地図上のスクロールで拡大・縮小できます。
+              </p>
             </div>
           </div>
           <div class="map-view">
             {#if mapError}
-              <p class="error" role="alert">{mapError}</p>
+              <LoadState
+                state="error"
+                message={mapError}
+                onretry={reloadPage}
+                retryLabel="ページを再読み込み"
+              />
             {:else if !geojson}
-              <p class="map-loading" role="status">地図を読み込んでいます…</p>
+              <LoadState state="loading" message="地図を読み込んでいます…" />
             {:else}
               <RelayMap
                 {geojson}
@@ -379,91 +467,20 @@
             {/if}
           </fieldset>
 
-          <ReferencePanel title="データについて">
-            <h3>操作方法</h3>
-            <p>
-              都道府県または円をクリック・タップすると、詳細パネルにその産地の報告値と内訳を表示します。
-              地図上のスクロールで拡大・縮小できます。円の大きさは＋／−ボタンで調整できます。
-            </p>
-            <h3>利用上の注意</h3>
-            <ul class="reference-notes">
-              <li>
-                報告値合計は、産地都道府県ごとに、主要消費地域9区分のうち数値が報告された区分だけを合計したものです。
-                表示単位未満、該当なし、不詳・調査なしの区分は含めていません。農業生産量や全国計を示す値ではありません。
-              </li>
-              <li>
-                令和4年（2022年）に年間取扱量等調査の対象が中央卸売市場の卸売会社のみに見直されました。年をまたぐ比較にはご注意ください。
-              </li>
-            </ul>
-            <h3>出典</h3>
-            <table class="reference-table ui-table">
-              <tbody>
-                <tr>
-                  <th>統計名</th>
-                  <td>青果物卸売市場調査</td>
-                </tr>
-                <tr>
-                  <th>表題</th>
-                  <td>{selectedProductLabel}</td>
-                </tr>
-                <tr>
-                  <th>統計表ID</th>
-                  <td>
-                    {#if yearData}
-                      <div>{yearData.table_id}</div>
-                      <div>
-                        <a
-                          href={`https://www.e-stat.go.jp/dbview?sid=${yearData.table_id}`}
-                          target="_blank"
-                          rel="noopener noreferrer">e-Statで統計表を見る</a
-                        >
-                      </div>
-                    {/if}
-                  </td>
-                </tr>
-                <tr>
-                  <th>対象年／期間</th>
-                  <td>{yearData ? `${yearData.year}年（月次）` : ""}</td>
-                </tr>
-                <tr>
-                  <th>単位</th>
-                  <td>{yearData?.source_unit ?? ""}</td>
-                </tr>
-                <tr>
-                  <th>表分類</th>
-                  <td>野菜の主要消費地域別・産地別の卸売数量及び卸売価格</td>
-                </tr>
-                <tr>
-                  <th>地図データ</th>
-                  <td>
-                    <div>
-                      国土交通省「国土数値情報 行政区域データ（N03）」2026年版（<a
-                        href="https://creativecommons.org/licenses/by/4.0/deed.ja"
-                        target="_blank"
-                        rel="noopener noreferrer">CC BY 4.0</a
-                      >）
-                    </div>
-                    <div>
-                      <a
-                        href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        >国土数値情報 行政区域データ（2026年版）</a
-                      >
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </ReferencePanel>
-          <LicenseLink />
+          {@render relayReference()}
         </section>
       </div>
     {:else if dataError}
-      <p class="error" role="alert">{dataError}</p>
+      <LoadState
+        state="error"
+        message={dataError}
+        onretry={reloadPage}
+        retryLabel="ページを再読み込み"
+      />
     {:else if relayData.isLoading}
-      <p class="map-loading" role="status">データを読み込んでいます…</p>
+      <LoadState state="loading" message="出荷データを読み込んでいます…" />
     {/if}
+    {#if !aggregation}{@render relayReference()}{/if}
   </main>
 </div>
 

@@ -1,7 +1,9 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import ReferenceTable from "#lib/ReferenceTable.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   import { onMount } from "svelte";
   import SplitSankey from "./SplitSankey.svelte";
   import { fetchCatalog } from "./utils/fetchCatalog.js";
@@ -10,7 +12,7 @@
   /** @typedef {{id:string,name:string,income:DiagramNode[],expenditure:DiagramNode[]}} Program */
   /** @typedef {{programs:Program[]}} Catalog */
   const diagramNote =
-    "本図は、e-Stat「2024年度社会保障給付費収支表」において、各制度に計上された収入・支出の項目と金額を示しています。矢印は収入項目・制度・支出項目を整理したもので、特定の収入と個別支出の対応、実際の資金移動、制度間移転の相手先を示すものではありません。";
+    "収入を左側、支出を右側に分けて、項目ごとの金額を帯の太さで示しています。特定の収入の使途や、実際の資金移動、制度間の資金移転元・移転先を示すものではありません。";
   let catalog = $state.raw(/** @type {Catalog} */ ({ programs: [] }));
   let selectedId = $state("");
   let loading = $state(true);
@@ -18,32 +20,56 @@
   const selected = $derived(
     catalog.programs.find((item) => item.id === selectedId),
   );
+  const referenceRows = [
+    { label: "統計名", value: "社会保障費用統計" },
+    {
+      label: "表題（収入）",
+      value: "2024年度社会保障給付費収支表－収入（集計表2）",
+    },
+    {
+      label: "統計表ID（収入）",
+      id: "0004050702",
+      url: "https://www.e-stat.go.jp/dbview?sid=0004050702",
+      linkLabel: "収入の統計表をe-Statで見る",
+    },
+    {
+      label: "表題（支出）",
+      value: "2024年度社会保障給付費収支表－支出（集計表2）",
+    },
+    {
+      label: "統計表ID（支出）",
+      id: "0004050703",
+      url: "https://www.e-stat.go.jp/dbview?sid=0004050703",
+      linkLabel: "支出の統計表をe-Statで見る",
+    },
+    { label: "対象年／期間", value: "2024年度" },
+  ];
 
-  onMount(() => {
-    fetchCatalog()
-      .then((data) => {
-        catalog = data;
-        selectedId = data.programs[0].id;
-      })
-      .catch((error) => {
-        loadError =
-          error instanceof Error
-            ? error.message
-            : "カタログを取得できませんでした。";
-      })
-      .finally(() => {
-        loading = false;
-      });
-  });
+  async function loadCatalog() {
+    loading = true;
+    loadError = "";
+    try {
+      const data = await fetchCatalog();
+      catalog = data;
+      selectedId = data.programs[0].id;
+    } catch (error) {
+      loadError =
+        error instanceof Error
+          ? error.message
+          : "カタログを取得できませんでした。";
+    } finally {
+      loading = false;
+    }
+  }
+
+  onMount(loadCatalog);
 </script>
 
-<svelte:head
-  ><title>社会保障制度の財源・支出 | Open Data Viz</title></svelte:head
->
+<svelte:head><title>社会保障給付費収支 | Open Data Viz</title></svelte:head>
 
 <div class="visualization-page">
   <main class="page-content">
-    <WorkspaceHeader title="社会保障制度の財源・支出" />
+    <WorkspaceHeader title="社会保障給付費収支" />
     <div class="workspace">
       <section class="control-column" aria-label="制度の選択">
         {#if !loading && !loadError}
@@ -67,58 +93,22 @@
             </li>
             <li>{diagramNote}</li>
             <li>
-              金額は元表の百万円単位で計算しています。正の計上値を確認した項目を図示し、特殊記号や保留中の負値は表示対象に含めていません。
+              金額は元表の百万円単位で計算し、図中では概数で表示しています。総計・再掲の制度区分や、合計などの集計項目、ゼロ・特殊記号・負値は表示対象に含めていません。
+            </li>
+            <li>
+              「表示項目計」は図に表示した項目の合計で、元表の合計とは異なります。収入と支出の表示項目計の差も、元表の「収支差」を示すものではありません。
             </li>
           </ul>
           <h3>出典</h3>
-          <table class="reference-table ui-table">
-            <tbody>
-              <tr>
-                <th>統計名</th>
-                <td>社会保障費用統計</td>
-              </tr>
-              <tr>
-                <th>表題</th>
-                <td>
-                  <div>2024年度社会保障給付費収支表－収入（集計表2）</div>
-                  <div>2024年度社会保障給付費収支表－支出（集計表2）</div>
-                </td>
-              </tr>
-              <tr>
-                <th>統計表ID</th>
-                <td>
-                  <div>収入: 0004050702</div>
-                  <div>
-                    <a
-                      href="https://www.e-stat.go.jp/dbview?sid=0004050702"
-                      target="_blank"
-                      rel="noopener noreferrer">e-Statで統計表を見る</a
-                    >
-                  </div>
-                  <div>支出: 0004050703</div>
-                  <div>
-                    <a
-                      href="https://www.e-stat.go.jp/dbview?sid=0004050703"
-                      target="_blank"
-                      rel="noopener noreferrer">e-Statで統計表を見る</a
-                    >
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <th>対象年／期間</th>
-                <td>2024年度</td>
-              </tr>
-            </tbody>
-          </table>
+          <ReferenceTable rows={referenceRows} />
         </ReferencePanel>
         <LicenseLink />
       </aside>
-      <section class="chart-panel" aria-label="社会保障制度の財源・支出図">
+      <section class="chart-panel" aria-label="社会保障給付費収支図">
         {#if loading}
-          <p role="status">図のデータを読み込んでいます…</p>
+          <LoadState state="loading" message="図のデータを読み込んでいます…" />
         {:else if loadError}
-          <p role="alert">{loadError} ページを再読み込みしてください。</p>
+          <LoadState state="error" message={loadError} onretry={loadCatalog} />
         {:else if selected}
           <SplitSankey program={selected} />
         {/if}
@@ -151,6 +141,7 @@
     padding-inline: var(--space-1);
     font-weight: 600;
   }
+  /* The two-column Sankey needs a wider viewport than the shared workspace layout. */
   @media (max-width: 80rem) {
     .visualization-page {
       height: auto;
