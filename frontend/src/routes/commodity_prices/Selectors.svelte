@@ -34,7 +34,6 @@
 </script>
 
 <div class="selector-group">
-  <p class="selection-note">品目と地域を選ぶと、グラフにすぐ反映されます。</p>
   <div class="selector-controls">
     <fieldset class="item-selector">
       <legend>品目</legend>
@@ -87,12 +86,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-  }
-
-  .selection-note {
-    margin: 0;
-    color: var(--text-muted-color);
-    font-size: 0.875rem;
   }
 
   .selector-controls {
