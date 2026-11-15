@@ -334,6 +334,7 @@
     border-radius: var(--relay-map-radius, var(--radius-md));
     background: var(--map-surface-color);
   }
+  /* Map height adjustment inside the map; page columns use the shared breakpoint. */
   @media (max-width: 600px) {
     .map {
       height: var(--relay-map-height, 55vh);

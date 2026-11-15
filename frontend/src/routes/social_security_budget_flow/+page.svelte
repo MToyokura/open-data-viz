@@ -141,6 +141,7 @@
     padding-inline: var(--space-1);
     font-weight: 600;
   }
+  /* The two-column Sankey needs a wider viewport than the shared workspace layout. */
   @media (max-width: 80rem) {
     .visualization-page {
       height: auto;

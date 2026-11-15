@@ -42,6 +42,7 @@
     font-size: 1.25rem;
   }
 
+  /* Matches the shared workspace column switch. */
   @media (max-width: 50rem) {
     .page-heading {
       padding: var(--space-3) var(--space-4);

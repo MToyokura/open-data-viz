@@ -330,6 +330,7 @@ button {
   height: 24px;
 }
 
+/* Shared workspace column switch; keep in sync with WorkspaceHeader and useResponsivePanels. */
 @media (max-width: 50rem) {
   .visualization-page {
     height: auto;
@@ -425,6 +426,7 @@ button:not(:disabled):hover {
   cursor: not-allowed;
 }
 
+/* General document padding for non-workspace pages. */
 @media (max-width: 700px) {
   .page-content {
     padding: var(--page-content-padding-small);
@@ -562,6 +564,7 @@ button:not(:disabled):hover {
 .chart-scroll-container--scroll > .chart-scroll-content {
   width: 1400px;
 }
+/* Chart viewport content width; this does not control page columns. */
 @media (max-width: 48rem) {
   .chart-scroll-container--scroll > .chart-scroll-content {
     width: 960px;

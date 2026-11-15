@@ -434,6 +434,7 @@
   .item-detail p {
     margin: 0;
   }
+  /* Sankey label arrangement within the chart, independent of page columns. */
   @media (max-width: 760px) {
     .summary {
       grid-template-columns: 1fr 1fr;
