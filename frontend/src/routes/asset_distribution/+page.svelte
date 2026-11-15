@@ -723,8 +723,8 @@
           </section>
         {/if}
 
-        {#if data}
-          <ReferencePanel title="データについて">
+        <ReferencePanel title="データについて">
+          {#if data}
             <h3>利用上の注意</h3>
             <ul class="reference-notes">
               <li>
@@ -750,54 +750,61 @@
                 >「-」は該当数字なし、「0」は表章単位未満、「X」は秘匿を表します。これらを0世帯として描かず、数値が得られない階級として表示します。API応答に単位属性がないため、表題に基づき単位を「世帯」としています。世帯数は推計値で、公表値の丸めにより内訳の合計と総数が一致しない場合があります。公表値の差は補正していません。
               </li>
             </ul>
-            <h3>出典</h3>
-            <table class="reference-table ui-table">
-              <tbody>
-                <tr>
-                  <th>統計名</th>
-                  <td>全国家計構造調査</td>
-                </tr>
-                <tr>
-                  <th>表題</th>
-                  <td>表7-131-1-1「資産額階級別世帯数」</td>
-                </tr>
-                <tr>
-                  <th>統計表ID</th>
-                  <td>
-                    <div>0004056120</div>
-                    <div>
-                      <a
-                        href="https://www.e-stat.go.jp/dbview?sid=0004056120"
-                        target="_blank"
-                        rel="noopener noreferrer">e-Statで統計表を見る</a
-                      >
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <th>対象年／期間</th>
-                  <td>{String(data.metadata.year ?? "")}年</td>
-                </tr>
-                <tr>
-                  <th>単位</th>
-                  <td>{String(data.metadata.unit ?? "世帯")}</td>
-                </tr>
-                <tr>
-                  <th>公表日</th>
-                  <td>{String(data.metadata.published_at ?? "")}</td>
-                </tr>
-                <tr>
-                  <th>対象・表章項目</th>
-                  <td
-                    >{String(data.metadata.area ?? "全国")}、{String(
-                      data.metadata.measure ?? "世帯数",
-                    )}</td
-                  >
-                </tr>
-              </tbody>
-            </table>
-          </ReferencePanel>
-        {/if}
+          {/if}
+          <h3>出典</h3>
+          <table class="reference-table ui-table">
+            <tbody>
+              <tr>
+                <th>統計名</th>
+                <td>全国家計構造調査</td>
+              </tr>
+              <tr>
+                <th>表題</th>
+                <td>表7-131-1-1「資産額階級別世帯数」</td>
+              </tr>
+              <tr>
+                <th>統計表ID</th>
+                <td>
+                  <div>0004056120</div>
+                  <div>
+                    <a
+                      href="https://www.e-stat.go.jp/dbview?sid=0004056120"
+                      target="_blank"
+                      rel="noopener noreferrer">e-Statで統計表を見る</a
+                    >
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th>対象年／期間</th>
+                <td>{String(data?.metadata.year || 2024)}年</td>
+              </tr>
+              <tr>
+                <th>単位</th>
+                <td>{String(data?.metadata.unit || "世帯")}</td>
+              </tr>
+              <tr>
+                <th>公表日</th>
+                <td
+                  >{String(
+                    data?.metadata.published_at ||
+                      (loading
+                        ? "取得中…"
+                        : "公表日情報を取得できませんでした"),
+                  )}</td
+                >
+              </tr>
+              <tr>
+                <th>対象・表章項目</th>
+                <td
+                  >{String(data?.metadata.area || "全国")}、{String(
+                    data?.metadata.measure || "世帯数",
+                  )}</td
+                >
+              </tr>
+            </tbody>
+          </table>
+        </ReferencePanel>
         <LicenseLink />
       </aside>
 

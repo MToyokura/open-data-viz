@@ -737,11 +737,21 @@
               </tr>
               <tr>
                 <th>対象年／期間</th>
-                <td>{options?.metadata.period ?? ""}</td>
+                <td
+                  >{options?.metadata.period ||
+                    (optionsLoading
+                      ? "取得中…"
+                      : "期間情報を取得できませんでした")}</td
+                >
               </tr>
               <tr>
                 <th>単位</th>
-                <td>{options?.metadata.unit ?? ""}</td>
+                <td
+                  >{options?.metadata.unit ||
+                    (optionsLoading
+                      ? "取得中…"
+                      : "単位情報を取得できませんでした")}</td
+                >
               </tr>
               <tr
                 ><th>労働力調査について</th><td
