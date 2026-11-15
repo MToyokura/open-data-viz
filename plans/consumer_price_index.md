@@ -38,15 +38,17 @@ Work in `data_preparation/inspections/consumer_price_index/`.
 
 Implement under `data_preparation/src/modules/projects/consumer_price_index/`, reusing shared `estat_api/` and IO modules. Follow `projects/commodity_prices/` where useful.
 
-- [ ] Add the project module, table/output constants, and wire it into the existing preparation command structure.
-- [ ] Fetch metadata and index observations through the shared e-Stat API tools; retain reusable raw responses under `output/consumer_price_index/raw_data/`.
-- [ ] Transform the confirmed index observations into the agreed lookup and series JSON files under `output/consumer_price_index/`, preserving time order and missing-value meaning.
-- [ ] Keep each frontend series payload limited to its item/region identifiers and ordered time-value pairs; exclude unused measures and API metadata.
+- [x] Add the project module, table/output constants, and wire it into the existing preparation command structure.
+- [x] Fetch metadata and index observations through the shared e-Stat API tools; retain reusable raw responses under `output/consumer_price_index/raw_data/`.
+- [x] Transform the confirmed index observations into the agreed lookup and series JSON files under `output/consumer_price_index/`, preserving time order and missing-value meaning.
+- [x] Keep each frontend series payload limited to its item/region identifiers and ordered time-value pairs; exclude unused measures and API metadata.
 - [ ] Verify representative transformed time-value observations against the saved raw API samples.
-- [ ] Support rerunning transformation from saved raw responses so data-shape fixes do not require refetching.
-- [ ] Document the command and output layout in `data_preparation/README.md`.
+- [x] Support rerunning transformation from saved raw responses so data-shape fixes do not require refetching.
+- [x] Document the command and output layout in `data_preparation/README.md`.
 
 - [ ] **Checkpoint:** The preparation command produces valid output for representative items and regions, and the generated files match the frontend contract.
+
+**Progress:** The production command now fetches the Japanese metadata and monthly index pages, validates page totals and `NEXT_KEY`, saves redacted raw responses, and can rebuild output with `--transform-only`. The transform creates item/region/month lookups and region-by-ten-item series chunks, validates numeric values and observation counts, and includes comparisons against the four saved representative series. `cargo check` succeeds. The full acquisition and generated-output checkpoint have not yet been run.
 
 ### 3. Build the frontend
 

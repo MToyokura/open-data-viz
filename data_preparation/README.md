@@ -68,6 +68,22 @@ e-Stat 表 `0004052037` のメタデータと小さなAPI応答標本を取得�
 
 分類規模、取得ファイル、API接続確認の状況は[調査記録](inspections/consumer_price_index/README.md)を参照してください。
 
+## 消費者物価指数データ
+
+e-Stat 表 `0004052037` から指数（`tab=1`）の月次データ（`lvTime=4`）を取得し、項目・地域・月のルックアップと系列チャンクを生成します。初回生成と更新時は e-Stat API のアプリケーション ID が必要です。
+
+```sh
+./scripts/prepare.sh run -- consumer-price-index
+```
+
+変換処理を直した後、取得済みのAPI応答から再生成する場合:
+
+```sh
+./scripts/prepare.sh run -- consumer-price-index --transform-only
+```
+
+出力は `output/consumer_price_index/` 以下です。`meta_data/` に取得条件と件数、`raw_data/` にメタデータとページ境界を検証したAPI応答、`transformed_data/` に配信用データを保存します。変換データは `items.json`、`regions.json`、`months.json`、`manifest.json` と `series/` 配下の地域別・連続10項目単位のチャンクで構成されます。各系列は `itemCode`、`areaCode`、昇順の `[YYYY-MM, value]` 配列だけを持ち、欠損月は省略します。指数以外の測定値と年次値は出力しません。取得済み標本の代表系列とも値を照合します。調査時に確認したAPIメタデータ総数とデータ応答総数の差は、取得処理では `getStatsData` の `TOTAL_NUMBER` と連続した `NEXT_KEY` を基準に検証します。
+
 ## 野菜の産地別卸売データ
 
 clone 後、ネット接続と e-Stat のアプリケーション ID を用意し、`data_preparation/` から次を実行すると野菜の産地リレー用データを生成できます。
