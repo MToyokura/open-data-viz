@@ -5,6 +5,34 @@ test("home page has expected h1", async ({ page }) => {
   await expect(page.locator("h1")).toBeVisible();
 });
 
+test("not found pages explain the error and offer a home link", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/not-a-real-page");
+  await expect(
+    page.getByRole("heading", { name: "ページが見つかりません" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("お探しのページは見つかりませんでした。"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "ホームへ戻る" }),
+  ).toHaveAttribute("href", "/");
+  await page.screenshot({ path: testInfo.outputPath("404-home-320px.png") });
+
+  await page.goto("/commodity_prices/not-a-real-page");
+  await expect(
+    page.getByRole("heading", { name: "ページが見つかりません" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "ホームへ戻る" }),
+  ).toHaveAttribute("href", "/");
+  await page.screenshot({
+    path: testInfo.outputPath("404-workspace-320px.png"),
+  });
+});
+
 test("commodity_prices page has expected content and behavior", async ({
   page,
 }) => {
