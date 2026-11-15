@@ -48,7 +48,7 @@ Implement under `data_preparation/src/modules/projects/consumer_price_index/`, r
 
 - [ ] **Checkpoint:** The preparation command produces valid output for representative items and regions, and the generated files match the frontend contract.
 
-**Progress:** The production command now fetches the Japanese metadata and monthly index pages, validates page totals and `NEXT_KEY`, saves redacted raw responses, and can rebuild output with `--transform-only`. The transform creates item/region/month lookups and region-by-ten-item series chunks, validates numeric values and observation counts, and includes comparisons against the four saved representative series. `cargo check` succeeds. The full acquisition and generated-output checkpoint have not yet been run.
+**Progress:** The production command fetches Japanese metadata and monthly index pages, validates totals and pagination, saves redacted raw responses to staging, and can rebuild output with `--transform-only`. It keeps the previous raw and transformed output until the staged generation validates. The transform creates item/region/month lookups and region-by-ten-item series chunks, checks cached page continuity, omits documented no-data markers, and derives the observation range from actual numeric values. Representative samples are monthly for new captures; old annual entries are ignored, while value differences warn about possible source revisions. `cargo check` succeeds. The full acquisition and generated-output checkpoint have not yet been run.
 
 ### 3. Build the frontend
 

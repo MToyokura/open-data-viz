@@ -148,6 +148,7 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
                 "getStatsData",
                 &[
                     ("statsDataId", TABLE),
+                    ("lvTime", "4"),
                     ("cdTab", "1"),
                     ("cdCat01", item),
                     ("cdArea", area),
@@ -162,7 +163,7 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
                 "itemCode": item,
                 "areaCode": area,
                 "areaLabel": area_name,
-                "params": {"cdTab": "1", "cdCat01": item, "cdArea": area, "startPosition": "1", "limit": "1000"},
+                "params": {"lvTime": "4", "cdTab": "1", "cdCat01": item, "cdArea": area, "startPosition": "1", "limit": "1000"},
                 "sample": save(&file_name, response)?
             }));
         }

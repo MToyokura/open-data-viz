@@ -19,20 +19,33 @@ pub fn run(args: &[String]) -> bool {
     if args.first().map(String::as_str) != Some("consumer-price-index") {
         return false;
     }
-    let result = if args.get(1).map(String::as_str) == Some("--transform-only") {
-        pipeline::transform()
-    } else {
-        match crate::modules::estat_api::app_id::retrieve_estat_app_id() {
-            Ok(app_id) => pipeline::acquire(&app_id),
-            Err(_) => {
-                eprintln!("ESTAT_APP_ID not found");
+    match &args[1..] {
+        [] => {
+            let result = match crate::modules::estat_api::app_id::retrieve_estat_app_id() {
+                Ok(app_id) => pipeline::acquire(&app_id),
+                Err(_) => {
+                    eprintln!("ESTAT_APP_ID not found");
+                    std::process::exit(1);
+                }
+            };
+            if let Err(error) = result {
+                eprintln!("Consumer price index pipeline failed: {error}");
                 std::process::exit(1);
             }
         }
-    };
-    if let Err(error) = result {
-        eprintln!("Consumer price index pipeline failed: {error}");
-        std::process::exit(1);
+        [flag] if flag == "--transform-only" => {
+            if let Err(error) = pipeline::transform() {
+                eprintln!("Consumer price index pipeline failed: {error}");
+                std::process::exit(1);
+            }
+        }
+        [flag] if flag == "--help" || flag == "-h" => {
+            println!("Usage: consumer-price-index [--transform-only]");
+        }
+        _ => {
+            eprintln!("Invalid consumer-price-index arguments. Use --help for usage.");
+            std::process::exit(2);
+        }
     }
     true
 }

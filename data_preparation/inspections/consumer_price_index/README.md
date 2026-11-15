@@ -48,7 +48,7 @@ The table page shows a maximum of 100,000 cells for table display and 15,000 cel
 
 ## API capture
 
-The capture command requests Japanese metadata, page-boundary samples, a 1,000-record volume sample, index-measure counts, and complete representative index series. It redacts the application ID before saving responses:
+The capture command requests Japanese metadata, page-boundary samples, a 1,000-record volume sample, index-measure counts, and monthly representative index series (`lvTime=4`). The original archived representative captures predate that filter and also contain annual rows; the production comparison ignores those rows for compatibility. It redacts the application ID before saving responses:
 
 ```sh
 cd data_preparation
