@@ -9,8 +9,6 @@ use crate::modules::estat_api::{
 };
 use serde_json::{Value, json};
 
-const SOURCE_NOTE: &str = "本図は、e-Stat「2024年度社会保障給付費収支表」において、当該制度に計上された収入・支出の項目と金額を示す。矢印は収入項目・制度・支出項目を整理するもので、特定の収入と個別支出の対応、実際の資金移動、制度間移転の相手先を示さない。";
-
 pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
     let out = Path::new(OUTPUT_DIR);
     fs::create_dir_all(out.join("raw_data"))?;
@@ -68,24 +66,15 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
                 let raw = values.get(&(code.clone(), item_code.clone())).cloned();
                 let item_name = s(&c["@name"]);
                 let (status, display, reason) = classify(raw.as_deref(), &item_name);
-                let label = if kind == "expenditure" {
-                    item_name.replace('_', "／")
-                } else {
-                    item_name.replace('_', "／")
-                };
                 let visible = display == "表示" && eligible && candidates.contains_key(&item_code);
                 if display == "保留" && eligible {
                     unknowns.push(json!({"program_code":code,"program":name,"category":kind,"item_code":item_code,"item":item_name,"raw_value":raw,"status":status,"reason":reason,"table_id":if kind=="income" {INCOME_TABLE_ID} else {EXPENDITURE_TABLE_ID}}));
                 }
                 if visible {
-                    let group = diagram_group(kind, &item_code)
-                        .ok_or_else(|| format!("no diagram group for {kind} item {item_code}"))?;
                     let prefix = if kind == "income" { "I" } else { "E" };
                     let value = raw.as_deref().and_then(|v| v.parse::<f64>().ok());
                     dest.push(json!({
                         "id": format!("{prefix}{item_code}"),
-                        "label": label,
-                        "group": group,
                         "value": value,
                     }));
                 }
@@ -110,7 +99,6 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
             "name": display_name,
             "income": income_nodes,
             "expenditure": expenditure_nodes,
-            "note": SOURCE_NOTE,
         }));
     }
     let master: Vec<_> = programs_all(&income).into_iter().map(|p| {let name=s(&p["@name"]);let repeat=name.contains("再掲");let total=p["@level"]=="1"||name=="総計";json!({"id":format!("program-{}",s(&p["@code"])),"estat_code":p["@code"],"estat_name":name,"major_category":name.split('_').next().unwrap_or(""),"kind":if total {"総計"} else if repeat {"再掲"} else if name=="他の社会保障制度" {"集合区分"} else {"通常区分"},"in_scope":!total&&!repeat,"parent_code":p.get("@parentCode")})}).collect();
@@ -254,17 +242,6 @@ fn item_type(kind: &str, code: &str) -> &'static str {
         ("expenditure", 35..=37) => "給付以外の支出",
         ("expenditure", 39) => "制度間移転支出",
         _ => "集計",
-    }
-}
-fn diagram_group(kind: &str, code: &str) -> Option<&'static str> {
-    let code = code.parse::<u32>().ok()?;
-    match (kind, code) {
-        ("income", 19) => Some("transfer"),
-        ("income", _) => Some("income"),
-        ("expenditure", 21..=33) => Some("benefit"),
-        ("expenditure", 35..=37) => Some("other"),
-        ("expenditure", 39) => Some("transfer"),
-        _ => None,
     }
 }
 fn s(v: &Value) -> String {

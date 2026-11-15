@@ -11,6 +11,35 @@ const GROUP_LABELS = {
 export const INCOME_GROUPS = ["income", "transfer"];
 export const EXPENDITURE_GROUPS = ["benefit", "other", "transfer"];
 
+// Labels and groups match the item codes in the 2024 e-Stat tables.
+/** @type {Record<string, { label: string, group: string, side: "income" | "expenditure" }>} */
+export const ITEM_METADATA = {
+  I11: { label: "拠出／被保険者", group: "income", side: "income" },
+  I12: { label: "拠出／事業主", group: "income", side: "income" },
+  I14: { label: "国庫負担", group: "income", side: "income" },
+  I15: { label: "他の公費負担", group: "income", side: "income" },
+  I16: { label: "資産収入", group: "income", side: "income" },
+  I17: { label: "その他", group: "income", side: "income" },
+  I19: { label: "他制度からの移転", group: "transfer", side: "income" },
+  E21: { label: "疾病･出産／医療", group: "benefit", side: "expenditure" },
+  E22: { label: "疾病･出産／現金", group: "benefit", side: "expenditure" },
+  E23: { label: "業務災害／医療", group: "benefit", side: "expenditure" },
+  E24: { label: "業務災害／医療以外の現物", group: "benefit", side: "expenditure" },
+  E25: { label: "業務災害／現金／年金", group: "benefit", side: "expenditure" },
+  E26: { label: "業務災害／現金／年金以外の現金", group: "benefit", side: "expenditure" },
+  E27: { label: "年金", group: "benefit", side: "expenditure" },
+  E28: { label: "失業･雇用対策", group: "benefit", side: "expenditure" },
+  E29: { label: "家族手当", group: "benefit", side: "expenditure" },
+  E30: { label: "介護対策／現物", group: "benefit", side: "expenditure" },
+  E31: { label: "介護対策／現金", group: "benefit", side: "expenditure" },
+  E32: { label: "その他／医療以外の現物", group: "benefit", side: "expenditure" },
+  E33: { label: "その他／現金", group: "benefit", side: "expenditure" },
+  E35: { label: "管理費", group: "other", side: "expenditure" },
+  E36: { label: "運用損失", group: "other", side: "expenditure" },
+  E37: { label: "その他", group: "other", side: "expenditure" },
+  E39: { label: "他制度への移転", group: "transfer", side: "expenditure" },
+};
+
 /** Values in the source catalog are in millions of yen. */
 /** @param {AmountItem[]} items @returns {AmountItem[]} */
 export function summarizeItems(items) {
