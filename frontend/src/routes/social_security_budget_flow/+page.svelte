@@ -29,23 +29,23 @@
 
 <svelte:head><title>社会保障制度の財源・支出 | Open Data Viz</title></svelte:head>
 
-<div class="visualization-page visualization-page--chart-first">
+<div class="visualization-page">
   <main class="page-content">
     <WorkspaceHeader title="社会保障制度の財源・支出" />
     <div class="workspace">
-      <aside class="details-column" aria-label="制度の選択とデータ情報">
-        <p>2024年度社会保障給付費収支表に計上された制度別の収入・支出を、金額と分類で確認できます。</p>
+      <section class="control-column" aria-label="制度の選択">
         {#if !loading && !loadError}
-          <section class="controls" aria-label="制度の選択">
-            <label for="program">社会保障制度</label>
-            <select id="program" bind:value={selectedId}>
-              {#each catalog.programs as program (program.id)}
-                <option value={program.id}>{program.name}</option>
-              {/each}
-            </select>
-          </section>
+          <label for="program">社会保障制度</label>
+          <select id="program" bind:value={selectedId}>
+            {#each catalog.programs as program (program.id)}
+              <option value={program.id}>{program.name}</option>
+            {/each}
+          </select>
         {/if}
+      </section>
+      <aside class="details-column" aria-label="データ情報">
         <ReferencePanel title="データについて">
+          <p>2024年度社会保障給付費収支表に計上された制度別の収入・支出を、金額と分類で確認できます。</p>
           {#if selected}
             <h3>この図について</h3>
             <p>{diagramNote}</p>
@@ -73,5 +73,28 @@
 </div>
 
 <style>
-  .controls { display: grid; gap: var(--space-2); margin: var(--space-5) 0; }
+  .workspace {
+    --workspace-areas: "controls chart" "details chart";
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .control-column {
+    grid-area: controls;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-4) var(--space-6);
+    border-right: var(--border-default);
+  }
+  @media (max-width: 50rem) {
+    .workspace { grid-template-rows: none; }
+    .control-column {
+      order: 0;
+      padding: var(--space-4);
+      border-right: 0;
+      border-bottom: var(--border-default);
+    }
+    .chart-panel { order: 1; }
+    .details-column { order: 2; }
+  }
 </style>

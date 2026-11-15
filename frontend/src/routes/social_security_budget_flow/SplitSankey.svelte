@@ -82,9 +82,7 @@
     <div class="center-title"><span>2024年度</span><strong>{program.name}</strong><span>表示項目合計の差（収入計 − 支出計）：{layout.totalDifference < 0 ? "−" : ""}{formatApproximateAmount(Math.abs(layout.totalDifference))}</span></div>
     <div><span>支出の表示項目計</span><strong>{formatApproximateAmount(expenditureTotal)}</strong></div>
   </header>
-  <p class="explanation">帯の太さは金額に比例します。割合は各側の表示項目計に対する比率です。中央の空白は収入と支出の区切りで、個別財源の使途や実際の資金移動を示しません。制度を切り替えると帯幅の尺度も変わります。</p>
-
-  <div class="desktop-chart">
+  <div class="chart-scroll">
     <svg viewBox="0 0 {layout.width} {layout.height}" role="img" aria-label="収入は中央へ集まり、支出は中央から分かれる金額比例の帯">
       <text class="side-title" x="8" y="30">収入</text><text class="side-title" x="{layout.width - 8}" y="30" text-anchor="end">支出</text>
       {#each layout.left.groupFrames as frame (frame.label)}<rect class="group-frame-fill" x="0" y={frame.top} width="195" height={frame.bottom - frame.top} rx="7"></rect>{/each}
@@ -115,34 +113,7 @@
       <line x1="{layout.centerX + layout.centerGap / 2}" x2="{layout.centerX + layout.centerGap / 2}" y1="50" y2="{layout.height - 40}" stroke="#9aa7ae" stroke-dasharray="4 5"></line>
     </svg>
   </div>
-
-  <div class="mobile-chart">
-    {#each [{ title: "収入", id: "income", side: layout.left, total: incomeTotal }, { title: "支出", id: "expenditure", side: layout.right, total: expenditureTotal }] as half (half.id)}
-      <section aria-label="{half.title}側の帯図">
-        <h3>{half.title}側 · {formatApproximateAmount(half.total)}</h3>
-        <svg viewBox="0 0 500 {layout.height}" role="img" aria-label="{half.title}項目の金額比例の帯">
-          {#each half.side.groupFrames as frame (frame.label)}
-            <rect class="group-frame-fill" x={half.id === "income" ? 0 : 305} y={frame.top} width="195" height={frame.bottom - frame.top} rx="7"></rect>
-          {/each}
-          {#each half.side.entries as item (item.id)}
-            <g class={{ highlighted: activeSide === half.title && activeItem?.id === item.id }} role="button" tabindex="0" aria-label={itemAriaLabel(item, half.title)} onclick={(event) => toggleItem(event, item, half.title)} onkeydown={(event) => handleItemKeydown(event, item, half.title)} onpointerenter={(event) => showItem(event, item, half.title)} onpointermove={(event) => showItem(event, item, half.title)} onpointerleave={hideItem} onfocus={(event) => showItem(event, item, half.title)} onblur={hideItem}>
-              <path d={item.path} transform={half.id === "expenditure" ? "translate(-500 0)" : undefined} fill={groupColors[item.group] ?? "#536c3f"} fill-opacity="0.72"></path>
-              <rect x={half.id === "income" ? half.side.nodeX - 5 : half.side.nodeX - 505} y={item.rowY - item.thickness / 2} width="10" height={Math.max(item.thickness, 0)} fill={groupColors[item.group] ?? "#536c3f"}></rect>
-              <text class="item-label" x={half.id === "income" ? 8 : 492} y={item.rowY - 5} text-anchor={half.id === "income" ? "start" : "end"}>{item.label}</text>
-              <text class="item-amount" x={half.id === "income" ? 8 : 492} y={item.rowY + 13} text-anchor={half.id === "income" ? "start" : "end"}>{formatApproximateAmount(item.value)} · {amountShare(item.value, half.total)}</text>
-            </g>
-          {/each}
-          {#each half.side.headers as heading (heading.label)}
-            <text class="group-title" x={half.id === "income" ? 8 : 492} y={heading.y} text-anchor={half.id === "income" ? "start" : "end"}>{heading.label}</text>
-          {/each}
-          {#each half.side.groupFrames as frame (frame.label)}
-            <path class="group-frame" d={half.id === "income" ? `M 0 ${frame.top} H 195 M 0 ${frame.top} V ${frame.bottom} M 0 ${frame.bottom} H 195` : `M 305 ${frame.top} H 500 M 500 ${frame.top} V ${frame.bottom} M 305 ${frame.bottom} H 500`}></path>
-          {/each}
-        </svg>
-      </section>
-    {/each}
-    <p>中央の余白が収入側と支出側の区切りです。左右の帯幅は同じ金額尺度です。</p>
-  </div>
+  <p class="explanation">帯の太さは金額に比例します。割合は各側の表示項目計に対する比率で、制度ごとに帯幅の尺度が異なります。中央の空白は収入と支出の区切りで、個別財源の使途や実際の資金移動、制度間移転の相手先を示しません。割合の丸めにより合計が100%にならない場合があります。</p>
 
   {#if activeItem}
     <aside class={['item-detail', { pinned }]} role={pinned ? "dialog" : "tooltip"} aria-live="polite" aria-label="選択中の項目詳細" style:left="{tooltipX}px" style:top="{tooltipY}px" bind:clientWidth={tooltipWidth} bind:clientHeight={tooltipHeight}>
@@ -151,7 +122,6 @@
       {#if pinned}<button type="button" onclick={() => { pinned = false; activeItem = null; activeSide = ""; }}>詳細を閉じる</button>{/if}
     </aside>
   {/if}
-  <p class="rounding-note">元表合計との照合値はカタログにありません。割合の丸めにより合計が100%にならない場合があります。収支差を埋める帯や、制度間移転の相手先は表示していません。</p>
 </section>
 
 <style>
@@ -161,9 +131,8 @@
   .summary span { color: #52616b; font-size: .88rem; }
   .summary strong { overflow-wrap: anywhere; }
   .center-title strong { font-size: 1.12rem; }
-  .explanation, .rounding-note { max-width: 100%; color: #46545d; font-size: .9rem; line-height: 1.7; overflow-wrap: anywhere; }
-  .desktop-chart { width: 100%; overflow-x: auto; }
-  .mobile-chart { display: none; }
+  .explanation { max-width: 100%; color: #46545d; font-size: .9rem; line-height: 1.7; overflow-wrap: anywhere; }
+  .chart-scroll { width: 100%; overflow-x: auto; }
   svg { display: block; width: 100%; min-width: 720px; height: auto; overflow: visible; }
   .side-title { fill: #263b49; font-size: 18px; font-weight: 700; }
   .item-label { fill: #17242c; font-size: 14px; font-weight: 600; }
@@ -173,8 +142,7 @@
   .group-frame { fill: none; stroke: #c9d2d7; stroke-width: 1; }
   g[role="button"] { cursor: pointer; }
   g[role="button"]:focus-visible { outline: 3px solid #e18d26; outline-offset: 3px; }
-  g.highlighted path { fill-opacity: 1; stroke: #17242c; stroke-width: 2; }
-  g.highlighted rect { stroke: #17242c; stroke-width: 2; }
+  g.highlighted path { fill-opacity: 1; }
   g.highlighted text { fill: #102a3a; font-weight: 700; }
   .item-detail { position: fixed; z-index: 1000; display: grid; gap: var(--space-1); max-width: min(320px, calc(100vw - 16px)); box-sizing: border-box; padding: .75rem 1rem; border: 1px solid #cbd5e1; border-radius: var(--radius-md); background: #fff; color: #334155; font-size: .875rem; line-height: 1.6; box-shadow: 0 4px 16px rgb(51 65 85 / 14%); pointer-events: none; }
   .item-detail.pinned { pointer-events: auto; }
@@ -184,9 +152,6 @@
   @media (max-width: 760px) {
     .summary { grid-template-columns: 1fr 1fr; }
     .center-title { grid-column: 1 / -1; grid-row: 1; }
-    .desktop-chart { display: none; }
-    .mobile-chart { display: block; }
-    .mobile-chart svg { width: 100%; min-width: 0; }
-    .mobile-chart h3 { margin: var(--space-3) 0; }
+    .chart-scroll svg { width: 1000px; min-width: 1000px; }
   }
 </style>
