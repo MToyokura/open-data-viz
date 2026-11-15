@@ -174,11 +174,6 @@
 
 {#snippet relayReference()}
   <ReferencePanel title="データについて">
-    <h3>操作方法</h3>
-    <p>
-      都道府県または円をクリック・タップすると、詳細パネルにその産地の報告値と内訳を表示します。
-      地図上のスクロールで拡大・縮小できます。円の大きさは＋／−ボタンで調整できます。
-    </p>
     <h3>利用上の注意</h3>
     <ul class="reference-notes">
       <li>
@@ -277,6 +272,9 @@
                 {selectedProductLabel} · {displayMonth(selectedMonth)}の出荷数量
               </h2>
               <p>円の面積は報告値の合計に比例します</p>
+              <p class="map-instructions">
+                都道府県または円を選ぶと、詳細パネルに報告値と消費地域別の内訳を表示します。地図上のスクロールで拡大・縮小できます。
+              </p>
             </div>
           </div>
           <div class="map-view">
