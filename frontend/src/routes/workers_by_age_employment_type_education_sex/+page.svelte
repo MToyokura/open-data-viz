@@ -6,7 +6,7 @@
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
   import { onMount } from "svelte";
-  import Spinner from "#lib/Spinner.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   import BarChart from "./BarChart.svelte";
   import { fetchOptions, fetchSeries } from "./utils/fetchData.js";
 
@@ -470,12 +470,16 @@
     <WorkspaceHeader title="年齢階級，教育，雇用形態別雇用者数" />
     <div class="workspace">
       <aside class="details-column" aria-label="比較条件">
-        {#if optionsLoading}<Spinner />
+        {#if optionsLoading}<LoadState
+            state="loading"
+            message="選択肢を読み込んでいます…"
+          />
         {:else if optionsError}
-          <div class="error" role="alert">
-            <p>{optionsError}</p>
-            <button onclick={loadOptions}>再試行</button>
-          </div>
+          <LoadState
+            state="error"
+            message={optionsError}
+            onretry={loadOptions}
+          />
         {:else if options}
           <section class="control-panel" aria-label="系列の条件">
             <details class="selector-panel" bind:open={panels.isSelectorOpen}>

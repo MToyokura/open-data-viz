@@ -6,7 +6,7 @@
   import LicenseLink from "#lib/LicenseLink.svelte";
   import { onMount } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
-  import Spinner from "#lib/Spinner.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   import DistributionChart from "./DistributionChart.svelte";
   import {
     fetchAssetDistribution,
@@ -501,12 +501,12 @@
 
     <div class="workspace">
       <aside class="details-column" aria-label="比較条件">
-        {#if loading}<Spinner />
+        {#if loading}<LoadState
+            state="loading"
+            message="選択肢を読み込んでいます…"
+          />
         {:else if error}
-          <div class="error" role="alert">
-            <p>{error}</p>
-            <button onclick={loadData}>再試行</button>
-          </div>
+          <LoadState state="error" message={error} onretry={loadData} />
         {:else if data && assetDimension}
           <section class="control-panel" aria-label="世帯属性の選択">
             <details class="selector-panel" bind:open={panels.isSelectorOpen}>
@@ -790,11 +790,9 @@
 
       <section class="chart-panel" aria-label="純資産額階級別の世帯数">
         {#if loading}
-          <div class="empty-chart"><Spinner /></div>
+          <div class="empty-chart" aria-busy="true"></div>
         {:else if error}
-          <div class="empty-chart">
-            <p class="error">データを読み込めませんでした。</p>
-          </div>
+          <div class="empty-chart"></div>
         {:else if currentSeries.length > 0 || seriesLoading}
           <h2 class="chart-title">純資産額階級別の世帯数</h2>
           {#if comparisonMode}<p class="hint" role="status">

@@ -4,7 +4,7 @@
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import { untrack } from "svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
-  import Spinner from "#lib/Spinner.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   import LineChart from "./LineChart.svelte";
   import Reference from "./Reference.svelte";
   import Selectors from "./Selectors.svelte";
@@ -162,9 +162,18 @@
     <div class="workspace">
       <aside class="details-column" aria-label="比較条件">
         {#if cat02LookupResult.isLoading || areaLookupResult.isLoading}
-          <Spinner />
+          <LoadState state="loading" message="選択肢を読み込んでいます…" />
         {:else if cat02LookupResult.error || areaLookupResult.error}
-          <p>Error loading lookup data</p>
+          <LoadState
+            state="error"
+            message="品目または地域の選択肢を取得できませんでした。再試行してください。"
+            onretry={() => {
+              void Promise.all([
+                cat02LookupResult.retry(),
+                areaLookupResult.retry(),
+              ]);
+            }}
+          />
         {:else if cat02LookupResult.cat02Lookup && areaLookupResult.areaLookup}
           <section class="control-panel" aria-label="品目と地域">
             <details class="selector-panel" bind:open={panels.isSelectorOpen}>

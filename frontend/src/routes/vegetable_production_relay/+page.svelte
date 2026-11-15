@@ -3,6 +3,7 @@
   import ReferencePanel from "#lib/ReferencePanel.svelte";
   import ReferenceTable from "#lib/ReferenceTable.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import RelayMap from "./RelayMap.svelte";
   import VegetableSankey from "./VegetableSankey.svelte";
@@ -30,6 +31,10 @@
   let selectedMonth = $state("2021-01");
   let selectedPrefecture = $state("");
   let scale = $state(5);
+
+  function reloadPage() {
+    window.location.reload();
+  }
 
   let yearData = $derived(
     years.find((item) => item.year === Number(selectedMonth.slice(0, 4))),
@@ -247,9 +252,17 @@
       <div class="workspace">
         <section class="map-column" aria-label="出荷数量マップ">
           {#if dataError}
-            <p class="error" role="alert">{dataError}</p>
+            <LoadState
+              state="error"
+              message={dataError}
+              onretry={reloadPage}
+              retryLabel="ページを再読み込み"
+            />
           {:else if relayData.isLoading}
-            <p class="map-loading" role="status">データを読み込んでいます…</p>
+            <LoadState
+              state="loading"
+              message="出荷データを読み込んでいます…"
+            />
           {/if}
           <div class="map-heading">
             <div>
@@ -264,9 +277,14 @@
           </div>
           <div class="map-view">
             {#if mapError}
-              <p class="error" role="alert">{mapError}</p>
+              <LoadState
+                state="error"
+                message={mapError}
+                onretry={reloadPage}
+                retryLabel="ページを再読み込み"
+              />
             {:else if !geojson}
-              <p class="map-loading" role="status">地図を読み込んでいます…</p>
+              <LoadState state="loading" message="地図を読み込んでいます…" />
             {:else}
               <RelayMap
                 {geojson}
@@ -453,9 +471,14 @@
         </section>
       </div>
     {:else if dataError}
-      <p class="error" role="alert">{dataError}</p>
+      <LoadState
+        state="error"
+        message={dataError}
+        onretry={reloadPage}
+        retryLabel="ページを再読み込み"
+      />
     {:else if relayData.isLoading}
-      <p class="map-loading" role="status">データを読み込んでいます…</p>
+      <LoadState state="loading" message="出荷データを読み込んでいます…" />
     {/if}
     {#if !aggregation}{@render relayReference()}{/if}
   </main>

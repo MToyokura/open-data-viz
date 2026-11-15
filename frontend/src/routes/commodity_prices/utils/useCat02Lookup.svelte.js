@@ -27,7 +27,9 @@ export function useCat02Lookup() {
   let isLoading = $state(true);
   let error = $state(/** @type {Error | undefined} */ (undefined));
 
-  onMount(async () => {
+  async function load() {
+    isLoading = true;
+    error = undefined;
     try {
       cat02Lookup = await fetchCat02Lookup();
     } catch (e) {
@@ -35,7 +37,9 @@ export function useCat02Lookup() {
     } finally {
       isLoading = false;
     }
-  });
+  }
+
+  onMount(load);
 
   // Return functions that return the current state values
   return {
@@ -48,5 +52,6 @@ export function useCat02Lookup() {
     get error() {
       return error;
     },
+    retry: load,
   };
 }

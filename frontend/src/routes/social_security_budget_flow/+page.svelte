@@ -3,6 +3,7 @@
   import ReferencePanel from "#lib/ReferencePanel.svelte";
   import ReferenceTable from "#lib/ReferenceTable.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
+  import LoadState from "#lib/LoadState.svelte";
   import { onMount } from "svelte";
   import SplitSankey from "./SplitSankey.svelte";
   import { fetchCatalog } from "./utils/fetchCatalog.js";
@@ -44,22 +45,24 @@
     { label: "対象年／期間", value: "2024年度" },
   ];
 
-  onMount(() => {
-    fetchCatalog()
-      .then((data) => {
-        catalog = data;
-        selectedId = data.programs[0].id;
-      })
-      .catch((error) => {
-        loadError =
-          error instanceof Error
-            ? error.message
-            : "カタログを取得できませんでした。";
-      })
-      .finally(() => {
-        loading = false;
-      });
-  });
+  async function loadCatalog() {
+    loading = true;
+    loadError = "";
+    try {
+      const data = await fetchCatalog();
+      catalog = data;
+      selectedId = data.programs[0].id;
+    } catch (error) {
+      loadError =
+        error instanceof Error
+          ? error.message
+          : "カタログを取得できませんでした。";
+    } finally {
+      loading = false;
+    }
+  }
+
+  onMount(loadCatalog);
 </script>
 
 <svelte:head><title>社会保障給付費収支 | Open Data Viz</title></svelte:head>
@@ -103,9 +106,9 @@
       </aside>
       <section class="chart-panel" aria-label="社会保障給付費収支図">
         {#if loading}
-          <p role="status">図のデータを読み込んでいます…</p>
+          <LoadState state="loading" message="図のデータを読み込んでいます…" />
         {:else if loadError}
-          <p role="alert">{loadError} ページを再読み込みしてください。</p>
+          <LoadState state="error" message={loadError} onretry={loadCatalog} />
         {:else if selected}
           <SplitSankey program={selected} />
         {/if}
