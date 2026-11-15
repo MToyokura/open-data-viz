@@ -11,17 +11,16 @@
   /** @type {{ id: string, label: string, group: string, value: number } | null} */
   let activeItem = $state(null);
   let activeSide = $state("");
-  let pinned = $state(false);
   let tooltipX = $state(8);
   let tooltipY = $state(8);
   let tooltipWidth = $state(320);
   let tooltipHeight = $state(120);
+  const tooltipId = $props.id();
   /** @type {Record<string, string>} */
   const groupColors = { income: "#236b8e", transfer: "#a25c24", benefit: "#536c3f", other: "#705988" };
 
-  /** @param {PointerEvent | FocusEvent | MouseEvent} event @param {{ id: string, label: string, group: string, value: number }} item @param {string} side */
+  /** @param {PointerEvent | FocusEvent | MouseEvent | KeyboardEvent} event @param {{ id: string, label: string, group: string, value: number }} item @param {string} side */
   function showItem(event, item, side) {
-    if (pinned) return;
     activeItem = item;
     activeSide = side;
     positionTooltip(event);
@@ -37,44 +36,35 @@
     tooltipY = Math.max(8, y + 14 + tooltipHeight <= window.innerHeight - 8 ? y + 14 : y - tooltipHeight - 14);
   }
 
-  /** @param {PointerEvent | MouseEvent | KeyboardEvent} event @param {{ id: string, label: string, group: string, value: number }} item @param {string} side */
-  function toggleItem(event, item, side) {
-    if (pinned && activeItem?.id === item.id && activeSide === side) {
-      pinned = false;
-      activeItem = null;
-      activeSide = "";
-      return;
-    }
-    activeItem = item;
-    activeSide = side;
-    pinned = true;
-    positionTooltip(event);
-  }
-
   /** @param {KeyboardEvent} event @param {{ id: string, label: string, group: string, value: number }} item @param {string} side */
   function handleItemKeydown(event, item, side) {
-    if (event.key === "Enter" || event.key === " ") {
+    if (event.key === "Escape") hideItem();
+    else if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      toggleItem(event, item, side);
+      showItem(event, item, side);
     }
   }
 
   function hideItem() {
-    if (!pinned) {
-      activeItem = null;
-      activeSide = "";
-    }
+    activeItem = null;
+    activeSide = "";
   }
 
   /** @param {{ id: string, label: string, group: string, value: number }} item @param {string} side */
   function itemAriaLabel(item, side) {
     const total = side === "収入" ? incomeTotal : expenditureTotal;
-    return `${item.label}、${formatExactAmount(item.value)}、${side}の表示項目計の${amountShare(item.value, total)}。クリックで詳細を固定`;
+    return `${item.label}、${formatExactAmount(item.value)}、${side}の表示項目計の${amountShare(item.value, total)}`;
   }
 
 </script>
 
-<svelte:window onscroll={hideItem} onresize={hideItem} onkeydown={(event) => { if (event.key === "Escape") { pinned = false; hideItem(); } }} />
+<svelte:window
+  onscroll={hideItem}
+  onresize={hideItem}
+  onkeydown={(event) => {
+    if (event.key === "Escape") hideItem();
+  }}
+/>
 
 <section class="sankey" aria-label="収入と支出の分断サンキー図">
   <header class="summary">
@@ -89,7 +79,7 @@
       {#each layout.left.groupFrames as frame (frame.label)}<rect class="group-frame-fill" x="0" y={frame.top} width="195" height={frame.bottom - frame.top} rx="7"></rect>{/each}
       {#each layout.right.groupFrames as frame (frame.label)}<rect class="group-frame-fill" x="805" y={frame.top} width="195" height={frame.bottom - frame.top} rx="7"></rect>{/each}
       {#each layout.left.entries as item (item.id)}
-        <g class={{ highlighted: activeSide === "収入" && activeItem?.id === item.id }} role="button" tabindex="0" aria-label={itemAriaLabel(item, "収入")} onclick={(event) => toggleItem(event, item, "収入")} onkeydown={(event) => handleItemKeydown(event, item, "収入")} onpointerenter={(event) => showItem(event, item, "収入")} onpointermove={(event) => showItem(event, item, "収入")} onpointerleave={hideItem} onfocus={(event) => showItem(event, item, "収入")} onblur={hideItem}>
+        <g class={{ highlighted: activeSide === "収入" && activeItem?.id === item.id }} role="button" tabindex="0" aria-label={itemAriaLabel(item, "収入")} aria-describedby={activeSide === "収入" && activeItem?.id === item.id ? tooltipId : undefined} onclick={(event) => showItem(event, item, "収入")} onkeydown={(event) => handleItemKeydown(event, item, "収入")} onpointerenter={(event) => showItem(event, item, "収入")} onpointermove={(event) => showItem(event, item, "収入")} onpointerleave={hideItem} onfocus={(event) => showItem(event, item, "収入")} onblur={hideItem}>
           <path d={item.path} fill={groupColors[item.group] ?? "#536c3f"} fill-opacity="0.72"></path>
           <rect x={layout.left.nodeX - 5} y={item.rowY - item.thickness / 2} width="10" height={Math.max(item.thickness, 0)} fill={groupColors[item.group] ?? "#536c3f"}></rect>
           <line x1="160" x2={layout.left.nodeX - 6} y1={item.rowY} y2={item.rowY} stroke="#667781" stroke-width="1"></line>
@@ -98,7 +88,7 @@
         </g>
       {/each}
       {#each layout.right.entries as item (item.id)}
-        <g class={{ highlighted: activeSide === "支出" && activeItem?.id === item.id }} role="button" tabindex="0" aria-label={itemAriaLabel(item, "支出")} onclick={(event) => toggleItem(event, item, "支出")} onkeydown={(event) => handleItemKeydown(event, item, "支出")} onpointerenter={(event) => showItem(event, item, "支出")} onpointermove={(event) => showItem(event, item, "支出")} onpointerleave={hideItem} onfocus={(event) => showItem(event, item, "支出")} onblur={hideItem}>
+        <g class={{ highlighted: activeSide === "支出" && activeItem?.id === item.id }} role="button" tabindex="0" aria-label={itemAriaLabel(item, "支出")} aria-describedby={activeSide === "支出" && activeItem?.id === item.id ? tooltipId : undefined} onclick={(event) => showItem(event, item, "支出")} onkeydown={(event) => handleItemKeydown(event, item, "支出")} onpointerenter={(event) => showItem(event, item, "支出")} onpointermove={(event) => showItem(event, item, "支出")} onpointerleave={hideItem} onfocus={(event) => showItem(event, item, "支出")} onblur={hideItem}>
           <path d={item.path} fill={groupColors[item.group] ?? "#536c3f"} fill-opacity="0.72"></path>
           <rect x={layout.right.nodeX - 5} y={item.rowY - item.thickness / 2} width="10" height={Math.max(item.thickness, 0)} fill={groupColors[item.group] ?? "#536c3f"}></rect>
           <line x1={layout.right.nodeX + 6} x2="840" y1={item.rowY} y2={item.rowY} stroke="#667781" stroke-width="1"></line>
@@ -117,10 +107,9 @@
   <p class="explanation">帯の太さは金額に比例します。割合は各側の表示項目計に対する比率で、制度ごとに帯幅の尺度が異なります。中央の空白は収入と支出の区切りで、個別財源の使途や実際の資金移動、制度間移転の相手先を示しません。割合の丸めにより合計が100%にならない場合があります。</p>
 
   {#if activeItem}
-    <aside class={['item-detail', { pinned }]} role={pinned ? "dialog" : "tooltip"} aria-live="polite" aria-label="選択中の項目詳細" style:left="{tooltipX}px" style:top="{tooltipY}px" bind:clientWidth={tooltipWidth} bind:clientHeight={tooltipHeight}>
+    <aside id={tooltipId} class="item-detail" role="tooltip" aria-live="polite" aria-label="項目詳細" style:left="{tooltipX}px" style:top="{tooltipY}px" bind:clientWidth={tooltipWidth} bind:clientHeight={tooltipHeight}>
       <div><strong>{activeItem.label}</strong><strong>{formatExactYen(activeItem.value)}</strong><span>{activeSide}の表示項目計に占める割合：{amountShare(activeItem.value, activeSide === "収入" ? incomeTotal : expenditureTotal)}</span></div>
       <p>項目コード：{activeItem.id}</p>
-      {#if pinned}<button type="button" onclick={() => { pinned = false; activeItem = null; activeSide = ""; }}>詳細を閉じる</button>{/if}
     </aside>
   {/if}
 </section>
@@ -147,15 +136,12 @@
   .group-title { fill: #344650; font-size: 14px; font-weight: 700; }
   .group-frame-fill { fill: #f6f8f9; }
   .group-frame { fill: none; stroke: #c9d2d7; stroke-width: 1; }
-  g[role="button"] { cursor: pointer; }
   g[role="button"]:focus-visible { outline: 3px solid #e18d26; outline-offset: 3px; }
   g.highlighted path { fill-opacity: 1; }
   g.highlighted text { fill: #102a3a; font-weight: 700; }
   .item-detail { position: fixed; z-index: 1000; display: grid; gap: var(--space-1); max-width: min(320px, calc(100vw - 16px)); box-sizing: border-box; padding: .75rem 1rem; border: 1px solid #cbd5e1; border-radius: var(--radius-md); background: #fff; color: #334155; font-size: .875rem; line-height: 1.6; box-shadow: 0 4px 16px rgb(51 65 85 / 14%); pointer-events: none; }
-  .item-detail.pinned { pointer-events: auto; }
   .item-detail div { display: grid; gap: var(--space-1); }
   .item-detail p { margin: 0; }
-  .item-detail button { justify-self: start; padding: var(--space-1) var(--space-2); font: inherit; cursor: pointer; }
   @media (max-width: 760px) {
     .summary { grid-template-columns: 1fr 1fr; }
     .center-title { grid-column: 1 / -1; grid-row: 1; }
