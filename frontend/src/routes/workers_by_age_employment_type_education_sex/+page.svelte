@@ -504,7 +504,7 @@
                   >
                 </div>
                 <p class="mode-description">
-                  {#if mode === "add"}条件を選び、「系列に追加」を押すとグラフに表示されます。{:else}選んだ属性の区分を比較します。ほかの条件は全系列に共通して適用されます。各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。{/if}
+                  {#if mode === "add"}条件を選び、「系列に追加」を押すとグラフに表示されます。{:else}区分を選ぶと比較系列がすぐに反映されます。ほかの条件は全系列に共通して適用されます。{/if}各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。
                 </p>
                 {#if mode === "compare"}<section
                     class="comparison-controls"
@@ -675,16 +675,16 @@
               </div>
             </details>
           </section>
-          <section class="comparison-panel" aria-label="比較中のデータ">
+          <section class="comparison-panel" aria-label="選択中の系列">
             <details class="added-items" bind:open={panels.isComparisonOpen}>
               <summary
                 ><h2>
-                  {mode === "compare" ? "比較系列" : "表示中の系列"}
+                  選択中の系列
                   <span>{items.length}系列</span>
                 </h2></summary
               >
               <fieldset class="selected-list">
-                <legend>選択中一覧</legend>
+                <legend>選択中の系列</legend>
                 {#if items.length === 0}
                   <p class="empty-comparison">
                     {#if mode === "compare" && !comparisonDimension}比較する属性を選んでください。{:else if mode === "compare"}比較する区分を選んでください。{:else}系列が追加されていません。{/if}
@@ -711,7 +711,7 @@
                       {/if}
                       <button
                         class="icon-button"
-                        aria-label={`${item.label}を削除`}
+                        aria-label={`${item.label}を選択中一覧から削除`}
                         onclick={() => removeItem(item.key)}
                         ><img src={deleteIcon} alt="" /></button
                       >

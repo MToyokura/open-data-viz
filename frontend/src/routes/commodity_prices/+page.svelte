@@ -200,13 +200,15 @@
               </div>
             </details>
           </section>
-          <section class="comparison-panel" aria-label="比較中のデータ">
+          <section class="comparison-panel" aria-label="選択中の系列">
             <details class="added-items" bind:open={panels.isComparisonOpen}>
               <summary>
-                <h2>比較中 <span>{selectedCombinations.length}系列</span></h2>
+                <h2>
+                  選択中の系列 <span>{selectedCombinations.length}系列</span>
+                </h2>
               </summary>
               <fieldset class="selected-list">
-                <legend>選択中一覧</legend>
+                <legend>選択中の系列</legend>
                 {#if selectedCombinations.length > 0}
                   <ul>
                     {#each selectedCombinations as item (`${item.cat02Code}:${item.areaCode}`)}
@@ -234,7 +236,7 @@
                         <button
                           type="button"
                           class="icon-button"
-                          aria-label="{item.cat02Name}【{item.areaName}】を削除"
+                          aria-label="{item.cat02Name}【{item.areaName}】を選択中一覧から削除"
                           onclick={() =>
                             handleRemove(item.cat02Code, item.areaCode)}
                           ><img
@@ -250,8 +252,10 @@
                   <p class="empty-comparison">選択されていません。</p>
                 {/if}
               </fieldset>
-              <button onclick={handleReset} class="reset-button"
-                >すべて消去</button
+              <button
+                onclick={handleReset}
+                class="reset-button"
+                disabled={selectedCombinations.length === 0}>すべて消去</button
               >
             </details>
           </section>

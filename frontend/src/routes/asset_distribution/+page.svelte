@@ -542,7 +542,7 @@
                   >
                 </div>
                 <p class="mode-description">
-                  {#if mode === "add"}属性条件を選び、「系列に追加」を押すとグラフに追加されます。{:else}比較する属性の区分を並べます。ほかの属性は全系列に共通する固定条件です。各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。{/if}
+                  {#if mode === "add"}属性条件を選び、「系列に追加」を押すとグラフに追加されます。{:else}区分を選ぶと比較系列がすぐに反映されます。ほかの属性は全系列に共通する固定条件です。{/if}各モードの条件と系列は別々に保持され、切り替えると前回の選択に戻ります。
                 </p>
                 {#if mode === "compare"}<section
                     class="comparison-controls"
@@ -712,12 +712,12 @@
             <details class="added-items" bind:open={panels.isComparisonOpen}>
               <summary
                 ><h2>
-                  {comparisonMode ? "属性を比較" : "系列を追加"}・表示中
+                  選択中の系列
                   <span>{activeCombinations.length}系列</span>
                 </h2></summary
               >
               <fieldset class="selected-list">
-                <legend>選択中一覧</legend>
+                <legend>選択中の系列</legend>
                 {#if activeCombinations.length}
                   <ul>
                     {#each activeCombinations as combination (combination.id)}
