@@ -154,6 +154,7 @@ const options = {
 test("workers by age page loads options, adds a series, and removes it", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
   await page.route(
     "**/workers_by_age_employment_type_education_sex/meta_data/options.json",
     (route) => route.fulfill({ json: options }),
@@ -184,6 +185,16 @@ test("workers by age page loads options, adds a series, and removes it", async (
   await expect(page.locator("h1")).toHaveText(
     "年齢階級，教育，雇用形態別雇用者数",
   );
+  const chartOrder = await page.evaluate(() => ({
+    chart: document.querySelector(".chart-panel").getBoundingClientRect().top,
+    controls: document.querySelector(".details-column").getBoundingClientRect()
+      .top,
+  }));
+  expect(chartOrder.chart).toBeLessThan(chartOrder.controls);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(375);
+  await page.locator(".selector-panel > summary").click();
   await expect(page.getByText("総数・雇用者・総数・総数")).toBeVisible();
   await expect(page.getByLabel("教育")).toHaveValue("00");
   const education = page.getByLabel("教育");

@@ -175,6 +175,12 @@ test("asset distribution shows negative assets, selection, and comparison on a n
   });
   await expect(chart).toBeVisible();
   await expect(chart).toHaveCSS("height", "982px");
+  const chartOrder = await page.evaluate(() => ({
+    chart: document.querySelector(".chart-panel").getBoundingClientRect().top,
+    controls: document.querySelector(".details-column").getBoundingClientRect()
+      .top,
+  }));
+  expect(chartOrder.chart).toBeLessThan(chartOrder.controls);
 
   await page.locator(".selector-panel > summary").click();
   await page
@@ -191,6 +197,22 @@ test("asset distribution shows negative assets, selection, and comparison on a n
   await expect(compareOptions.getByLabel("男性")).toBeChecked();
   await expect(compareOptions.getByLabel("女性")).toBeChecked();
   await expect(chart).toHaveCSS("height", "1192px");
+
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await expect(page.locator(".selector-panel")).toHaveJSProperty("open", true);
+  await expect(page.locator(".comparison-panel .selected-list li")).toHaveCount(
+    2,
+  );
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.locator(".selector-panel")).toHaveJSProperty("open", false);
+  await page.locator(".selector-panel > summary").click();
+  await page.getByRole("button", { name: "系列を追加" }).click();
+  await expect(
+    page.locator(".selector-panel").getByLabel("世帯主の性別"),
+  ).toHaveValue("02");
+  await expect(page.locator(".comparison-panel .selected-list li")).toHaveCount(
+    2,
+  );
 
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),

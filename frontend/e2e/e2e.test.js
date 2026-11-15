@@ -36,6 +36,7 @@ test("not found pages explain the error and offer a home link", async ({
 test("commodity_prices page has expected content and behavior", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
   await page.route("**/commodity_prices/meta_data/cat02_lookup.json", (route) =>
     route.fulfill({
       json: [{ cat02_code: "0001", cat02_name: "食パン" }],
@@ -62,6 +63,13 @@ test("commodity_prices page has expected content and behavior", async ({
 
   await page.goto("/commodity_prices");
   await expect(page.locator("h1")).toHaveText("主要品目の都市別小売価格");
+  const panelPositions = await page.evaluate(() => ({
+    chart: document.querySelector(".chart-panel").getBoundingClientRect().top,
+    controls: document.querySelector(".details-column").getBoundingClientRect()
+      .top,
+  }));
+  expect(panelPositions.chart).toBeLessThan(panelPositions.controls);
+  await page.locator(".selector-panel > summary").click();
   const area = page.getByRole("checkbox", { name: "札幌市" });
   await expect(area).toBeDisabled();
   await expect(
@@ -74,4 +82,7 @@ test("commodity_prices page has expected content and behavior", async ({
 
   await expect(page.getByText("食パン【札幌市】")).toBeVisible();
   await expect(page.locator(".chart-scroll-container")).toBeVisible();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(375);
 });
