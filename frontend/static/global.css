@@ -371,14 +371,6 @@ button {
     overflow-x: clip;
   }
 
-  .visualization-page--workers .details-column {
-    order: 1;
-  }
-
-  .visualization-page--workers .chart-panel {
-    order: 0;
-  }
-
   .visualization-page .selector-panel > summary,
   .visualization-page .added-items > summary {
     display: list-item;

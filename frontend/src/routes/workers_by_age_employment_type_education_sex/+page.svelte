@@ -465,7 +465,7 @@
   <title>年齢階級，教育，雇用形態別雇用者数 | Open Data Viz</title>
 </svelte:head>
 
-<div class="visualization-page visualization-page--workers">
+<div class="visualization-page visualization-page--chart-first visualization-page--workers">
   <main class="page-content">
     <WorkspaceHeader title="年齢階級，教育，雇用形態別雇用者数" />
     <div class="workspace">
