@@ -1,0 +1,586 @@
+{
+  "scope": "historical snapshot of the initial metadata and first-page sample review; it does not describe the later production generation",
+  "snapshot_status": "initial inspection record; later acquisition and classification validation are documented in README.md and generation_manifest.json",
+  "tables": [
+    {
+      "table_id": "0004050702",
+      "title": {
+        "$": "集計表 2024年度社会保障給付費収支表－収入（集計表2）",
+        "@no": "2"
+      },
+      "classifications": {
+        "tab": [
+          {
+            "code": "900",
+            "name": "金額",
+            "parent_code": null
+          }
+        ],
+        "cat01": [
+          {
+            "code": "11",
+            "name": "社会保険_1.健康保険_(A)全国健康保険協会管掌健康保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "12",
+            "name": "社会保険_1.健康保険_(B)組合管掌健康保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "13",
+            "name": "社会保険_2.国民健康保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "14",
+            "name": "社会保険_2.国民健康保険_退職者医療制度(再掲)",
+            "parent_code": "45"
+          },
+          {
+            "code": "15",
+            "name": "社会保険_3.後期高齢者医療制度",
+            "parent_code": "45"
+          },
+          {
+            "code": "16",
+            "name": "社会保険_4.介護保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "17",
+            "name": "社会保険_5.厚生年金保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "18",
+            "name": "社会保険_6.厚生年金基金",
+            "parent_code": "45"
+          },
+          {
+            "code": "19",
+            "name": "社会保険_7.石炭鉱業年金基金",
+            "parent_code": "45"
+          },
+          {
+            "code": "20",
+            "name": "社会保険_8.国民年金",
+            "parent_code": "45"
+          },
+          {
+            "code": "21",
+            "name": "社会保険_9.国民年金基金",
+            "parent_code": "45"
+          },
+          {
+            "code": "22",
+            "name": "社会保険_10.農業者年金基金",
+            "parent_code": "45"
+          },
+          {
+            "code": "23",
+            "name": "社会保険_11.船員保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "24",
+            "name": "社会保険_12.農林漁業団体職員共済組合",
+            "parent_code": "45"
+          },
+          {
+            "code": "25",
+            "name": "社会保険_13.日本私立学校振興･共済事業団",
+            "parent_code": "45"
+          },
+          {
+            "code": "26",
+            "name": "社会保険_14.雇用保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "27",
+            "name": "社会保険_15.労働者災害補償保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "28",
+            "name": "家族手当_16.児童手当",
+            "parent_code": "45"
+          },
+          {
+            "code": "29",
+            "name": "公務員_17.国家公務員共済組合",
+            "parent_code": "45"
+          },
+          {
+            "code": "30",
+            "name": "公務員_18.存続組合等",
+            "parent_code": "45"
+          },
+          {
+            "code": "31",
+            "name": "公務員_19.地方公務員等共済組合",
+            "parent_code": "45"
+          },
+          {
+            "code": "32",
+            "name": "公務員_20.旧令共済組合等",
+            "parent_code": "45"
+          },
+          {
+            "code": "33",
+            "name": "公務員_21.国家公務員災害補償等",
+            "parent_code": "45"
+          },
+          {
+            "code": "34",
+            "name": "公務員_22.地方公務員等災害補償",
+            "parent_code": "45"
+          },
+          {
+            "code": "35",
+            "name": "公務員_23.旧公共企業体職員業務災害",
+            "parent_code": "45"
+          },
+          {
+            "code": "36",
+            "name": "公務員_24.国家公務員恩給",
+            "parent_code": "45"
+          },
+          {
+            "code": "37",
+            "name": "公務員_25.地方公務員恩給",
+            "parent_code": "45"
+          },
+          {
+            "code": "38",
+            "name": "公衆保健ｻｰﾋﾞｽ_26.公衆衛生",
+            "parent_code": "45"
+          },
+          {
+            "code": "39",
+            "name": "公的扶助及び社会福祉_27.生活保護",
+            "parent_code": "45"
+          },
+          {
+            "code": "40",
+            "name": "公的扶助及び社会福祉_28.社会福祉",
+            "parent_code": "45"
+          },
+          {
+            "code": "41",
+            "name": "雇用対策_29.雇用対策",
+            "parent_code": "45"
+          },
+          {
+            "code": "42",
+            "name": "戦争犠牲者_30.戦争犠牲者",
+            "parent_code": "45"
+          },
+          {
+            "code": "43",
+            "name": "他の社会保障制度",
+            "parent_code": "45"
+          },
+          {
+            "code": "44",
+            "name": "他の社会保障制度_地方単独事業(再掲)",
+            "parent_code": "45"
+          },
+          {
+            "code": "45",
+            "name": "総計",
+            "parent_code": null
+          }
+        ],
+        "cat02": [
+          {
+            "code": "11",
+            "name": "拠出_被保険者",
+            "parent_code": "18"
+          },
+          {
+            "code": "12",
+            "name": "拠出_事業主",
+            "parent_code": "18"
+          },
+          {
+            "code": "13",
+            "name": "社会保障特別税",
+            "parent_code": "18"
+          },
+          {
+            "code": "14",
+            "name": "国庫負担",
+            "parent_code": "18"
+          },
+          {
+            "code": "15",
+            "name": "他の公費負担",
+            "parent_code": "18"
+          },
+          {
+            "code": "16",
+            "name": "資産収入",
+            "parent_code": "18"
+          },
+          {
+            "code": "17",
+            "name": "その他",
+            "parent_code": "18"
+          },
+          {
+            "code": "18",
+            "name": "収入小計",
+            "parent_code": "20"
+          },
+          {
+            "code": "19",
+            "name": "他制度からの移転",
+            "parent_code": "20"
+          },
+          {
+            "code": "20",
+            "name": "収入合計",
+            "parent_code": null
+          },
+          {
+            "code": "41",
+            "name": "収支差",
+            "parent_code": null
+          }
+        ]
+      },
+      "total_records": 385
+    },
+    {
+      "table_id": "0004050703",
+      "title": {
+        "$": "集計表 2024年度社会保障給付費収支表－支出（集計表2）",
+        "@no": "2"
+      },
+      "classifications": {
+        "tab": [
+          {
+            "code": "900",
+            "name": "金額",
+            "parent_code": null
+          }
+        ],
+        "cat01": [
+          {
+            "code": "11",
+            "name": "社会保険_1.健康保険_(A)全国健康保険協会管掌健康保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "12",
+            "name": "社会保険_1.健康保険_(B)組合管掌健康保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "13",
+            "name": "社会保険_2.国民健康保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "14",
+            "name": "社会保険_2.国民健康保険_退職者医療制度(再掲)",
+            "parent_code": "45"
+          },
+          {
+            "code": "15",
+            "name": "社会保険_3.後期高齢者医療制度",
+            "parent_code": "45"
+          },
+          {
+            "code": "16",
+            "name": "社会保険_4.介護保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "17",
+            "name": "社会保険_5.厚生年金保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "18",
+            "name": "社会保険_6.厚生年金基金",
+            "parent_code": "45"
+          },
+          {
+            "code": "19",
+            "name": "社会保険_7.石炭鉱業年金基金",
+            "parent_code": "45"
+          },
+          {
+            "code": "20",
+            "name": "社会保険_8.国民年金",
+            "parent_code": "45"
+          },
+          {
+            "code": "21",
+            "name": "社会保険_9.国民年金基金",
+            "parent_code": "45"
+          },
+          {
+            "code": "22",
+            "name": "社会保険_10.農業者年金基金",
+            "parent_code": "45"
+          },
+          {
+            "code": "23",
+            "name": "社会保険_11.船員保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "24",
+            "name": "社会保険_12.農林漁業団体職員共済組合",
+            "parent_code": "45"
+          },
+          {
+            "code": "25",
+            "name": "社会保険_13.日本私立学校振興･共済事業団",
+            "parent_code": "45"
+          },
+          {
+            "code": "26",
+            "name": "社会保険_14.雇用保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "27",
+            "name": "社会保険_15.労働者災害補償保険",
+            "parent_code": "45"
+          },
+          {
+            "code": "28",
+            "name": "家族手当_16.児童手当",
+            "parent_code": "45"
+          },
+          {
+            "code": "29",
+            "name": "公務員_17.国家公務員共済組合",
+            "parent_code": "45"
+          },
+          {
+            "code": "30",
+            "name": "公務員_18.存続組合等",
+            "parent_code": "45"
+          },
+          {
+            "code": "31",
+            "name": "公務員_19.地方公務員等共済組合",
+            "parent_code": "45"
+          },
+          {
+            "code": "32",
+            "name": "公務員_20.旧令共済組合等",
+            "parent_code": "45"
+          },
+          {
+            "code": "33",
+            "name": "公務員_21.国家公務員災害補償等",
+            "parent_code": "45"
+          },
+          {
+            "code": "34",
+            "name": "公務員_22.地方公務員等災害補償",
+            "parent_code": "45"
+          },
+          {
+            "code": "35",
+            "name": "公務員_23.旧公共企業体職員業務災害",
+            "parent_code": "45"
+          },
+          {
+            "code": "36",
+            "name": "公務員_24.国家公務員恩給",
+            "parent_code": "45"
+          },
+          {
+            "code": "37",
+            "name": "公務員_25.地方公務員恩給",
+            "parent_code": "45"
+          },
+          {
+            "code": "38",
+            "name": "公衆保健ｻｰﾋﾞｽ_26.公衆衛生",
+            "parent_code": "45"
+          },
+          {
+            "code": "39",
+            "name": "公的扶助及び社会福祉_27.生活保護",
+            "parent_code": "45"
+          },
+          {
+            "code": "40",
+            "name": "公的扶助及び社会福祉_28.社会福祉",
+            "parent_code": "45"
+          },
+          {
+            "code": "41",
+            "name": "雇用対策_29.雇用対策",
+            "parent_code": "45"
+          },
+          {
+            "code": "42",
+            "name": "戦争犠牲者_30.戦争犠牲者",
+            "parent_code": "45"
+          },
+          {
+            "code": "43",
+            "name": "他の社会保障制度",
+            "parent_code": "45"
+          },
+          {
+            "code": "44",
+            "name": "他の社会保障制度_地方単独事業(再掲)",
+            "parent_code": "45"
+          },
+          {
+            "code": "45",
+            "name": "総計",
+            "parent_code": null
+          }
+        ],
+        "cat02": [
+          {
+            "code": "21",
+            "name": "疾病･出産_医療",
+            "parent_code": "34"
+          },
+          {
+            "code": "22",
+            "name": "疾病･出産_現金",
+            "parent_code": "34"
+          },
+          {
+            "code": "23",
+            "name": "業務災害_医療",
+            "parent_code": "34"
+          },
+          {
+            "code": "24",
+            "name": "業務災害_医療以外の現物",
+            "parent_code": "34"
+          },
+          {
+            "code": "25",
+            "name": "業務災害_現金_年金",
+            "parent_code": "34"
+          },
+          {
+            "code": "26",
+            "name": "業務災害_現金_年金以外の現金",
+            "parent_code": "34"
+          },
+          {
+            "code": "27",
+            "name": "年金",
+            "parent_code": "34"
+          },
+          {
+            "code": "28",
+            "name": "失業･雇用対策",
+            "parent_code": "34"
+          },
+          {
+            "code": "29",
+            "name": "家族手当",
+            "parent_code": "34"
+          },
+          {
+            "code": "30",
+            "name": "介護対策_現物",
+            "parent_code": "34"
+          },
+          {
+            "code": "31",
+            "name": "介護対策_現金",
+            "parent_code": "34"
+          },
+          {
+            "code": "32",
+            "name": "その他_医療以外の現物",
+            "parent_code": "34"
+          },
+          {
+            "code": "33",
+            "name": "その他_現金",
+            "parent_code": "34"
+          },
+          {
+            "code": "34",
+            "name": "給付計",
+            "parent_code": "38"
+          },
+          {
+            "code": "35",
+            "name": "管理費",
+            "parent_code": "38"
+          },
+          {
+            "code": "36",
+            "name": "運用損失",
+            "parent_code": "38"
+          },
+          {
+            "code": "37",
+            "name": "その他",
+            "parent_code": "38"
+          },
+          {
+            "code": "38",
+            "name": "支出小計",
+            "parent_code": "40"
+          },
+          {
+            "code": "39",
+            "name": "他制度への移転",
+            "parent_code": "40"
+          },
+          {
+            "code": "40",
+            "name": "支出合計",
+            "parent_code": null
+          },
+          {
+            "code": "41",
+            "name": "収支差",
+            "parent_code": null
+          }
+        ]
+      },
+      "total_records": 735
+    }
+  ],
+  "verified_at_initial_snapshot": {
+    "income_classifications": 11,
+    "expenditure_classifications": 21,
+    "program_classifications": 35,
+    "income_records": 385,
+    "expenditure_records": 735,
+    "record_combinations": 1120,
+    "diagram_programs": 32,
+    "negative_values": 12
+  },
+  "not_yet_verified_at_snapshot": [
+    "full-page acquisition completeness at the time of this initial snapshot",
+    "special-symbol notes and semantics at the time of this initial snapshot",
+    "status mapping for zero and symbols at the time of this initial snapshot",
+    "dataset/metadata join and classification-level hierarchy across all values at the time of this initial snapshot"
+  ],
+  "generated_output_at_snapshot": false,
+  "symbol_review": {
+    "metadata_notes_present": true,
+    "annotation_inf_present": false,
+    "full_width_dash_counts": {
+      "income": 162,
+      "expenditure": 412
+    },
+    "negative_values_pending": 14,
+    "decision": "初回レビュー時点では凡例と負値の意味を未確認として保留した。後続調査で確認した判定は README.md を参照。"
+  },
+  "generated_outputs_retained_outside_gitignore": "data_preparation/output/social_security_budget_flow (gitignored by repository policy)"
+}

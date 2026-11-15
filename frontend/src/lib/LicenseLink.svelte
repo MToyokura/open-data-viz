@@ -6,9 +6,10 @@
 </script>
 
 <a
-  class:workspace={variant === "workspace"}
-  class:footer={variant === "footer"}
-  class="cc-icons"
+  class={[
+    "cc-icons",
+    { workspace: variant === "workspace", footer: variant === "footer" },
+  ]}
   href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
   target="_blank"
   rel="noreferrer"
@@ -21,12 +22,18 @@
 <style>
   .cc-icons {
     display: flex;
+    flex-flow: row nowrap;
     justify-content: end;
     align-items: center;
     gap: var(--space-1);
     width: max-content;
     color: #111;
     text-decoration: none;
+  }
+
+  .cc-icons :global(svg) {
+    display: block;
+    flex: 0 0 2rem;
   }
 
   .workspace {
