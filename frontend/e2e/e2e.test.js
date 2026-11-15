@@ -72,6 +72,7 @@ test("commodity_prices page has expected content and behavior", async ({
   await page.locator(".selector-panel > summary").click();
   const area = page.getByRole("checkbox", { name: "札幌市" });
   await expect(area).toBeDisabled();
+  await expect(area).toHaveCSS("opacity", "0.6");
   await expect(
     page.getByText("品目と地域を選ぶと、ここにグラフが表示されます。"),
   ).toBeVisible();
@@ -95,4 +96,56 @@ test("commodity_prices page has expected content and behavior", async ({
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(375);
+});
+
+test("social security chart uses the shared tooltip style on hover", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.route("**/social_security_budget_flow/catalog.json", (route) =>
+    route.fulfill({
+      json: {
+        programs: [
+          {
+            id: "test-program",
+            name: "テスト制度",
+            income: [{ id: "I11", value: 100 }],
+            expenditure: [{ id: "E27", value: 80 }],
+          },
+        ],
+      },
+    }),
+  );
+
+  await page.goto("/social_security_budget_flow");
+  const item = page.getByRole("button", { name: /拠出／被保険者/ });
+  await item.hover();
+  await expect(item).toHaveClass(/highlighted/);
+  const tooltip = page.getByRole("tooltip", { name: "項目詳細" });
+  await expect(tooltip).toBeVisible();
+  await expect(tooltip).toContainText("拠出／被保険者");
+  await page.screenshot({
+    path: testInfo.outputPath("sankey-hover-tooltip.png"),
+  });
+
+  const tooltipStyle = await tooltip.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const root = getComputedStyle(document.documentElement);
+    return {
+      background: style.backgroundColor,
+      expectedBackground: root.getPropertyValue("--tooltip-background").trim(),
+      border: style.borderTopColor,
+      expectedBorder: root.getPropertyValue("--tooltip-border-color").trim(),
+      fontSize: style.fontSize,
+      expectedFontSize: root.getPropertyValue("--tooltip-font-size").trim(),
+      shadow: style.boxShadow,
+    };
+  });
+  expect(tooltipStyle.background).toBe("rgb(255, 255, 255)");
+  expect(tooltipStyle.border).toBe("rgb(214, 214, 214)");
+  expect(tooltipStyle.fontSize).toBe("14px");
+  expect(tooltipStyle.shadow).not.toBe("none");
+  expect(tooltipStyle.expectedBackground).toBe("#fff");
+  expect(tooltipStyle.expectedBorder).toBe("#d6d6d6");
+  expect(tooltipStyle.expectedFontSize).toBe("0.875rem");
 });
