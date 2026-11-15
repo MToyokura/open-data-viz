@@ -82,6 +82,16 @@ test("commodity_prices page has expected content and behavior", async ({
 
   await expect(page.getByText("食パン【札幌市】")).toBeVisible();
   await expect(page.locator(".chart-scroll-container")).toBeVisible();
+  await page.getByRole("button", { name: "スクロール表示" }).click();
+  const scrollRegion = page.getByRole("region", {
+    name: "価格推移グラフ。左右にスクロールできます",
+  });
+  await expect(scrollRegion).toBeVisible();
+  const graphDimensions = await scrollRegion.evaluate((element) => ({
+    client: element.clientWidth,
+    scroll: element.scrollWidth,
+  }));
+  expect(graphDimensions.scroll).toBeGreaterThan(graphDimensions.client);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(375);
