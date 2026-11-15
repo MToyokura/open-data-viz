@@ -100,10 +100,6 @@
 </div>
 
 <style>
-  .chart-scroll-container {
-    --chart-scroll-margin: var(--space-8);
-  }
-
   #chart-container {
     box-sizing: border-box;
     height: var(--chart-height, 60vh);

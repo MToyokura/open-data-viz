@@ -318,7 +318,7 @@
 
 <style>
   .sankey {
-    margin: var(--space-5) 0;
+    margin: var(--space-4) 0;
     min-width: 0;
   }
   .summary {

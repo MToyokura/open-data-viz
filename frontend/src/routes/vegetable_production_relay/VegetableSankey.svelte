@@ -212,6 +212,7 @@
   .chart-scroll {
     overflow-x: auto;
     max-width: 100%;
+    margin: var(--space-4) 0;
   }
   .quantity-tooltip {
     position: fixed;
