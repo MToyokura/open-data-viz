@@ -95,7 +95,7 @@
                     <a
                       href="https://www.e-stat.go.jp/dbview?sid=0004050702"
                       target="_blank"
-                      rel="noopener noreferrer">e-Statで統計表を見る</a
+                      rel="noopener noreferrer">収入の統計表をe-Statで見る</a
                     >
                   </div>
                   <div>支出: 0004050703</div>
@@ -103,7 +103,7 @@
                     <a
                       href="https://www.e-stat.go.jp/dbview?sid=0004050703"
                       target="_blank"
-                      rel="noopener noreferrer">e-Statで統計表を見る</a
+                      rel="noopener noreferrer">支出の統計表をe-Statで見る</a
                     >
                   </div>
                 </td>
