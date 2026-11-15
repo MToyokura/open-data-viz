@@ -426,10 +426,6 @@
                   <td>{yearData ? `${yearData.year}年（月次）` : ""}</td>
                 </tr>
                 <tr>
-                  <th>単位</th>
-                  <td>{yearData?.source_unit ?? ""}</td>
-                </tr>
-                <tr>
                   <th>表分類</th>
                   <td>野菜の主要消費地域別・産地別の卸売数量及び卸売価格</td>
                 </tr>
