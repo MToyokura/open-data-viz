@@ -1,4 +1,10 @@
-import { EXPENDITURE_GROUPS, INCOME_GROUPS, groupLabel, summarizeItems, totalValue } from "./amountComparison.js";
+import {
+  EXPENDITURE_GROUPS,
+  INCOME_GROUPS,
+  groupLabel,
+  summarizeItems,
+  totalValue,
+} from "./amountComparison.js";
 
 const ROW_HEIGHT = 54;
 const GROUP_GAP = 24;
@@ -17,7 +23,9 @@ const RIGHT_NODE_X = 810;
 function groupedItems(items, order) {
   return order.flatMap((group) => {
     const members = items.filter((item) => item.group === group);
-    return members.length ? [{ id: group, label: groupLabel(group), items: members }] : [];
+    return members.length
+      ? [{ id: group, label: groupLabel(group), items: members }]
+      : [];
   });
 }
 
@@ -34,12 +42,24 @@ function assignRows(groups, scale) {
     let lastBottom = y;
     for (const item of group.items) {
       const thickness = item.value * scale;
-      const slotHeight = Math.max(ROW_HEIGHT, thickness + ITEM_VERTICAL_INSET * 2);
-      entries.push({ ...item, groupLabel: group.label, rowY: y + slotHeight / 2, thickness });
+      const slotHeight = Math.max(
+        ROW_HEIGHT,
+        thickness + ITEM_VERTICAL_INSET * 2,
+      );
+      entries.push({
+        ...item,
+        groupLabel: group.label,
+        rowY: y + slotHeight / 2,
+        thickness,
+      });
       y += slotHeight;
       lastBottom = y;
     }
-    groupFrames.push({ label: group.label, top: frameTop, bottom: lastBottom + 6 });
+    groupFrames.push({
+      label: group.label,
+      top: frameTop,
+      bottom: lastBottom + 6,
+    });
     y += GROUP_GAP;
   }
   return { entries, headers, groupFrames, height: y + TOP };
@@ -59,7 +79,10 @@ function ribbonPath(x1, x2, y1, y2, thickness) {
 
 /** @param {Item[]} items @param {string[]} order @param {"left"|"right"} direction @param {number} scale */
 function sideLayout(items, order, direction, scale) {
-  const { entries, headers, groupFrames } = assignRows(groupedItems(items, order), scale);
+  const { entries, headers, groupFrames } = assignRows(
+    groupedItems(items, order),
+    scale,
+  );
   const total = totalValue(items);
   let stackY = TOP + GROUP_HEADER_HEIGHT + ITEM_VERTICAL_INSET;
   const nodeX = direction === "left" ? LEFT_NODE_X : RIGHT_NODE_X;
@@ -71,10 +94,24 @@ function sideLayout(items, order, direction, scale) {
       ...item,
       thickness,
       centerY,
-      path: ribbonPath(direction === "left" ? CENTER_X : CENTER_X, nodeX, centerY, item.rowY, thickness),
+      path: ribbonPath(
+        direction === "left" ? CENTER_X : CENTER_X,
+        nodeX,
+        centerY,
+        item.rowY,
+        thickness,
+      ),
     };
   });
-  return { entries: ribbons, headers, groupFrames, total, stackYStart: TOP + GROUP_HEADER_HEIGHT + ITEM_VERTICAL_INSET, nodeX, direction };
+  return {
+    entries: ribbons,
+    headers,
+    groupFrames,
+    total,
+    stackYStart: TOP + GROUP_HEADER_HEIGHT + ITEM_VERTICAL_INSET,
+    nodeX,
+    direction,
+  };
 }
 
 /** Calculate two visually separated half-Sankey diagrams on one common money scale. */
@@ -85,7 +122,10 @@ export function buildSplitSankey(program) {
   const maxTotal = Math.max(totalValue(income), totalValue(expenditure));
   const scale = maxTotal > 0 ? 300 / maxTotal : 0;
   const incomeRows = assignRows(groupedItems(income, INCOME_GROUPS), scale);
-  const expenditureRows = assignRows(groupedItems(expenditure, EXPENDITURE_GROUPS), scale);
+  const expenditureRows = assignRows(
+    groupedItems(expenditure, EXPENDITURE_GROUPS),
+    scale,
+  );
   const height = Math.max(incomeRows.height, expenditureRows.height, 360);
   const left = sideLayout(income, INCOME_GROUPS, "left", scale);
   const right = sideLayout(expenditure, EXPENDITURE_GROUPS, "right", scale);

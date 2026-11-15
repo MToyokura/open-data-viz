@@ -1,6 +1,6 @@
 import { VITE_STORAGE_BASE_URL } from "#lib/paths.js";
 
-export const ASSET_DISTRIBUTION_PATH = `${VITE_STORAGE_BASE_URL}/asset_distribution/manifest.json`;
+const ASSET_DISTRIBUTION_PATH = `${VITE_STORAGE_BASE_URL}/asset_distribution/manifest.json`;
 
 /** @typedef {{ code: string, label: string, kind: string, order: number, api_level?: string, api_parent_code?: string }} Category */
 /** @typedef {{ id: string, label: string, category_codes: string[] }} ComparisonSet */

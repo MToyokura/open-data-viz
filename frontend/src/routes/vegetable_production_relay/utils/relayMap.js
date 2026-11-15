@@ -75,7 +75,7 @@ function polygonCentroid(polygon) {
 
 /** 地物を都道府県ごとにまとめ、面積で重み付けした重心を返します。 */
 /** @param {GeoCollection["features"]} features @returns {Map<string, LatLng>} */
-export function calculateCentroids(features) {
+function calculateCentroids(features) {
   const totals = new Map();
 
   for (const feature of features) {
@@ -166,11 +166,7 @@ export function createOkinawaInsetGeojson(geojson, targetCenter) {
 
 /** 入れ子になった座標列の経度・緯度に指定したオフセットを加えます。 */
 /** @param {unknown} coordinates @param {number} longitudeOffset @param {number} latitudeOffset @returns {unknown} */
-export function translateCoordinates(
-  coordinates,
-  longitudeOffset,
-  latitudeOffset,
-) {
+function translateCoordinates(coordinates, longitudeOffset, latitudeOffset) {
   if (!Array.isArray(coordinates)) return coordinates;
   if (
     typeof coordinates[0] === "number" &&

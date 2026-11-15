@@ -13,8 +13,13 @@ function hasValidItems(nodes, side) {
   return nodes.every((node) => {
     if (!node || typeof node !== "object") return false;
     const item = /** @type {Record<string, unknown>} */ (node);
-    return typeof item.id === "string" && ITEM_METADATA[item.id]?.side === side &&
-      typeof item.value === "number" && Number.isFinite(item.value) && item.value > 0;
+    return (
+      typeof item.id === "string" &&
+      ITEM_METADATA[item.id]?.side === side &&
+      typeof item.value === "number" &&
+      Number.isFinite(item.value) &&
+      item.value > 0
+    );
   });
 }
 
@@ -26,9 +31,17 @@ function isCatalog(value) {
   return programs.every((program) => {
     if (!program || typeof program !== "object") return false;
     const candidate = /** @type {Record<string, unknown>} */ (program);
-    if (typeof candidate.id !== "string" || typeof candidate.name !== "string" ||
-        !Array.isArray(candidate.income) || !Array.isArray(candidate.expenditure)) return false;
-    return hasValidItems(candidate.income, "income") && hasValidItems(candidate.expenditure, "expenditure");
+    if (
+      typeof candidate.id !== "string" ||
+      typeof candidate.name !== "string" ||
+      !Array.isArray(candidate.income) ||
+      !Array.isArray(candidate.expenditure)
+    )
+      return false;
+    return (
+      hasValidItems(candidate.income, "income") &&
+      hasValidItems(candidate.expenditure, "expenditure")
+    );
   });
 }
 
@@ -46,7 +59,10 @@ export async function fetchCatalog() {
     cache: "no-store",
     headers: { Accept: "application/json" },
   });
-  if (!response.ok) throw new Error(`カタログの取得に失敗しました（HTTP ${response.status}）。`);
+  if (!response.ok)
+    throw new Error(
+      `カタログの取得に失敗しました（HTTP ${response.status}）。`,
+    );
   const data = await response.json();
   if (!isCatalog(data)) throw new Error("カタログの形式が正しくありません。");
   return {

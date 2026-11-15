@@ -25,15 +25,27 @@ export const ITEM_METADATA = {
   E21: { label: "疾病･出産／医療", group: "benefit", side: "expenditure" },
   E22: { label: "疾病･出産／現金", group: "benefit", side: "expenditure" },
   E23: { label: "業務災害／医療", group: "benefit", side: "expenditure" },
-  E24: { label: "業務災害／医療以外の現物", group: "benefit", side: "expenditure" },
+  E24: {
+    label: "業務災害／医療以外の現物",
+    group: "benefit",
+    side: "expenditure",
+  },
   E25: { label: "業務災害／現金／年金", group: "benefit", side: "expenditure" },
-  E26: { label: "業務災害／現金／年金以外の現金", group: "benefit", side: "expenditure" },
+  E26: {
+    label: "業務災害／現金／年金以外の現金",
+    group: "benefit",
+    side: "expenditure",
+  },
   E27: { label: "年金", group: "benefit", side: "expenditure" },
   E28: { label: "失業･雇用対策", group: "benefit", side: "expenditure" },
   E29: { label: "家族手当", group: "benefit", side: "expenditure" },
   E30: { label: "介護対策／現物", group: "benefit", side: "expenditure" },
   E31: { label: "介護対策／現金", group: "benefit", side: "expenditure" },
-  E32: { label: "その他／医療以外の現物", group: "benefit", side: "expenditure" },
+  E32: {
+    label: "その他／医療以外の現物",
+    group: "benefit",
+    side: "expenditure",
+  },
   E33: { label: "その他／現金", group: "benefit", side: "expenditure" },
   E35: { label: "管理費", group: "other", side: "expenditure" },
   E36: { label: "運用損失", group: "other", side: "expenditure" },
@@ -44,7 +56,12 @@ export const ITEM_METADATA = {
 /** Values in the source catalog are in millions of yen. */
 /** @param {AmountItem[]} items @returns {AmountItem[]} */
 export function summarizeItems(items) {
-  return [...items].sort((a, b) => a.group.localeCompare(b.group, "en") || b.value - a.value || a.id.localeCompare(b.id));
+  return [...items].sort(
+    (a, b) =>
+      a.group.localeCompare(b.group, "en") ||
+      b.value - a.value ||
+      a.id.localeCompare(b.id),
+  );
 }
 
 /** @param {AmountItem[]} items */
@@ -62,9 +79,12 @@ export function amountShare(value, total) {
 /** @param {number} millionYen */
 export function formatApproximateAmount(millionYen) {
   const yen = Math.round(millionYen * 1_000_000);
-  if (yen >= 1_000_000_000_000) return `約${(yen / 1_000_000_000_000).toFixed(2).replace(/0+$/, "").replace(/\.$/, "")}兆円`;
-  if (yen >= 100_000_000) return `約${Math.round(yen / 100_000_000).toLocaleString("ja-JP")}億円`;
-  if (yen >= 10_000) return `約${Math.round(yen / 10_000).toLocaleString("ja-JP")}万円`;
+  if (yen >= 1_000_000_000_000)
+    return `約${(yen / 1_000_000_000_000).toFixed(2).replace(/0+$/, "").replace(/\.$/, "")}兆円`;
+  if (yen >= 100_000_000)
+    return `約${Math.round(yen / 100_000_000).toLocaleString("ja-JP")}億円`;
+  if (yen >= 10_000)
+    return `約${Math.round(yen / 10_000).toLocaleString("ja-JP")}万円`;
   return `約${yen.toLocaleString("ja-JP")}円`;
 }
 
@@ -78,7 +98,11 @@ export function formatExactYen(millionYen) {
   let yen = BigInt(Math.round(millionYen)) * 1_000_000n;
   let result = "";
   /** @type {[bigint, string][]} */
-  const units = [[1_000_000_000_000n, "兆"], [100_000_000n, "億"], [10_000n, "万"]];
+  const units = [
+    [1_000_000_000_000n, "兆"],
+    [100_000_000n, "億"],
+    [10_000n, "万"],
+  ];
   for (const [unit, label] of units) {
     const amount = yen / unit;
     if (amount > 0n) result += `${amount.toLocaleString("ja-JP")}${label}`;

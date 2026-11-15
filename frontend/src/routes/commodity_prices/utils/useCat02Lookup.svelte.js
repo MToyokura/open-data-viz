@@ -5,7 +5,7 @@ import { CAT02_LOOKUP_DATA_PATH } from "../constants/constants.js";
 
 // Fetch cat02_lookup.json
 /** @returns {Promise<Cat02Lookup>} */
-export async function fetchCat02Lookup() {
+async function fetchCat02Lookup() {
   try {
     const response = await fetch(CAT02_LOOKUP_DATA_PATH);
 
