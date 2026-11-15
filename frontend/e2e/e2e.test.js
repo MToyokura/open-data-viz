@@ -8,33 +8,42 @@ test("home page has expected h1", async ({ page }) => {
 test("commodity_prices page has expected content and behavior", async ({
   page,
 }) => {
+  await page.route("**/commodity_prices/meta_data/cat02_lookup.json", (route) =>
+    route.fulfill({
+      json: [{ cat02_code: "0001", cat02_name: "食パン" }],
+    }),
+  );
+  await page.route("**/commodity_prices/meta_data/area_lookup.json", (route) =>
+    route.fulfill({
+      json: [{ area_code: "01100", area_name: "札幌市" }],
+    }),
+  );
+  await page.route(
+    "**/commodity_prices/transformed_data/commodity_prices_0001_01100.json",
+    (route) =>
+      route.fulfill({
+        json: {
+          cat02_code: "0001",
+          cat02_name: "食パン",
+          area_code: "01100",
+          area_name: "札幌市",
+          time_value_pairs: [{ time: "2025-01-01", value: "200" }],
+        },
+      }),
+  );
+
   await page.goto("/commodity_prices");
   await expect(page.locator("h1")).toHaveText("主要品目の都市別小売価格");
-  await expect(page.locator("text=自動で追加する")).toBeVisible();
+  const area = page.getByRole("checkbox", { name: "札幌市" });
+  await expect(area).toBeDisabled();
+  await expect(
+    page.getByText("品目と地域を選ぶと、ここにグラフが表示されます。"),
+  ).toBeVisible();
 
-  const selectElements = await page.locator("select").all();
+  await page.getByRole("radio", { name: "食パン" }).check();
+  await expect(area).toBeEnabled();
+  await area.check();
 
-  // Scenario 1: 未選択
-  // Select the first option in each select and check canvas is hidden
-  for (const selectElement of selectElements) {
-    const options = await selectElement.locator("option").all();
-    expect(options.length).toBeGreaterThan(1);
-
-    const firstOptionValue = await options[0].getAttribute("value");
-    await selectElement.selectOption({ value: firstOptionValue });
-  }
-  const canvasAfterFirstOption = page.locator("canvas");
-  await expect(canvasAfterFirstOption).toBeHidden();
-
-  // Scenario 2: Select the second option in each select and check canvas is visible
-  for (const selectElement of selectElements) {
-    const options = await selectElement.locator("option").all();
-    expect(options.length).toBeGreaterThan(1);
-
-    const secondOptionValue = await options[1].getAttribute("value");
-    await selectElement.selectOption({ value: secondOptionValue });
-  }
-
-  const canvasAfterSecondOption = page.locator("canvas");
-  await expect(canvasAfterSecondOption).toBeVisible();
+  await expect(page.getByText("食パン【札幌市】")).toBeVisible();
+  await expect(page.locator(".chart-scroll-container")).toBeVisible();
 });
