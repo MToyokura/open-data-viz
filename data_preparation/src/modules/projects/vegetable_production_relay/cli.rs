@@ -290,7 +290,7 @@ fn required_paths<'a>(args: &'a [String], command_usage: &str) -> (&'a str, &'a 
 }
 
 fn usage(command_usage: &str) -> ! {
-    eprintln!("Usage: cargo run -- {command_usage}");
+    eprintln!("Usage: ./scripts/prepare.sh run -- {command_usage}");
     std::process::exit(2);
 }
 

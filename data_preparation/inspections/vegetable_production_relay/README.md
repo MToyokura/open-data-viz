@@ -41,13 +41,12 @@ capture は e-Stat API から取得したmetadataまたは観測値と、その�
 
 ### mapping の再検査
 
-通常の生成では、Git管理されているmappingを使うためワークブックの再取得は不要です。出典からmappingを再検証する場合は、`data_preparation/` で次の手順を実行します。
+通常の生成では、Git管理されているmappingを使うためワークブックの再取得は不要です。出典からmappingを再検証する場合は、リポジトリルートの `.env` に `ESTAT_APP_ID` を設定し、`data_preparation/` から次の手順を実行します（設定方法は [`data_preparation/README.md`](../../README.md) を参照）。
 
 ```sh
-cargo run -- vegetable-relay-inspect-workbooks
-export ESTAT_APP_ID="取得したアプリケーションID"
-cargo run -- vegetable-relay-acquire-product-observations
-cargo run -- vegetable-relay-verify-product-mappings
+./scripts/prepare.sh run -- vegetable-relay-inspect-workbooks
+./scripts/prepare.sh run -- vegetable-relay-acquire-product-observations
+./scripts/prepare.sh run -- vegetable-relay-verify-product-mappings
 ```
 
 最初のコマンドは公式ワークブックを取得するためネット接続が必要です。2つ目はmetadataと観測値を取得または再利用し、inventoryのcapture参照を更新します。このコマンドには `ESTAT_APP_ID` が必要で、未取得のデータがある場合はネット接続も必要です。最後のコマンドはローカルのワークブックと観測値を照合してmappingを検証します。

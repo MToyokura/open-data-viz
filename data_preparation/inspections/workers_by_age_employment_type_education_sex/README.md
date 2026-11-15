@@ -2,13 +2,12 @@
 
 ## 再実行
 
-`data_preparation/` から Rust の調査コマンドを実行します。`ESTAT_APP_ID` は環境変数から読み、出力・ログには出しません。
+`data_preparation/` から `scripts/prepare.sh` 経由で調査コマンドを実行します。スクリプトはリポジトリルートの `.env` から `ESTAT_APP_ID` を読み込みます。ID は出力・ログには出しません。
 
 ```sh
-export ESTAT_APP_ID="取得したアプリケーションID"
-cargo run -- workers-by-age-inspect
+./scripts/prepare.sh run -- workers-by-age-inspect
 # 全レコードの特殊値を再集計するとき
-cargo run -- workers-by-age-inspect --scan-all-values
+./scripts/prepare.sh run -- workers-by-age-inspect --scan-all-values
 ```
 
 `--limit N` で複数レコード標本のページ幅を変更できます（既定値 3）。コマンドは `getMetaInfo`、連続する2ページの `getStatsData`、単一レコードに絞った取得、該当データなしの取得、`$="…"` と `$="0"` の実例を再取得します。`--scan-all-values` を指定すると、表の全レコードをページ取得し、`samples/special_value_scan.json` に件数・代表値・注釈属性の有無を保存します。標本は固定名で上書きし、取得日時と条件を `capture_manifest.json` に記録します。e-Stat の応答に含まれる `PARAMETER.appId` は `[REDACTED]` に置換して保存します。エラー詳細を表示しないため、認証値がログに出ません。

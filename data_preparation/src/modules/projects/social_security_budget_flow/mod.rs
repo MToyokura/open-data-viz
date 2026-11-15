@@ -17,7 +17,7 @@ pub fn run_inspection(args: &[String]) -> bool {
         .get(1)
         .is_some_and(|arg| arg == "--help" || arg == "-h")
     {
-        println!("Usage: cargo run -- social-security-budget-flow-inspect");
+        println!("Usage: ./scripts/prepare.sh run -- social-security-budget-flow-inspect");
         println!(
             "Captures metadata and a small response sample for tables {INCOME_TABLE_ID} and {EXPENDITURE_TABLE_ID}."
         );

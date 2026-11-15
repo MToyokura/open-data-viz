@@ -36,7 +36,7 @@ pub fn run(args: &[String]) -> bool {
         .get(1)
         .is_some_and(|arg| arg == "--help" || arg == "-h")
     {
-        println!("Usage: cargo run -- asset-distribution [--transform-only]");
+        println!("Usage: ./scripts/prepare.sh run -- asset-distribution [--transform-only]");
         println!("Fetches and transforms e-Stat table {STATS_DATA_ID}.");
         return true;
     }

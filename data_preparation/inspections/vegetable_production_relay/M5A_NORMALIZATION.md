@@ -7,7 +7,7 @@
 `data_preparation/` から次を実行する。
 
 ```sh
-cargo run -- vegetable-relay-validate-m3-m5
+./scripts/prepare.sh run -- vegetable-relay-validate-m3-m5
 ```
 
 取得データを再生検証し、日付付きワークブックとの対応付けを確認して、3テーブルすべてを正規化する。出典上の位置、コード、値、期間を検査する。入力または対応付けの検査に失敗した場合は、失敗終了する。独立したレビュアー記録は必要としない。
@@ -17,7 +17,7 @@ cargo run -- vegetable-relay-validate-m3-m5
 各年について、取得した観測値と対応するメタデータ、共通の時間対応付けを指定し、新しい出力ディレクトリを使って正規化する。
 
 ```sh
-cargo run -- vegetable-relay-normalize-2021-2023 \
+./scripts/prepare.sh run -- vegetable-relay-normalize-2021-2023 \
   <observations-run-dir> <metadata-run-dir> \
   inspections/vegetable_production_relay/2021_2023_temporal_mapping.json \
   <new-output-dir>

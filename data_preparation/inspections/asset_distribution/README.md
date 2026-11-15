@@ -109,7 +109,7 @@ API応答は `@unit` を含まず、値は文字列で返る。全件の値は�
 
 `samples/meta_info.json` は `getMetaInfo` 応答、`samples/stats_data.json` は全件取得から抽出した実際の値レコードである。統計データ標本は総数条件と年齢35歳未満条件の各36区分を含む。標本のコード・値は実測値で、アプリケーションIDは含まない。SHA-256とAPI取得条件、ページ数、総件数は [`capture_manifest.json`](capture_manifest.json) を参照。
 
-生成物は `output/asset_distribution/manifest.json` と `output/asset_distribution/items/` 配下の値チャンクである。schema version 3 の manifest はメタデータ、分類辞書 (`dimensions`)、表示順を示す `cat04.display_category_codes`、属性直積の定義 (`combination_index`)、チャンク一覧 (`chunks`) を持つ。属性軸の順序と各軸の区分順から組み合わせを導出し、チャンクの `start_index` と `count` が直積上の連続範囲を示す。組み合わせ一覧やチャンクごとの系列ID一覧は保持しない。値チャンクは指定順の21階級の値 (`items`) を収録する。フロントエンドは version 3 のみを受け付ける。schema version 2、version 1、旧単一ファイル形式との後方互換性はなく、旧形式を読む処理、変換、フォールバックは設けない。再取得には `ESTAT_APP_ID` を環境に設定して `cargo run -- asset-distribution`、保存済み応答の再変換には `cargo run -- asset-distribution --transform-only` を使う。
+生成物は `output/asset_distribution/manifest.json` と `output/asset_distribution/items/` 配下の値チャンクである。schema version 3 の manifest はメタデータ、分類辞書 (`dimensions`)、表示順を示す `cat04.display_category_codes`、属性直積の定義 (`combination_index`)、チャンク一覧 (`chunks`) を持つ。属性軸の順序と各軸の区分順から組み合わせを導出し、チャンクの `start_index` と `count` が直積上の連続範囲を示す。組み合わせ一覧やチャンクごとの系列ID一覧は保持しない。値チャンクは指定順の21階級の値 (`items`) を収録する。フロントエンドは version 3 のみを受け付ける。schema version 2、version 1、旧単一ファイル形式との後方互換性はなく、旧形式を読む処理、変換、フォールバックは設けない。再取得にはリポジトリルートの `.env` に `ESTAT_APP_ID` を設定して `./scripts/prepare.sh run -- asset-distribution`、保存済み応答の再変換には `./scripts/prepare.sh run -- asset-distribution --transform-only` を使う。読み込み方法は [`data_preparation/README.md`](../../README.md) を参照。
 
 ## 出力サイズと転送量の計測
 

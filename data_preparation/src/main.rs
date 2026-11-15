@@ -62,7 +62,7 @@ fn main() {
 }
 
 fn print_usage() {
-    println!("Usage: cargo run -- <command> [arguments]");
+    println!("Usage: ./scripts/prepare.sh run -- <command> [arguments]");
     println!(
         "Commands include commodity-prices, prefectures-update, vegetable-relay, and workers-by-age-employment-type-education-sex."
     );

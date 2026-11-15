@@ -19,13 +19,19 @@
 npm ci
 ```
 
-## 小売物価統計データ
-
-e-Stat のアプリケーション ID を環境変数に設定して実行します。
+e-Stat API を使う場合は、リポジトリルートの `.env` にアプリケーション ID を設定します。`.env` は Git 管理対象外です。`scripts/prepare.sh` はこのファイルを読み込み、引数をそのまま Cargo に渡します。既にシェルで `ESTAT_APP_ID` を設定している場合は、その値が優先されます。以降のコマンド例は `data_preparation/` から実行します。
 
 ```sh
-export ESTAT_APP_ID="取得したアプリケーションID"
-cargo run -- commodity-prices
+# リポジトリルートの .env
+ESTAT_APP_ID="取得したアプリケーションID"
+```
+
+## 小売物価統計データ
+
+コマンドは `prepare.sh` 経由で実行します。`run`, `build`, `--help` など Cargo の引数をそのまま渡せます。
+
+```sh
+./scripts/prepare.sh run -- commodity-prices
 ```
 
 メタデータ、API の生データ、加工後のデータは `output/commodity_prices/` 以下に保存されます。取得済みファイルの再利用条件は各処理で確認されます。
@@ -35,22 +41,20 @@ cargo run -- commodity-prices
 e-Stat の表 ID `0003006608` から選択肢と系列データを生成します。
 
 ```sh
-export ESTAT_APP_ID="取得したアプリケーションID"
-cargo run -- workers-by-age-employment-type-education-sex
+./scripts/prepare.sh run -- workers-by-age-employment-type-education-sex
 ```
 
-メタデータ、ページ分割した取得データ、フロントエンド向け JSON は `output/workers_by_age_employment_type_education_sex/` 以下に保存されます。取得済みの API 応答を使って再変換するときは `cargo run -- workers-by-age-employment-type-education-sex --transform-only` を実行します。変換だけの再実行では取得済みの原本を保持します。生成に失敗した場合は原因を解消して再実行してください。コマンドが成功した生成結果だけを公開してください。
+メタデータ、ページ分割した取得データ、フロントエンド向け JSON は `output/workers_by_age_employment_type_education_sex/` 以下に保存されます。取得済みの API 応答を使って再変換するときは `./scripts/prepare.sh run -- workers-by-age-employment-type-education-sex --transform-only` を実行します。変換だけの再実行では取得済みの原本を保持します。生成に失敗した場合は原因を解消して再実行してください。コマンドが成功した生成結果だけを公開してください。
 
 ## 属性別純資産額階級別世帯数
 
 e-Stat 表 `0004056120` の全メタデータ・ページ分割データを取得し、分類辞書、属性組み合わせ、通常の純資産額階級別世帯数を生成します。
 
 ```sh
-export ESTAT_APP_ID="取得したアプリケーションID"
-cargo run -- asset-distribution
+./scripts/prepare.sh run -- asset-distribution
 ```
 
-取得済みのAPI応答から再変換する場合は `cargo run -- asset-distribution --transform-only` を実行します。生データは `output/asset_distribution/` に保存され、変換だけの再実行では保持されます。配信用データは同ディレクトリの `manifest.json` と `items/` 配下のJSONチャンクです。schema version 3 の manifest は分類辞書と表示階級順を保持し、属性の直積インデックスと各チャンクの連続範囲から組み合わせ・値ファイルの対応を導出します。manifest と各チャンクは version 3 で、チャンクは21階級の値を収録します。表示階級は再掲 `R01`～`R03` と通常階級 `02`～`19` で、再掲 `01` は重複計上を避けるため含めません。フロントエンドは version 3 のみを受け付けます。version 2 および旧形式との後方互換性、変換やフォールバックはありません。追試用サンプルは `inspections/asset_distribution/` に保存されます。表の分類・値の解釈、出力サイズと転送量の区別は[調査記録](inspections/asset_distribution/README.md)を参照してください。生成に失敗した場合は原因を解消して再実行してください。成功した生成結果だけを公開してください。
+取得済みのAPI応答から再変換する場合は `./scripts/prepare.sh run -- asset-distribution --transform-only` を実行します。生データは `output/asset_distribution/` に保存され、変換だけの再実行では保持されます。配信用データは同ディレクトリの `manifest.json` と `items/` 配下のJSONチャンクです。schema version 3 の manifest は分類辞書と表示階級順を保持し、属性の直積インデックスと各チャンクの連続範囲から組み合わせ・値ファイルの対応を導出します。manifest と各チャンクは version 3 で、チャンクは21階級の値を収録します。表示階級は再掲 `R01`～`R03` と通常階級 `02`～`19` で、再掲 `01` は重複計上を避けるため含めません。フロントエンドは version 3 のみを受け付けます。version 2 および旧形式との後方互換性、変換やフォールバックはありません。追試用サンプルは `inspections/asset_distribution/` に保存されます。表の分類・値の解釈、出力サイズと転送量の区別は[調査記録](inspections/asset_distribution/README.md)を参照してください。生成に失敗した場合は原因を解消して再実行してください。成功した生成結果だけを公開してください。
 
 このデータは `VITE_STORAGE_BASE_URL` で指定する外部ストレージの `/asset_distribution/` 以下から配信します。GitHub Actions の現行 workflow はフロントエンドのみを GitHub Pages に公開し、外部データのアップロードやキャッシュ更新は行いません。
 
@@ -59,8 +63,7 @@ cargo run -- asset-distribution
 clone 後、ネット接続と e-Stat のアプリケーション ID を用意し、`data_preparation/` から次を実行すると野菜の産地リレー用データを生成できます。
 
 ```sh
-export ESTAT_APP_ID="取得したアプリケーションID"
-cargo run -- vegetable-relay
+./scripts/prepare.sh run -- vegetable-relay
 ```
 
 取得済みの検証済みcaptureは再利用します。配信用データは実行ごとに原本とmappingから再生成されます。生成に失敗した場合は出力が不完全な状態になり得るため、原因を修正して再実行してください。
@@ -70,7 +73,7 @@ cargo run -- vegetable-relay
 ## 都道府県データ
 
 ```sh
-cargo run -- prefectures-update
+./scripts/prepare.sh run -- prefectures-update
 ```
 
 国土交通省の国土数値情報から N03（行政区域）データを取得し、都道府県ごとに簡略化した GeoJSON を作成します。ZIP と展開した元データは `input/prefectures/N03-2026/`、出力は `output/prefectures/N03-20260101_prefecture_simplified.geojson` に保存されます。既存の ZIP と元データは再利用します。
@@ -78,7 +81,7 @@ cargo run -- prefectures-update
 ## ヘルプ
 
 ```sh
-cargo run -- --help
+./scripts/prepare.sh run -- --help
 ```
 
 ## 参考リンク

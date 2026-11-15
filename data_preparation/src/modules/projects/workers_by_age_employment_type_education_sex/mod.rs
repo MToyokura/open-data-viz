@@ -58,7 +58,7 @@ pub fn run_inspection(args: &[String]) -> bool {
             }
             "--help" | "-h" => {
                 println!(
-                    "Usage: cargo run -- workers-by-age-inspect [--limit N] [--scan-all-values]"
+                    "Usage: ./scripts/prepare.sh run -- workers-by-age-inspect [--limit N] [--scan-all-values]"
                 );
                 return true;
             }

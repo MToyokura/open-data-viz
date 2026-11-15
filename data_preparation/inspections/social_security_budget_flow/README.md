@@ -4,7 +4,7 @@
 
 ## 調査コマンド
 
-リポジトリルートから `cargo run --manifest-path data_preparation/Cargo.toml -- social-security-budget-flow-inspect` を実行すると、既存の `estat_api` クライアントで両表のメタデータと先頭100件の応答標本を取得する。標本は認証情報を除去して保存する。これは全件取得・本番用原本の代替ではない。
+リポジトリルートから `./data_preparation/scripts/prepare.sh run -- social-security-budget-flow-inspect` を実行すると、既存の `estat_api` クライアントで両表のメタデータと先頭100件の応答標本を取得する。標本は認証情報を除去して保存する。これは全件取得・本番用原本の代替ではない。
 
 ## 調査記録
 
@@ -16,4 +16,4 @@
 
 通常取得では両表の全値を取得し、`RESULT_INF.TOTAL_NUMBER` と取得行数を照合する。実際に収入385件・支出735件が返り、制度×項目の1,120組合せが揃った。2024年度のe-Stat表画面の凡例では `－` と `―` は「計数のない場合」、`n.a.` は「データなし」、`***` は「数字が得られないもの」とされている。このため `－` と `―` は「計上なし」として図に含めず、未確認事項一覧にも出さない。負値は原則保留するが、「収支差」は収入合計と支出合計の差額と定義されているため、その負値は差額として記録し、フロー図・未確認事項一覧には含めない。
 
-`cargo run --manifest-path data_preparation/Cargo.toml -- social-security-budget-flow` で再取得・変換し、`data_preparation/output/social_security_budget_flow/` に元応答、制度・項目マスタ、対応表、根拠資料、未確認値、図データ、フロントエンド用カタログ、生成マニフェストを出力する。この出力先はGit管理外で、生成件数や実装方式は実行時の `generation_manifest.json` に記録する。取得データと分類コードの完全性を検証し、確認済みの凡例と項目定義を表示判定に反映する。フロントエンドは分断サンキーをSVGで直接描画する。
+`./data_preparation/scripts/prepare.sh run -- social-security-budget-flow` で再取得・変換し、`data_preparation/output/social_security_budget_flow/` に元応答、制度・項目マスタ、対応表、根拠資料、未確認値、図データ、フロントエンド用カタログ、生成マニフェストを出力する。この出力先はGit管理外で、生成件数や実装方式は実行時の `generation_manifest.json` に記録する。取得データと分類コードの完全性を検証し、確認済みの凡例と項目定義を表示判定に反映する。フロントエンドは分断サンキーをSVGで直接描画する。
