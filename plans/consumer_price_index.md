@@ -54,15 +54,15 @@ Implement under `data_preparation/src/modules/projects/consumer_price_index/`, r
 
 Implement `/consumer_price_index` using the shared page patterns and chart behavior from `/commodity_prices`.
 
-- [ ] Add constants and fetch utilities for the prepared data; load lookups first, then request only selected series.
-- [ ] Build a hierarchical item selector, region selector, selected-series list, loading/error/empty states, and reset/remove behavior.
-- [ ] Add a line chart with ordered dates and clear CPI index labels; handle missing observations without drawing misleading values.
-- [ ] Add a source-index / normalized-view toggle. In normalized view, use the latest time period with a valid value in every selected series as the common reference and calculate `value / reference value * 100` in the frontend. Return an informative empty state if the selected series have no shared reference period.
-- [ ] Display the normalization reference month and update it whenever selection changes recalculate the common reference period.
-- [ ] Add a reference panel that explains the 2025 base, links to e-Stat, and clarifies that normalized values describe relative changes rather than yen prices.
-- [ ] Link the page from the home page and add its route to the frontend page documentation.
+- [x] Add constants and fetch utilities for the prepared data; load lookups first, then request only selected series.
+- [x] Build a hierarchical item selector, region selector, selected-series list, loading/error/empty states, and reset/remove behavior.
+- [x] Add a line chart with ordered dates and clear CPI index labels; handle missing observations without drawing misleading values.
+- [x] Add a source-index / normalized-view toggle. In normalized view, use the latest time period with a valid value in every selected series as the common reference and calculate `value / reference value * 100` in the frontend. Return an informative empty state if the selected series have no shared reference period.
+- [x] Display the normalization reference month and update it whenever selection changes recalculate the common reference period.
+- [x] Add a reference panel that explains the 2025 base, links to e-Stat, and clarifies that normalized values describe relative changes rather than yen prices.
+- [x] Link the page from the home page and add its route to the frontend page documentation.
 
-- [ ] **Checkpoint:** Users can compare item/region series in both views; changing selections recalculates the normalized values from the same raw observations without writing normalized data.
+- [x] **Checkpoint:** Users can compare item/region series in both views; changing selections recalculates the normalized values from the same raw observations without writing normalized data.
 
 ## Initial scope
 
@@ -73,7 +73,7 @@ Implement `/consumer_price_index` using the shared page patterns and chart behav
 
 ## Done when
 
-- [ ] Prepared CPI data can be served locally and the page loads it through the normal app data path.
-- [ ] Users can select and compare valid series, and the chart handles missing observations.
-- [ ] The frontend can switch between source index values and values normalized to 100 at the latest common period.
-- [ ] The page clearly distinguishes CPI index values from retail prices and links to the source table.
+- [x] Prepared CPI data can be served locally and the page loads it through the normal app data path.
+- [x] Users can select and compare valid series, and the chart handles missing observations.
+- [x] The frontend can switch between source index values and values normalized to 100 at the latest common period.
+- [x] The page clearly distinguishes CPI index values from retail prices and links to the source table.

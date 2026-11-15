@@ -3,6 +3,10 @@
 
   const projects = [
     {
+      title: "消費者物価指数",
+      href: `${VITE_ROOT_PATH}/consumer_price_index`,
+    },
+    {
       title: "主要品目の都市別小売価格",
       href: `${VITE_ROOT_PATH}/commodity_prices`,
     },
