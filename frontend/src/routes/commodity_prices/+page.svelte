@@ -23,7 +23,10 @@
     /** @type {Record<string, string[]>} */ ({}),
   );
   let commodityPrices = $state(/** @type {CommodityPrices[]} */ ([]));
-  let dataNotFound = $state(false);
+  let seriesStates = $state(
+    /** @type {Record<string, { status: "loading"|"loaded"|"error"|"empty", error?: string }>} */
+    ({}),
+  );
   const panels = useResponsivePanels(() => selectedCombinations.length);
   let fetchGeneration = 0;
   /** @type {Record<string, Promise<CommodityPrices | undefined>>} */
@@ -70,63 +73,72 @@
   $effect(() => {
     const selectedAreaCodes = selectedAreaCodesByCat02[selectedCat02Code] ?? [];
     const generation = ++fetchGeneration;
-    dataNotFound = false;
 
     if (selectedCat02Code && selectedAreaCodes.length > 0) {
-      untrack(() =>
-        fetchAndAddData(selectedCat02Code, selectedAreaCodes, generation),
-      );
+      untrack(() => {
+        void Promise.all(
+          selectedAreaCodes.map((areaCode) =>
+            loadSeries(selectedCat02Code, areaCode, generation),
+          ),
+        );
+      });
     }
   });
 
   /**
    * @param {string} cat02Code
-   * @param {string[]} selectedAreaCodes
+   * @param {string} areaCode
    * @param {number} generation
    */
-  async function fetchAndAddData(cat02Code, selectedAreaCodes, generation) {
-    /** @type {Record<string, true>} */
-    const cachedKeys = Object.create(null);
-    commodityPrices.forEach((item) => {
-      cachedKeys[`${item.cat02_code}:${item.area_code}`] = true;
-    });
-    const expectedResults = selectedAreaCodes.filter(
-      (areaCode) => !cachedKeys[`${cat02Code}:${areaCode}`],
-    ).length;
-    const results = await Promise.all(
-      selectedAreaCodes.map((areaCode) => {
-        const key = `${cat02Code}:${areaCode}`;
-        if (cachedKeys[key]) return Promise.resolve(undefined);
+  async function loadSeries(cat02Code, areaCode, generation = fetchGeneration) {
+    const key = `${cat02Code}:${areaCode}`;
+    if (
+      commodityPrices.some(
+        (item) => `${item.cat02_code}:${item.area_code}` === key,
+      )
+    ) {
+      seriesStates[key] = { status: "loaded" };
+      return;
+    }
 
-        let request = inFlightRequests[key];
-        if (!request) {
-          request = fetchCommodityPrices({ cat02Code, areaCode });
-          inFlightRequests[key] = request;
-          void request.then(() => {
-            if (inFlightRequests[key] === request) delete inFlightRequests[key];
-          });
-        }
-        return request;
-      }),
-    );
+    let request = inFlightRequests[key];
+    if (!request) {
+      seriesStates[key] = { status: "loading" };
+      request = fetchCommodityPrices({ cat02Code, areaCode });
+      inFlightRequests[key] = request;
+    }
 
-    if (generation !== fetchGeneration) return;
+    try {
+      const data = await request;
+      if (generation !== fetchGeneration) return;
+      if (data) {
+        const alreadyAdded = commodityPrices.some(
+          (item) =>
+            item.cat02_code === data.cat02_code &&
+            item.area_code === data.area_code,
+        );
+        if (!alreadyAdded) commodityPrices.push(data);
+        seriesStates[key] = { status: "loaded" };
+      } else {
+        seriesStates[key] = { status: "empty" };
+      }
+    } catch (cause) {
+      if (generation !== fetchGeneration) return;
+      seriesStates[key] = {
+        status: "error",
+        error:
+          cause instanceof Error ? cause.message : "データの取得に失敗しました",
+      };
+    } finally {
+      if (inFlightRequests[key] === request) delete inFlightRequests[key];
+    }
+  }
 
-    const foundData = results.filter((data) => data !== undefined);
-    dataNotFound = foundData.length < expectedResults;
-    /** @type {Record<string, true>} */
-    const existingKeys = Object.create(null);
-    commodityPrices.forEach((item) => {
-      existingKeys[`${item.cat02_code}:${item.area_code}`] = true;
-    });
-    commodityPrices.push(
-      ...foundData.filter((item) => {
-        const key = `${item.cat02_code}:${item.area_code}`;
-        if (existingKeys[key]) return false;
-        existingKeys[key] = true;
-        return true;
-      }),
-    );
+  /** @param {string} cat02Code @param {string} areaCode */
+  function retrySeries(cat02Code, areaCode) {
+    const key = `${cat02Code}:${areaCode}`;
+    delete seriesStates[key];
+    void loadSeries(cat02Code, areaCode);
   }
 
   function handleReset() {
@@ -134,7 +146,7 @@
     inFlightRequests = Object.create(null);
     selectedAreaCodesByCat02 = {};
     commodityPrices = [];
-    dataNotFound = false;
+    seriesStates = {};
   }
 
   /** @param {string} cat02Code @param {string} areaCode */
@@ -198,8 +210,27 @@
                 {#if selectedCombinations.length > 0}
                   <ul>
                     {#each selectedCombinations as item (`${item.cat02Code}:${item.areaCode}`)}
+                      {@const key = `${item.cat02Code}:${item.areaCode}`}
                       <li>
                         <span>{item.cat02Name}【{item.areaName}】</span>
+                        {#if seriesStates[key]?.status === "loading"}
+                          <span class="muted" role="status">取得中…</span>
+                        {:else if seriesStates[key]?.status === "error"}
+                          <span class="error" role="alert">
+                            {seriesStates[key].error ??
+                              "データを取得できませんでした"}
+                          </span>
+                          <button
+                            type="button"
+                            onclick={() =>
+                              retrySeries(item.cat02Code, item.areaCode)}
+                          >
+                            再試行
+                          </button>
+                        {:else if seriesStates[key]?.status === "empty"}
+                          <span class="muted" role="status">該当データなし</span
+                          >
+                        {/if}
                         <button
                           type="button"
                           class="icon-button"
@@ -222,9 +253,6 @@
               <button onclick={handleReset} class="reset-button"
                 >すべて消去</button
               >
-              {#if dataNotFound}
-                <p class="data-not-found">データが見つかりませんでした</p>
-              {/if}
             </details>
           </section>
         {/if}
@@ -235,6 +263,11 @@
       <section class="chart-panel" aria-label="価格推移グラフ">
         {#if chartData}
           <LineChart {chartData} />
+        {:else if selectedCombinations.length > 0}
+          <div class="empty-chart">
+            <h2>価格の推移を比較</h2>
+            <p>選択した系列の状態は「選択中一覧」で確認できます。</p>
+          </div>
         {:else}
           <div class="empty-chart">
             <h2>価格の推移を比較</h2>
@@ -249,10 +282,6 @@
 <style>
   .chart-panel {
     --chart-height: calc(100dvh - 12rem);
-  }
-
-  .data-not-found {
-    color: var(--danger-color);
   }
 
   @media (max-width: 50rem) {

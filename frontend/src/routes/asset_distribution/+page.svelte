@@ -41,6 +41,7 @@
   );
   let seriesLoading = $state(false);
   let seriesFailures = $state.raw(/** @type {Record<string, string>} */ ({}));
+  let seriesEmpty = $state.raw(/** @type {Record<string, true>} */ ({}));
   /** @type {Record<string, Promise<import("./utils/data.js").DistributionItem[]>|undefined>} */
   let inFlightSeries = Object.create(null);
   let orientation = $state(
@@ -295,6 +296,7 @@
     loading = true;
     error = "";
     seriesFailures = {};
+    seriesEmpty = {};
     seriesItems = {};
     normalCombinations = [];
     try {
@@ -323,7 +325,9 @@
     const combinations = activeCombinations;
     const missing = combinations.filter(
       (combination) =>
-        !seriesItems[combination.id] && !seriesFailures[combination.id],
+        !seriesItems[combination.id] &&
+        !seriesFailures[combination.id] &&
+        !seriesEmpty[combination.id],
     );
     if (manifest) {
       for (const combination of missing) {
@@ -333,7 +337,11 @@
         inFlightSeries[id] = request;
         void request
           .then((items) => {
-            seriesItems = { ...seriesItems, [id]: items };
+            if (items.length === 0) {
+              seriesEmpty = { ...seriesEmpty, [id]: true };
+            } else {
+              seriesItems = { ...seriesItems, [id]: items };
+            }
           })
           .catch((cause) => {
             seriesFailures = {
@@ -369,6 +377,9 @@
     );
     seriesFailures = Object.fromEntries(
       Object.entries(seriesFailures).filter(([id]) => !activeIds.has(id)),
+    );
+    seriesEmpty = Object.fromEntries(
+      Object.entries(seriesEmpty).filter(([id]) => !activeIds.has(id)),
     );
   }
 
@@ -722,6 +733,8 @@
                             onclick={() => retrySeries(combination.id)}
                             >再試行</button
                           >
+                        {:else if seriesEmpty[combination.id]}
+                          <span class="hint" role="status">該当データなし</span>
                         {:else if !seriesItems[combination.id]}
                           <span class="hint" role="status">取得中…</span>
                         {/if}
@@ -844,7 +857,11 @@
                   : "世帯属性を選ぶと、ここにグラフが表示されます。"}
             </p>
             {#if !comparisonMode && data}<p class="hint" role="status">
-                表示できる公表系列がありません。
+                {#if activeCombinations.length}
+                  選択系列の状態を選択中一覧で確認してください。
+                {:else}
+                  表示できる公表系列がありません。
+                {/if}
               </p>{/if}
           </div>
         {/if}

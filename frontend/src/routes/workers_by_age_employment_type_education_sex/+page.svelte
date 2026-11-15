@@ -693,8 +693,9 @@
                 <ul>
                   {#each items as item (item.key)}<li>
                       <span>{item.label}</span>
-                      {#if item.status === "loading"}<span class="muted"
-                          >取得中…</span
+                      {#if item.status === "loading"}<span
+                          class="muted"
+                          role="status">取得中…</span
                         >
                       {:else if item.status === "error"}<span
                           class="error"
