@@ -55,6 +55,65 @@ const manifest = {
       ],
     },
     {
+      id: "cat02",
+      label: "世帯主の学歴",
+      role: "filter",
+      order: 2,
+      total_code: "0",
+      default_code: "0",
+      categories: [
+        { code: "0", label: "平均", kind: "regular", order: 0, api_level: "1" },
+        {
+          code: "1",
+          label: "在学中",
+          kind: "regular",
+          order: 1,
+          api_level: "1",
+        },
+        { code: "2", label: "卒業", kind: "regular", order: 2, api_level: "1" },
+        {
+          code: "21",
+          label: "小学校・中学校",
+          kind: "regular",
+          order: 3,
+          api_level: "2",
+          api_parent_code: "2",
+        },
+        {
+          code: "22",
+          label: "高校程度",
+          kind: "regular",
+          order: 4,
+          api_level: "2",
+          api_parent_code: "2",
+        },
+        {
+          code: "23",
+          label: "短大程度以上",
+          kind: "regular",
+          order: 5,
+          api_level: "2",
+          api_parent_code: "2",
+        },
+      ],
+      display_hierarchy: {
+        standalone_codes: ["0", "1"],
+        groups: [{ code: "2", children: ["21", "22", "23"] }],
+      },
+      comparison_sets: [
+        {
+          id: "education-status",
+          label: "在学中・卒業者全体",
+          category_codes: ["1", "2"],
+        },
+        {
+          id: "graduated-subgroups",
+          label: "卒業者の学歴内訳",
+          category_codes: ["21", "22", "23"],
+        },
+      ],
+    },
+    {
       id: "cat04",
       label: "資産額階級",
       role: "asset_class",
@@ -66,14 +125,14 @@ const manifest = {
     },
   ],
   combination_index: {
-    dimension_ids: ["cat01"],
-    count: 3,
+    dimension_ids: ["cat01", "cat02"],
+    count: 18,
   },
   chunks: [
     {
       path: "items/sex-series.json",
       start_index: 0,
-      count: 3,
+      count: 18,
     },
   ],
 };
@@ -82,7 +141,7 @@ const chunk = {
   schema_version: 3,
   items: ["00", "01", "02"].flatMap((sexCode) =>
     displayCodes.map((code, index) => ({
-      combination_id: `cat01=${sexCode}`,
+      combination_id: `cat01=${sexCode}|cat02=0`,
       asset_class_code: code,
       count: 1000 + index,
       status: "observed",
@@ -117,12 +176,15 @@ test("asset distribution shows negative assets, selection, and comparison on a n
   await expect(chart).toBeVisible();
   await expect(chart).toHaveCSS("height", "982px");
 
+  await page.locator(".selector-panel > summary").click();
   await page
     .getByRole("region", { name: "世帯属性の選択" })
     .getByLabel("世帯主の性別")
     .selectOption("02");
+  await page.getByRole("button", { name: "系列に追加" }).click();
   await expect(chart).toHaveCSS("height", "1192px");
 
+  await page.getByRole("button", { name: "属性を比較" }).click();
   await page.getByLabel("比較する属性").selectOption("cat01");
   const compareOptions = page.getByRole("group", { name: "比較する区分" });
   await expect(compareOptions.getByRole("checkbox")).toHaveCount(2);
