@@ -10,7 +10,7 @@
   /** @typedef {{id:string,name:string,income:DiagramNode[],expenditure:DiagramNode[]}} Program */
   /** @typedef {{programs:Program[]}} Catalog */
   const diagramNote =
-    "本図は、e-Stat「2024年度社会保障給付費収支表」において、各制度に計上された収入・支出の項目と金額を示しています。矢印は収入項目・制度・支出項目を整理したもので、特定の収入と個別支出の対応、実際の資金移動、制度間移転の相手先を示すものではありません。";
+    "収入を左側、支出を右側に分けて、項目ごとの金額を帯の太さで示しています。特定の収入の使途や、実際の資金移動、制度間の資金移転元・移転先を示すものではありません。";
   let catalog = $state.raw(/** @type {Catalog} */ ({ programs: [] }));
   let selectedId = $state("");
   let loading = $state(true);
@@ -38,12 +38,12 @@
 </script>
 
 <svelte:head
-  ><title>社会保障制度の財源・支出 | Open Data Viz</title></svelte:head
+  ><title>社会保障給付費収支 | Open Data Viz</title></svelte:head
 >
 
 <div class="visualization-page">
   <main class="page-content">
-    <WorkspaceHeader title="社会保障制度の財源・支出" />
+    <WorkspaceHeader title="社会保障給付費収支" />
     <div class="workspace">
       <section class="control-column" aria-label="制度の選択">
         {#if !loading && !loadError}
@@ -67,7 +67,10 @@
             </li>
             <li>{diagramNote}</li>
             <li>
-              金額は元表の百万円単位で計算しています。正の計上値を確認した項目を図示し、特殊記号や保留中の負値は表示対象に含めていません。
+              金額は元表の百万円単位で計算し、図中では概数で表示しています。総計・再掲の制度区分や、合計などの集計項目、ゼロ・特殊記号・負値は表示対象に含めていません。
+            </li>
+            <li>
+              「表示項目計」は図に表示した項目の合計で、元表の合計とは異なります。収入と支出の表示項目計の差も、元表の「収支差」を示すものではありません。
             </li>
           </ul>
           <h3>出典</h3>
@@ -114,7 +117,7 @@
         </ReferencePanel>
         <LicenseLink />
       </aside>
-      <section class="chart-panel" aria-label="社会保障制度の財源・支出図">
+      <section class="chart-panel" aria-label="社会保障給付費収支図">
         {#if loading}
           <p role="status">図のデータを読み込んでいます…</p>
         {:else if loadError}

@@ -97,7 +97,7 @@
     </div>
     <div class="center-title">
       <span>2024年度</span><strong>{program.name}</strong><span
-        >表示項目合計の差（収入計 − 支出計）：{layout.totalDifference < 0
+        >表示項目計の差（収入 − 支出）：{layout.totalDifference < 0
           ? "−"
           : ""}{formatApproximateAmount(Math.abs(layout.totalDifference))}</span
       >
@@ -119,7 +119,7 @@
     <svg
       viewBox="0 0 {layout.width} {layout.height}"
       role="group"
-      aria-label="収入は中央へ集まり、支出は中央から分かれる金額比例の帯"
+      aria-label="左側に収入、右側に支出の項目を示す金額比例の帯。収入と支出は中央の空白で分かれています。"
     >
       <text class="side-title" x="8" y="30">収入</text><text
         class="side-title"
@@ -286,7 +286,7 @@
     </svg>
   </div>
   <p class="explanation">
-    帯の太さは金額に比例します。割合は各側の表示項目計に対する比率で、制度ごとに帯幅の尺度が異なります。中央の空白は収入と支出の区切りで、個別財源の使途や実際の資金移動、制度間移転の相手先を示しません。割合の丸めにより合計が100%にならない場合があります。
+    帯の太さは金額に比例し、同じ制度の収入と支出には共通の尺度を使っています。制度を切り替えると帯幅の尺度が変わります。割合は、収入項目では収入の表示項目計、支出項目では支出の表示項目計に対する比率です。中央の空白は収入と支出の区切りで、左右の帯は個別の対応を示していません。割合の丸めにより合計が100%にならない場合があります。
   </p>
 
   {#if activeItem}
