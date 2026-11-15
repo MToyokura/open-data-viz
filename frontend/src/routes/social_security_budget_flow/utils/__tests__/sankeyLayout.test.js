@@ -35,9 +35,4 @@ describe("buildSplitSankey", () => {
       expect(layout.left.entries.concat(layout.right.entries).every((entry) => Number.isFinite(entry.thickness) && entry.path !== "")).toBe(true);
     }
   });
-
-  test("marks narrow layouts for the stacked mobile presentation", () => {
-    expect(buildSplitSankey(program([], []), 600).shortWidth).toBe(true);
-    expect(buildSplitSankey(program([], []), 800).shortWidth).toBe(false);
-  });
 });

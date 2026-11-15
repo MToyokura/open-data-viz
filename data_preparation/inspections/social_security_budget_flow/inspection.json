@@ -1,5 +1,6 @@
 {
-  "scope": "metadata and first-page sample only; no production data fetched",
+  "scope": "historical snapshot of the initial metadata and first-page sample review; it does not describe the later production generation",
+  "snapshot_status": "initial inspection record; later acquisition and classification validation are documented in README.md and generation_manifest.json",
   "tables": [
     {
       "table_id": "0004050702",
@@ -554,7 +555,7 @@
       "total_records": 735
     }
   ],
-  "verified": {
+  "verified_at_initial_snapshot": {
     "income_classifications": 11,
     "expenditure_classifications": 21,
     "program_classifications": 35,
@@ -564,22 +565,22 @@
     "diagram_programs": 32,
     "negative_values": 12
   },
-  "not_yet_verified": [
-    "full-page acquisition completeness",
-    "special-symbol notes and semantics",
-    "status mapping for zero and symbols",
-    "dataset/metadata join and classification-level hierarchy across all values"
+  "not_yet_verified_at_snapshot": [
+    "full-page acquisition completeness at the time of this initial snapshot",
+    "special-symbol notes and semantics at the time of this initial snapshot",
+    "status mapping for zero and symbols at the time of this initial snapshot",
+    "dataset/metadata join and classification-level hierarchy across all values at the time of this initial snapshot"
   ],
-  "generated_output": false,
+  "generated_output_at_snapshot": false,
   "symbol_review": {
-    "metadata_notes_present": false,
+    "metadata_notes_present": true,
     "annotation_inf_present": false,
     "full_width_dash_counts": {
       "income": 162,
       "expenditure": 412
     },
     "negative_values_pending": 14,
-    "decision": "記号の意味は対象表API応答から確認できないため未確認として保留。負値も保留。ゼロ・欠落と混同しない。"
+    "decision": "初回レビュー時点では凡例と負値の意味を未確認として保留した。後続調査で確認した判定は README.md を参照。"
   },
   "generated_outputs_retained_outside_gitignore": "data_preparation/output/social_security_budget_flow (gitignored by repository policy)"
 }

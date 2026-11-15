@@ -83,7 +83,7 @@
     <div><span>支出の表示項目計</span><strong>{formatApproximateAmount(expenditureTotal)}</strong></div>
   </header>
   <div class="chart-scroll">
-    <svg viewBox="0 0 {layout.width} {layout.height}" role="img" aria-label="収入は中央へ集まり、支出は中央から分かれる金額比例の帯">
+    <svg viewBox="0 0 {layout.width} {layout.height}" role="group" aria-label="収入は中央へ集まり、支出は中央から分かれる金額比例の帯">
       <text class="side-title" x="8" y="30">収入</text><text class="side-title" x="{layout.width - 8}" y="30" text-anchor="end">支出</text>
       {#each layout.left.groupFrames as frame (frame.label)}<rect class="group-frame-fill" x="0" y={frame.top} width="195" height={frame.bottom - frame.top} rx="7"></rect>{/each}
       {#each layout.right.groupFrames as frame (frame.label)}<rect class="group-frame-fill" x="805" y={frame.top} width="195" height={frame.bottom - frame.top} rx="7"></rect>{/each}

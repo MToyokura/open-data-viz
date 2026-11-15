@@ -1,4 +1,9 @@
-use std::{collections::HashMap, error::Error, fs, path::Path};
+use std::{
+    collections::{HashMap, HashSet},
+    error::Error,
+    fs,
+    path::Path,
+};
 
 use super::{EXPENDITURE_TABLE_ID, INCOME_TABLE_ID, OUTPUT_DIR};
 use crate::modules::estat_api::{
@@ -12,12 +17,19 @@ use serde_json::{Value, json};
 pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
     let out = Path::new(OUTPUT_DIR);
     fs::create_dir_all(out.join("raw_data"))?;
-    let (income, income_values) = acquire(app_id, INCOME_TABLE_ID, out)?;
-    let (expenditure, expenditure_values) = acquire(app_id, EXPENDITURE_TABLE_ID, out)?;
+    let (income, income_values, income_reported_total) = acquire(app_id, INCOME_TABLE_ID, out)?;
+    let (expenditure, expenditure_values, expenditure_reported_total) =
+        acquire(app_id, EXPENDITURE_TABLE_ID, out)?;
     let (programs, income_classes) = parts(&income)?;
-    let (_, expenditure_classes) = parts(&expenditure)?;
-    let incomes = map_values(income_values);
-    let expenditures = map_values(expenditure_values);
+    let (expenditure_programs, expenditure_classes) = parts(&expenditure)?;
+    validate_program_classes(&programs, &expenditure_programs)?;
+    let incomes = map_values(income_values, &programs, &income_classes, INCOME_TABLE_ID)?;
+    let expenditures = map_values(
+        expenditure_values,
+        &programs,
+        &expenditure_classes,
+        EXPENDITURE_TABLE_ID,
+    )?;
     let mut rows = Vec::new();
     let mut catalog_programs = Vec::new();
     let mut unknowns = Vec::new();
@@ -134,15 +146,17 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
     fs::write(
         out.join("generation_manifest.json"),
         serde_json::to_vec_pretty(
-            &json!({"generated_at_unix":std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_secs(),"year":2024,"source_table_ids":[INCOME_TABLE_ID,EXPENDITURE_TABLE_ID],"acquisition_method":"e-Stat getMetaInfo + getStatsData through existing estat_api; single page limit 5000","income_record_count":incomes.len(),"income_reported_total":385,"expenditure_record_count":expenditures.len(),"expenditure_reported_total":735,"record_count":rows.len(),"program_count":master.len(),"diagram_count":catalog_programs.len(),"diagram_representation":"frontend-rendered Mermaid from categorized node data","rule_version":"social-security-budget-flow-v3","special_symbol_policy":"―/－は計数なしとして非表示。その他の未確認記号は保留","negative_value_policy":"負値は保留。ただし収支差の負値は収入－支出合計の差額として非表示","aggregates_retained_in_records":true}),
+            &json!({"generated_at_unix":std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_secs(),"year":2024,"source_table_ids":[INCOME_TABLE_ID,EXPENDITURE_TABLE_ID],"acquisition_method":"e-Stat getMetaInfo + getStatsData through existing estat_api; start position 1, limit 5000","income_record_count":validated_record_count(&incomes),"income_reported_total":income_reported_total,"expenditure_record_count":validated_record_count(&expenditures),"expenditure_reported_total":expenditure_reported_total,"record_count":rows.len(),"program_count":master.len(),"diagram_count":catalog_programs.len(),"diagram_representation":"frontend-rendered split Sankey SVG","rule_version":"social-security-budget-flow-v4","special_symbol_policy":"―/－は計数なしとして非表示。その他の未確認記号は保留","negative_value_policy":"負値は保留。ただし収支差の負値は収入－支出合計の差額として非表示","aggregates_retained_in_records":true}),
         )?,
     )?;
     let catalog = serde_json::to_vec_pretty(&json!({"programs":catalog_programs}))?;
-    fs::write(out.join("catalog.json"), &catalog)?;
+    let catalog_tmp = out.join("catalog.json.tmp");
+    fs::write(&catalog_tmp, &catalog)?;
+    fs::rename(catalog_tmp, out.join("catalog.json"))?;
     Ok(())
 }
 
-fn acquire(app_id: &str, id: &str, out: &Path) -> Result<(Value, Vec<Value>), Box<dyn Error>> {
+fn acquire(app_id: &str, id: &str, out: &Path) -> Result<(Value, Vec<Value>, u64), Box<dyn Error>> {
     let meta = get_meta_info(
         GetMetaInfoParamsBuilder::new(MetaParams {
             app_id,
@@ -165,9 +179,57 @@ fn acquire(app_id: &str, id: &str, out: &Path) -> Result<(Value, Vec<Value>), Bo
     let mut d: Value = serde_json::from_str(&data)?;
     redact(&mut m);
     redact(&mut d);
-    let stat = &d["GET_STATS_DATA"]["STATISTICAL_DATA"];
-    let total = stat["RESULT_INF"]["TOTAL_NUMBER"].as_u64().unwrap_or(0);
-    let values = as_vec(&stat["DATA_INF"]["VALUE"]);
+    let meta_status = m
+        .get("GET_META_INFO")
+        .and_then(|x| x.get("RESULT"))
+        .and_then(|x| x.get("STATUS"))
+        .and_then(Value::as_i64);
+    if meta_status != Some(0) {
+        return Err(format!(
+            "table {id}: metadata API did not return success (status {})",
+            meta_status
+                .map(|x| x.to_string())
+                .unwrap_or_else(|| "missing".into())
+        )
+        .into());
+    }
+    let response = d
+        .get("GET_STATS_DATA")
+        .ok_or_else(|| format!("table {id}: missing GET_STATS_DATA"))?;
+    let result = response
+        .get("RESULT")
+        .ok_or_else(|| format!("table {id}: missing RESULT"))?;
+    if result.get("STATUS").and_then(Value::as_i64) != Some(0) {
+        let status = result
+            .get("STATUS")
+            .map(Value::to_string)
+            .unwrap_or_else(|| "missing".into());
+        let message = result
+            .get("ERROR_MSG")
+            .and_then(Value::as_str)
+            .unwrap_or("API returned an error");
+        return Err(format!("table {id}: API status {status}: {message}").into());
+    }
+    let stat = response
+        .get("STATISTICAL_DATA")
+        .ok_or_else(|| format!("table {id}: missing STATISTICAL_DATA"))?;
+    let total = stat
+        .get("RESULT_INF")
+        .and_then(|x| x.get("TOTAL_NUMBER"))
+        .and_then(Value::as_u64)
+        .ok_or_else(|| format!("table {id}: missing or invalid TOTAL_NUMBER"))?;
+    let values_data = stat
+        .get("DATA_INF")
+        .and_then(|x| x.get("VALUE"))
+        .ok_or_else(|| format!("table {id}: missing DATA_INF.VALUE"))?;
+    let values = match values_data {
+        Value::Array(a) => a.clone(),
+        Value::Object(_) => vec![values_data.clone()],
+        _ => return Err(format!("table {id}: DATA_INF.VALUE is not an object or array").into()),
+    };
+    if total == 0 {
+        return Err(format!("table {id}: API reported zero records").into());
+    }
     if values.len() as u64 != total {
         return Err(format!("table {id}: received {} of {total} values", values.len()).into());
     }
@@ -179,7 +241,7 @@ fn acquire(app_id: &str, id: &str, out: &Path) -> Result<(Value, Vec<Value>), Bo
         out.join("raw_data").join(format!("{id}_values.json")),
         serde_json::to_vec_pretty(&d)?,
     )?;
-    Ok((m, values))
+    Ok((m, values, total))
 }
 fn parts(meta: &Value) -> Result<(Vec<Value>, Vec<Value>), Box<dyn Error>> {
     let classes = as_vec(&meta["GET_META_INFO"]["METADATA_INF"]["CLASS_INF"]["CLASS_OBJ"]);
@@ -191,8 +253,26 @@ fn parts(meta: &Value) -> Result<(Vec<Value>, Vec<Value>), Box<dyn Error>> {
         .iter()
         .find(|x| x["@id"] == "cat02")
         .ok_or("missing cat02")?;
+    let programs = as_vec(&p["CLASS"]);
     let values = as_vec(&items["CLASS"]);
-    Ok((as_vec(&p["CLASS"]), values))
+    validate_codes(&programs, "cat01")?;
+    validate_codes(&values, "cat02")?;
+    Ok((programs, values))
+}
+fn validate_codes(classes: &[Value], dimension: &str) -> Result<(), Box<dyn Error>> {
+    let mut codes = HashSet::new();
+    if classes.is_empty() {
+        return Err(format!("empty {dimension} classifications").into());
+    }
+    for class in classes {
+        let code = s(&class["@code"]);
+        if code.is_empty() || s(&class["@name"]).is_empty() || !codes.insert(code.clone()) {
+            return Err(
+                format!("invalid or duplicate {dimension} classification code {code:?}").into(),
+            );
+        }
+    }
+    Ok(())
 }
 fn programs_all(meta: &Value) -> Vec<Value> {
     let classes = as_vec(&meta["GET_META_INFO"]["METADATA_INF"]["CLASS_INF"]["CLASS_OBJ"]);
@@ -202,17 +282,74 @@ fn programs_all(meta: &Value) -> Vec<Value> {
         .map(|x| as_vec(&x["CLASS"]))
         .unwrap_or_default()
 }
-fn map_values(values: Vec<Value>) -> HashMap<(String, String), String> {
-    values
-        .into_iter()
-        .map(|v| ((s(&v["@cat01"]), s(&v["@cat02"])), s(&v["$"])))
-        .collect()
+fn map_values(
+    values: Vec<Value>,
+    programs: &[Value],
+    items: &[Value],
+    table_id: &str,
+) -> Result<HashMap<(String, String), String>, Box<dyn Error>> {
+    let program_codes: HashSet<_> = programs.iter().map(|p| s(&p["@code"])).collect();
+    let item_codes: HashSet<_> = items.iter().map(|p| s(&p["@code"])).collect();
+    let mut result = HashMap::with_capacity(values.len());
+    for value in values {
+        let program = s(&value["@cat01"]);
+        let item = s(&value["@cat02"]);
+        let amount = value
+            .get("$")
+            .and_then(Value::as_str)
+            .ok_or_else(|| format!("table {table_id}: value is missing string amount"))?;
+        if !program_codes.contains(&program) || !item_codes.contains(&item) {
+            return Err(format!(
+                "table {table_id}: unknown classification key ({program}, {item})"
+            )
+            .into());
+        }
+        if result
+            .insert((program.clone(), item.clone()), amount.to_owned())
+            .is_some()
+        {
+            return Err(format!(
+                "table {table_id}: duplicate classification key ({program}, {item})"
+            )
+            .into());
+        }
+    }
+    let expected = program_codes.len() * item_codes.len();
+    if result.len() != expected {
+        return Err(format!(
+            "table {table_id}: expected {expected} unique classification combinations, got {}",
+            result.len()
+        )
+        .into());
+    }
+    Ok(result)
+}
+fn validate_program_classes(income: &[Value], expenditure: &[Value]) -> Result<(), Box<dyn Error>> {
+    let income_codes: HashSet<_> = income
+        .iter()
+        .map(|p| (s(&p["@code"]), s(&p["@name"])))
+        .collect();
+    let expenditure_codes: HashSet<_> = expenditure
+        .iter()
+        .map(|p| (s(&p["@code"]), s(&p["@name"])))
+        .collect();
+    if income_codes.is_empty() || income_codes != expenditure_codes {
+        return Err("income and expenditure tables have different program classifications".into());
+    }
+    Ok(())
+}
+fn validated_record_count(values: &HashMap<(String, String), String>) -> usize {
+    values.len()
 }
 fn classify(raw: Option<&str>, item_name: &str) -> (String, String, String) {
     match raw {
         None => ("未確認".into(), "保留".into(), "取得値がありません".into()),
         Some(v) if v == "0" => ("計上なし".into(), "非表示".into(), "数値ゼロ".into()),
-        Some("―" | "－") => ("計上なし".into(), "非表示".into(), "計数なし（e-Stat表章記号）".into()),
+        Some("―" | "－") => (
+            "計上なし".into(),
+            "非表示".into(),
+            "計数なし（e-Stat表章記号）".into(),
+        ),
         Some(v) if v.parse::<f64>().is_ok_and(|n| n > 0.0) => {
             ("計上あり".into(), "表示".into(), "正の計上値".into())
         }

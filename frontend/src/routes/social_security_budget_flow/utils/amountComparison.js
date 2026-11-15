@@ -16,6 +16,7 @@ export const EXPENDITURE_GROUPS = ["benefit", "other", "transfer"];
 export const ITEM_METADATA = {
   I11: { label: "拠出／被保険者", group: "income", side: "income" },
   I12: { label: "拠出／事業主", group: "income", side: "income" },
+  I13: { label: "社会保障特別税", group: "income", side: "income" },
   I14: { label: "国庫負担", group: "income", side: "income" },
   I15: { label: "他の公費負担", group: "income", side: "income" },
   I16: { label: "資産収入", group: "income", side: "income" },

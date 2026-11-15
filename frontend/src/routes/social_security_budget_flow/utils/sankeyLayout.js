@@ -78,8 +78,8 @@ function sideLayout(items, order, direction, scale) {
 }
 
 /** Calculate two visually separated half-Sankey diagrams on one common money scale. */
-/** @param {{ income: Item[], expenditure: Item[] }} program @param {number} [width] */
-export function buildSplitSankey(program, width = 1000) {
+/** @param {{ income: Item[], expenditure: Item[] }} program */
+export function buildSplitSankey(program) {
   const income = summarizeItems(program.income);
   const expenditure = summarizeItems(program.expenditure);
   const maxTotal = Math.max(totalValue(income), totalValue(expenditure));
@@ -89,15 +89,12 @@ export function buildSplitSankey(program, width = 1000) {
   const height = Math.max(incomeRows.height, expenditureRows.height, 360);
   const left = sideLayout(income, INCOME_GROUPS, "left", scale);
   const right = sideLayout(expenditure, EXPENDITURE_GROUPS, "right", scale);
-  const shortWidth = width < 700;
-
   return {
-    width,
-    height: shortWidth ? height * 2 + 72 : height,
+    width: 1000,
+    height,
     scale,
     left,
     right,
-    shortWidth,
     totalIncome: totalValue(income),
     totalExpenditure: totalValue(expenditure),
     totalDifference: totalValue(income) - totalValue(expenditure),
