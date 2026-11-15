@@ -1,6 +1,7 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import ReferenceTable from "#lib/ReferenceTable.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   /** @typedef {import("./constants/types.js").PrefectureMonth} PrefectureMonth */
   import RelayMap from "./RelayMap.svelte";
@@ -33,6 +34,52 @@
   let yearData = $derived(
     years.find((item) => item.year === Number(selectedMonth.slice(0, 4))),
   );
+  let referenceRows = $derived([
+    { label: "統計名", value: "青果物卸売市場調査" },
+    { label: "表題", value: selectedProductLabel },
+    {
+      label: "統計表ID",
+      ...(yearData
+        ? {
+            id: yearData.table_id,
+            url: `https://www.e-stat.go.jp/dbview?sid=${yearData.table_id}`,
+            linkLabel: "e-Statで統計表を見る",
+          }
+        : {
+            value: relayData.isLoading
+              ? "取得中…"
+              : "選択年の統計表情報を取得できませんでした",
+          }),
+    },
+    {
+      label: "対象年／期間",
+      value: yearData
+        ? `${yearData.year}年（月次）`
+        : relayData.isLoading
+          ? "取得中…"
+          : "選択年の期間情報を取得できませんでした",
+    },
+    {
+      label: "表分類",
+      value: "野菜の主要消費地域別・産地別の卸売数量及び卸売価格",
+    },
+  ]);
+  const mapSourceRows = [
+    {
+      label: "地図データ",
+      value: "国土交通省「国土数値情報 行政区域データ（N03）」2026年版",
+      links: [
+        {
+          label: "CC BY 4.0",
+          href: "https://creativecommons.org/licenses/by/4.0/deed.ja",
+        },
+        {
+          label: "国土数値情報 行政区域データ（2026年版）",
+          href: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html",
+        },
+      ],
+    },
+  ];
   let monthIndex = $derived(months.indexOf(selectedMonth));
   let monthObservations = $derived(
     yearData?.months.filter((item) => item.month === selectedMonth) ?? [],
@@ -185,71 +232,9 @@
       </li>
     </ul>
     <h3>出典</h3>
-    <table class="reference-table ui-table">
-      <tbody>
-        <tr>
-          <th>統計名</th>
-          <td>青果物卸売市場調査</td>
-        </tr>
-        <tr>
-          <th>表題</th>
-          <td>{selectedProductLabel}</td>
-        </tr>
-        <tr>
-          <th>統計表ID</th>
-          <td>
-            {#if yearData}
-              <div>{yearData.table_id}</div>
-              <div>
-                <a
-                  href={`https://www.e-stat.go.jp/dbview?sid=${yearData.table_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer">e-Statで統計表を見る</a
-                >
-              </div>
-            {:else if relayData.isLoading}
-              取得中…
-            {:else}
-              選択年の統計表情報を取得できませんでした
-            {/if}
-          </td>
-        </tr>
-        <tr>
-          <th>対象年／期間</th>
-          <td
-            >{yearData
-              ? `${yearData.year}年（月次）`
-              : relayData.isLoading
-                ? "取得中…"
-                : "選択年の期間情報を取得できませんでした"}</td
-          >
-        </tr>
-        <tr>
-          <th>表分類</th>
-          <td>野菜の主要消費地域別・産地別の卸売数量及び卸売価格</td>
-        </tr>
-        <tr>
-          <th>地図データ</th>
-          <td>
-            <div>
-              国土交通省「国土数値情報 行政区域データ（N03）」2026年版（<a
-                href="https://creativecommons.org/licenses/by/4.0/deed.ja"
-                target="_blank"
-                rel="noopener noreferrer">CC BY 4.0</a
-              >）
-            </div>
-            <div>
-              <a
-                href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                >国土数値情報 行政区域データ（2026年版）</a
-              >
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <ReferenceTable rows={referenceRows} />
+    <h3>地図データ</h3>
+    <ReferenceTable rows={mapSourceRows} />
   </ReferencePanel>
   <LicenseLink />
 {/snippet}

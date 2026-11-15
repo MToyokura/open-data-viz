@@ -1,6 +1,7 @@
 <script>
   import { useResponsivePanels } from "#lib/useResponsivePanels.svelte.js";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import ReferenceTable from "#lib/ReferenceTable.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import { onMount } from "svelte";
@@ -46,6 +47,36 @@
     /** @type {"vertical"|"horizontal"} */ ("horizontal"),
   );
   const panels = useResponsivePanels(() => activeCombinations.length);
+
+  let referenceRows = $derived([
+    { label: "統計名", value: "全国家計構造調査" },
+    { label: "表題", value: "表7-131-1-1「資産額階級別世帯数」" },
+    {
+      label: "統計表ID",
+      id: "0004056120",
+      url: "https://www.e-stat.go.jp/dbview?sid=0004056120",
+      linkLabel: "e-Statで統計表を見る",
+    },
+    {
+      label: "対象年／期間",
+      value: String(data?.metadata.year || 2024) + "年",
+    },
+    { label: "単位", value: String(data?.metadata.unit || "世帯") },
+    {
+      label: "公表日",
+      value: String(
+        data?.metadata.published_at ||
+          (loading ? "取得中…" : "公表日情報を取得できませんでした"),
+      ),
+    },
+    {
+      label: "対象・表章項目",
+      value:
+        String(data?.metadata.area || "全国") +
+        "、" +
+        String(data?.metadata.measure || "世帯数"),
+    },
+  ]);
 
   const dimensions = $derived(
     data?.dimensions.toSorted((a, b) => a.order - b.order) ?? [],
@@ -752,58 +783,7 @@
             </ul>
           {/if}
           <h3>出典</h3>
-          <table class="reference-table ui-table">
-            <tbody>
-              <tr>
-                <th>統計名</th>
-                <td>全国家計構造調査</td>
-              </tr>
-              <tr>
-                <th>表題</th>
-                <td>表7-131-1-1「資産額階級別世帯数」</td>
-              </tr>
-              <tr>
-                <th>統計表ID</th>
-                <td>
-                  <div>0004056120</div>
-                  <div>
-                    <a
-                      href="https://www.e-stat.go.jp/dbview?sid=0004056120"
-                      target="_blank"
-                      rel="noopener noreferrer">e-Statで統計表を見る</a
-                    >
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <th>対象年／期間</th>
-                <td>{String(data?.metadata.year || 2024)}年</td>
-              </tr>
-              <tr>
-                <th>単位</th>
-                <td>{String(data?.metadata.unit || "世帯")}</td>
-              </tr>
-              <tr>
-                <th>公表日</th>
-                <td
-                  >{String(
-                    data?.metadata.published_at ||
-                      (loading
-                        ? "取得中…"
-                        : "公表日情報を取得できませんでした"),
-                  )}</td
-                >
-              </tr>
-              <tr>
-                <th>対象・表章項目</th>
-                <td
-                  >{String(data?.metadata.area || "全国")}、{String(
-                    data?.metadata.measure || "世帯数",
-                  )}</td
-                >
-              </tr>
-            </tbody>
-          </table>
+          <ReferenceTable rows={referenceRows} />
         </ReferencePanel>
         <LicenseLink />
       </aside>

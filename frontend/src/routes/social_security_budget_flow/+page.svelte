@@ -1,6 +1,7 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import ReferenceTable from "#lib/ReferenceTable.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import { onMount } from "svelte";
   import SplitSankey from "./SplitSankey.svelte";
@@ -18,6 +19,30 @@
   const selected = $derived(
     catalog.programs.find((item) => item.id === selectedId),
   );
+  const referenceRows = [
+    { label: "統計名", value: "社会保障費用統計" },
+    {
+      label: "表題（収入）",
+      value: "2024年度社会保障給付費収支表－収入（集計表2）",
+    },
+    {
+      label: "統計表ID（収入）",
+      id: "0004050702",
+      url: "https://www.e-stat.go.jp/dbview?sid=0004050702",
+      linkLabel: "収入の統計表をe-Statで見る",
+    },
+    {
+      label: "表題（支出）",
+      value: "2024年度社会保障給付費収支表－支出（集計表2）",
+    },
+    {
+      label: "統計表ID（支出）",
+      id: "0004050703",
+      url: "https://www.e-stat.go.jp/dbview?sid=0004050703",
+      linkLabel: "支出の統計表をe-Statで見る",
+    },
+    { label: "対象年／期間", value: "2024年度" },
+  ];
 
   onMount(() => {
     fetchCatalog()
@@ -37,9 +62,7 @@
   });
 </script>
 
-<svelte:head
-  ><title>社会保障給付費収支 | Open Data Viz</title></svelte:head
->
+<svelte:head><title>社会保障給付費収支 | Open Data Viz</title></svelte:head>
 
 <div class="visualization-page">
   <main class="page-content">
@@ -74,46 +97,7 @@
             </li>
           </ul>
           <h3>出典</h3>
-          <table class="reference-table ui-table">
-            <tbody>
-              <tr>
-                <th>統計名</th>
-                <td>社会保障費用統計</td>
-              </tr>
-              <tr>
-                <th>表題</th>
-                <td>
-                  <div>2024年度社会保障給付費収支表－収入（集計表2）</div>
-                  <div>2024年度社会保障給付費収支表－支出（集計表2）</div>
-                </td>
-              </tr>
-              <tr>
-                <th>統計表ID</th>
-                <td>
-                  <div>収入: 0004050702</div>
-                  <div>
-                    <a
-                      href="https://www.e-stat.go.jp/dbview?sid=0004050702"
-                      target="_blank"
-                      rel="noopener noreferrer">収入の統計表をe-Statで見る</a
-                    >
-                  </div>
-                  <div>支出: 0004050703</div>
-                  <div>
-                    <a
-                      href="https://www.e-stat.go.jp/dbview?sid=0004050703"
-                      target="_blank"
-                      rel="noopener noreferrer">支出の統計表をe-Statで見る</a
-                    >
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <th>対象年／期間</th>
-                <td>2024年度</td>
-              </tr>
-            </tbody>
-          </table>
+          <ReferenceTable rows={referenceRows} />
         </ReferencePanel>
         <LicenseLink />
       </aside>

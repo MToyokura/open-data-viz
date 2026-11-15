@@ -1,6 +1,7 @@
 <script>
   import { useResponsivePanels } from "#lib/useResponsivePanels.svelte.js";
   import ReferencePanel from "#lib/ReferencePanel.svelte";
+  import ReferenceTable from "#lib/ReferenceTable.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import deleteIcon from "#lib/assets/icons/delete.svg";
@@ -83,6 +84,40 @@
             ) ?? [],
       ),
     ),
+  ]);
+  let referenceRows = $derived([
+    { label: "統計名", value: "労働力調査" },
+    {
+      label: "表題",
+      value: options?.metadata.title ?? "年齢階級，教育，雇用形態別雇用者数",
+    },
+    {
+      label: "統計表ID",
+      id: "0003006608",
+      url: "https://www.e-stat.go.jp/dbview?sid=0003006608",
+      linkLabel: "e-Statで統計表を見る",
+    },
+    {
+      label: "対象年／期間",
+      value:
+        options?.metadata.period ||
+        (optionsLoading ? "取得中…" : "期間情報を取得できませんでした"),
+    },
+    {
+      label: "単位",
+      value:
+        options?.metadata.unit ||
+        (optionsLoading ? "取得中…" : "単位情報を取得できませんでした"),
+    },
+    {
+      label: "労働力調査について",
+      links: [
+        {
+          label: "総務省統計局 労働力調査",
+          href: "https://www.stat.go.jp/data/roudou/",
+        },
+      ],
+    },
   ]);
 
   const comparisonChoices = $derived.by(() => {
@@ -713,57 +748,7 @@
             {/each}
           </ul>
           <h3>出典</h3>
-          <table class="reference-table ui-table">
-            <tbody>
-              <tr><th>統計名</th><td>労働力調査</td></tr>
-              <tr
-                ><th>表題</th><td
-                  >{options?.metadata.title ??
-                    "年齢階級，教育，雇用形態別雇用者数"}</td
-                ></tr
-              >
-              <tr>
-                <th>統計表ID</th>
-                <td>
-                  <div>0003006608</div>
-                  <div>
-                    <a
-                      href="https://www.e-stat.go.jp/dbview?sid=0003006608"
-                      target="_blank"
-                      rel="noopener noreferrer">e-Statで統計表を見る</a
-                    >
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <th>対象年／期間</th>
-                <td
-                  >{options?.metadata.period ||
-                    (optionsLoading
-                      ? "取得中…"
-                      : "期間情報を取得できませんでした")}</td
-                >
-              </tr>
-              <tr>
-                <th>単位</th>
-                <td
-                  >{options?.metadata.unit ||
-                    (optionsLoading
-                      ? "取得中…"
-                      : "単位情報を取得できませんでした")}</td
-                >
-              </tr>
-              <tr
-                ><th>労働力調査について</th><td
-                  ><a
-                    href="https://www.stat.go.jp/data/roudou/"
-                    target="_blank"
-                    rel="noopener noreferrer">総務省統計局 労働力調査</a
-                  ></td
-                ></tr
-              >
-            </tbody>
-          </table>
+          <ReferenceTable rows={referenceRows} />
         </ReferencePanel>
         <LicenseLink />
       </aside>
