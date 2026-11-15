@@ -229,13 +229,13 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    padding: 28px 24px;
+    padding: var(--space-6);
     background: var(--surface-color);
   }
 
   .placeholder-message {
     margin: 0;
     color: var(--text-muted-color);
-    font-size: 0.9rem;
+    font-size: var(--chart-font-size-detail);
   }
 </style>

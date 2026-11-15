@@ -15,6 +15,16 @@
   --danger-color: #b42318;
   --focus-color: #222;
 
+  /* Type for chart labels and floating details. */
+  --chart-font-size-title: 1.1875rem;
+  --chart-font-size-label: 1rem;
+  --chart-font-size-detail: 0.8125rem;
+  --tooltip-font-size: 0.875rem;
+  --tooltip-background: var(--surface-color);
+  --tooltip-color: var(--text-color);
+  --tooltip-border-color: var(--border-color);
+  --tooltip-shadow: 0 4px 16px rgb(31 31 31 / 14%);
+
   /* Spacing */
   --space-1: 0.25rem;
   --space-2: 0.5rem;

@@ -27,7 +27,7 @@
     align-items: center;
     gap: var(--space-1);
     width: max-content;
-    color: #111;
+    color: var(--text-color);
     text-decoration: none;
   }
 
@@ -40,7 +40,7 @@
     margin: var(--space-4) 0 var(--space-4) auto;
     padding: var(--space-2);
     border-radius: var(--radius-md);
-    background: #fff;
+    background: var(--surface-color);
   }
 
   .workspace :global(svg) {

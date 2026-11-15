@@ -220,25 +220,25 @@
     width: max-content;
     max-width: min(320px, calc(100vw - 16px));
     box-sizing: border-box;
-    padding: 0.75rem 1rem;
+    padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-md);
-    border: 1px solid #cbd5e1;
-    background: #fff;
-    color: #334155;
-    font-size: 0.875rem;
+    border: 1px solid var(--tooltip-border-color);
+    background: var(--tooltip-background);
+    color: var(--tooltip-color);
+    font-size: var(--tooltip-font-size);
     line-height: 1.6;
-    box-shadow: 0 4px 16px rgb(51 65 85 / 14%);
+    box-shadow: var(--tooltip-shadow);
     pointer-events: none;
   }
   .scroll-note {
-    font-size: 0.875rem;
+    font-size: var(--tooltip-font-size);
   }
   svg {
     display: block;
   }
   text {
-    fill: var(--text-color, currentColor);
-    font-size: 13px;
+    fill: var(--text-color);
+    font-size: var(--chart-font-size-detail);
   }
   path {
     opacity: 0.35;
