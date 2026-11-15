@@ -2,7 +2,8 @@
   "name": "open-data-viz",
   "private": true,
   "scripts": {
-    "serve": "http-server ./data_preparation/output -p 8000 --cors"
+    "serve": "http-server ./data_preparation/output -p 8000 --cors",
+    "dev": "npm run serve & npm --prefix frontend run dev"
   },
   "dependencies": {
     "http-server": "^14.1.1"
