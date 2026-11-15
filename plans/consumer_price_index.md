@@ -42,13 +42,13 @@ Implement under `data_preparation/src/modules/projects/consumer_price_index/`, r
 - [x] Fetch metadata and index observations through the shared e-Stat API tools; retain reusable raw responses under `output/consumer_price_index/raw_data/`.
 - [x] Transform the confirmed index observations into the agreed lookup and series JSON files under `output/consumer_price_index/`, preserving time order and missing-value meaning.
 - [x] Keep each frontend series payload limited to its item/region identifiers and ordered time-value pairs; exclude unused measures and API metadata.
-- [ ] Verify representative transformed time-value observations against the saved raw API samples.
+- [x] Verify representative transformed time-value observations against the saved raw API samples.
 - [x] Support rerunning transformation from saved raw responses so data-shape fixes do not require refetching.
 - [x] Document the command and output layout in `data_preparation/README.md`.
 
-- [ ] **Checkpoint:** The preparation command produces valid output for representative items and regions, and the generated files match the frontend contract.
+- [x] **Checkpoint:** The preparation command produces valid output for representative items and regions, and the generated files match the frontend contract.
 
-**Progress:** The production command fetches Japanese metadata and monthly index pages, validates totals and pagination, saves redacted raw responses to staging, and can rebuild output with `--transform-only`. It keeps the previous raw and transformed output until the staged generation validates. The transform creates item/region/month lookups and region-by-ten-item series chunks, checks cached page continuity, omits documented no-data markers, and derives the observation range from actual numeric values. Representative samples are monthly for new captures; old annual entries are ignored, while value differences warn about possible source revisions. `cargo check` succeeds. The full acquisition and generated-output checkpoint have not yet been run.
+**Progress:** The production command fetched all 3,972,597 monthly index observations and produced 2,955 populated region-by-ten-item chunks. The manifest reports 797 items, 67 regions, 682 months, and an observation range of 1970-01 through 2026-10. The four representative parent/leaf and national/Tokyo series match the saved samples, and the generated files follow the frontend contract. The staged acquisition and generated-output checkpoint are complete.
 
 ### 3. Build the frontend
 
