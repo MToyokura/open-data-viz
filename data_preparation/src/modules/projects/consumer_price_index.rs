@@ -108,6 +108,23 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
         "index_measure_start_1_limit_3.json",
         index_measure_count_sample,
     )?;
+    let monthly_measure_count_sample = fetch(
+        &client,
+        "getStatsData",
+        &[
+            ("statsDataId", TABLE),
+            ("cdTab", "1"),
+            ("lvTime", "4"),
+            ("startPosition", "1"),
+            ("limit", "3"),
+            ("metaGetFlg", "N"),
+        ],
+        app_id,
+    )?;
+    let monthly_measure_count_path = save(
+        "index_monthly_measure_start_1_limit_3.json",
+        monthly_measure_count_sample,
+    )?;
     let series = fetch(
         &client,
         "getStatsData",
@@ -123,6 +140,33 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
         app_id,
     )?;
     let series_sample = save("index_national_overall_series.json", series)?;
+    let mut representative_series = Vec::new();
+    for item in ["0002", "1001"] {
+        for (area, area_name) in [("00000", "national"), ("13100", "tokyo")] {
+            let response = fetch(
+                &client,
+                "getStatsData",
+                &[
+                    ("statsDataId", TABLE),
+                    ("cdTab", "1"),
+                    ("cdCat01", item),
+                    ("cdArea", area),
+                    ("startPosition", "1"),
+                    ("limit", "1000"),
+                    ("metaGetFlg", "N"),
+                ],
+                app_id,
+            )?;
+            let file_name = format!("index_item_{item}_area_{area}_series.json");
+            representative_series.push(json!({
+                "itemCode": item,
+                "areaCode": area,
+                "areaLabel": area_name,
+                "params": {"cdTab": "1", "cdCat01": item, "cdArea": area, "startPosition": "1", "limit": "1000"},
+                "sample": save(&file_name, response)?
+            }));
+        }
+    }
     let manifest = json!({
         "tableId": TABLE,
         "capturedAtUtc": std::process::Command::new("date").args(["-u", "+%Y-%m-%dT%H:%M:%SZ"]).output().ok().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_owned()),
@@ -134,7 +178,9 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
                 "pages": samples,
                 "volumeSample": {"params": {"startPosition": "1", "limit": "1000"}, "sample": volume_sample_path},
                 "indexMeasureCountSample": {"params": {"cdTab": "1", "startPosition": "1", "limit": "3"}, "sample": index_measure_count_path},
-                "indexSeriesSample": {"params": {"cdTab": "1", "cdCat01": "0001", "cdArea": "00000", "startPosition": "1", "limit": "1000"}, "sample": series_sample}
+                "monthlyIndexCountSample": {"params": {"cdTab": "1", "lvTime": "4", "startPosition": "1", "limit": "3"}, "sample": monthly_measure_count_path},
+                "indexSeriesSample": {"params": {"cdTab": "1", "cdCat01": "0001", "cdArea": "00000", "startPosition": "1", "limit": "1000"}, "sample": series_sample},
+                "representativeSeries": representative_series
             }
         },
         "credentialHandling": "ESTAT_APP_ID is read from the environment; saved API responses have appId values redacted."

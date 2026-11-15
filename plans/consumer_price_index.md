@@ -22,15 +22,17 @@ Add a page for exploring Japan's CPI over time, following the comparison workflo
 
 Work in `data_preparation/inspections/consumer_price_index/`.
 
-**Progress:** The public page and API capture confirm the table title, publication timestamp, four axes and their codes (`tab`, `cat01`, `area`, `time`), classification sizes, index measure code (`tab=1`), item hierarchy fields, monthly time level (`@level=4`), and a 2026-10 latest month in the table. The API reports 4,626,165 records for the index measure. A 1,000-record sample is 170,596 bytes with metadata omitted; the official API FAQ documents a 100,000-record response limit. The captured national overall series has no October observation; the no-data marker is documented in its response note. Metadata and `getStatsData` disagree on total record count by 2,348, so full pagination, representative missing/special values, revision checks, and final output sizing remain open. See the [inspection record](../data_preparation/inspections/consumer_price_index/README.md).
+**Progress:** API and source-report checks confirmed the four axes, codes, item hierarchy, monthly time level, and series behavior for a parent and leaf item across national and Tokyo regions. Monthly index records total 3,972,597; the measured compact JSON estimate is about 68 MB. A provisional region-by-ten-item chunk layout yields about 5,360 files, averaging roughly 13 KB. Representative API values match Statistics Bureau releases. The API metadata record count differs from `getStatsData` by 2,348, which is documented for the preparation fetch to validate against `TOTAL_NUMBER` and `NEXT_KEY`. See the [inspection record](../data_preparation/inspections/consumer_price_index/README.md).
 
 - [x] Retrieve the e-Stat table metadata and a small API sample for the index measure.
 - [x] Record the codes and hierarchy for items, regions, measures, and time; confirm the codes that identify monthly observations and the index measure.
-- [ ] Check missing/special values, revisions, latest available period, API response limits/pagination, and estimated data volume for the full table.
+- [x] Check missing rows, the `***` no-data note, and latest available month across representative item/region series.
+- [x] Confirm API response limits and sample page boundaries; record the metadata/data total-count discrepancy for validation during the full fetch.
+- [ ] Re-fetch representative values after a later table update to check for revisions.
 - [x] Save reproducible request details and small raw samples with a README describing findings and caveats.
-- [ ] Define the frontend data contract: lookup fields, series identity, ordered time-value pairs, and how missing values are represented. Choose a file/chunk layout based on the measured data volume.
+- [x] Define the frontend data contract and a provisional region-by-ten-item chunk layout from the measured data volume.
 
-- [ ] **Checkpoint:** The sample can be decoded unambiguously and the output layout is small enough to load by selected item/region without downloading the whole table at once.
+- [x] **Checkpoint:** The sample decodes unambiguously, and the provisional chunks are small enough to load selected item/region data without fetching the whole table.
 
 ### 2. Prepare data
 

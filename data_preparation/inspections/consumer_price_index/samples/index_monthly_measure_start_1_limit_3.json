@@ -1,0 +1,96 @@
+{
+  "GET_STATS_DATA": {
+    "PARAMETER": {
+      "DATA_FORMAT": "J",
+      "LANG": "J",
+      "LIMIT": 3,
+      "METAGET_FLG": "N",
+      "NARROWING_COND": {
+        "CODE_TAB_SELECT": 1,
+        "LEVEL_TIME_COND": 4
+      },
+      "START_POSITION": 1,
+      "STATS_DATA_ID": "0004052037"
+    },
+    "RESULT": {
+      "DATE": "2026-11-15T18:07:11.507+09:00",
+      "ERROR_MSG": "正常に終了しました。",
+      "STATUS": 0
+    },
+    "STATISTICAL_DATA": {
+      "DATA_INF": {
+        "NOTE": {
+          "$": "該当データがない場合を示す。",
+          "@char": "***"
+        },
+        "VALUE": [
+          {
+            "$": "103.5",
+            "@area": "13100",
+            "@cat01": "0001",
+            "@tab": "1",
+            "@time": "2026001010"
+          },
+          {
+            "$": "102.5",
+            "@area": "13100",
+            "@cat01": "0001",
+            "@tab": "1",
+            "@time": "2026000909"
+          },
+          {
+            "$": "102.3",
+            "@area": "13100",
+            "@cat01": "0001",
+            "@tab": "1",
+            "@time": "2026000808"
+          }
+        ]
+      },
+      "RESULT_INF": {
+        "FROM_NUMBER": 1,
+        "NEXT_KEY": 4,
+        "TOTAL_NUMBER": 3972597,
+        "TO_NUMBER": 3
+      },
+      "TABLE_INF": {
+        "@id": "0004052037",
+        "COLLECT_AREA": "該当なし",
+        "CYCLE": "-",
+        "DESCRIPTION": "",
+        "GOV_ORG": {
+          "$": "総務省",
+          "@code": "00200"
+        },
+        "MAIN_CATEGORY": {
+          "$": "企業・家計・経済",
+          "@code": "07"
+        },
+        "OPEN_DATE": "2026-10-30",
+        "OVERALL_TOTAL_NUMBER": 13123275,
+        "SMALL_AREA": 0,
+        "STATISTICS_NAME": "2025年基準消費者物価指数",
+        "STATISTICS_NAME_SPEC": {
+          "TABULATION_CATEGORY": "2025年基準消費者物価指数"
+        },
+        "STAT_NAME": {
+          "$": "消費者物価指数",
+          "@code": "00200573"
+        },
+        "SUB_CATEGORY": {
+          "$": "物価",
+          "@code": "03"
+        },
+        "SURVEY_DATE": 0,
+        "TITLE": {
+          "$": "消費者物価指数（2025年基準）",
+          "@no": "1"
+        },
+        "TITLE_SPEC": {
+          "TABLE_NAME": "消費者物価指数（2025年基準）"
+        },
+        "UPDATED_DATE": "2026-10-30"
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "capturedAtUtc": "2026-11-15T08:55:13Z",
+  "capturedAtUtc": "2026-11-15T09:07:13Z",
   "credentialHandling": "ESTAT_APP_ID is read from the environment; saved API responses have appId values redacted.",
   "endpoints": {
     "getMetaInfo": {
@@ -34,6 +34,15 @@
         },
         "sample": "inspections/consumer_price_index/samples/index_national_overall_series.json"
       },
+      "monthlyIndexCountSample": {
+        "params": {
+          "cdTab": "1",
+          "limit": "3",
+          "lvTime": "4",
+          "startPosition": "1"
+        },
+        "sample": "inspections/consumer_price_index/samples/index_monthly_measure_start_1_limit_3.json"
+      },
       "pages": [
         {
           "limit": 3,
@@ -44,6 +53,60 @@
           "limit": 3,
           "sample": "inspections/consumer_price_index/samples/stats_data_start_4_limit_3.json",
           "startPosition": "4"
+        }
+      ],
+      "representativeSeries": [
+        {
+          "areaCode": "00000",
+          "areaLabel": "national",
+          "itemCode": "0002",
+          "params": {
+            "cdArea": "00000",
+            "cdCat01": "0002",
+            "cdTab": "1",
+            "limit": "1000",
+            "startPosition": "1"
+          },
+          "sample": "inspections/consumer_price_index/samples/index_item_0002_area_00000_series.json"
+        },
+        {
+          "areaCode": "13100",
+          "areaLabel": "tokyo",
+          "itemCode": "0002",
+          "params": {
+            "cdArea": "13100",
+            "cdCat01": "0002",
+            "cdTab": "1",
+            "limit": "1000",
+            "startPosition": "1"
+          },
+          "sample": "inspections/consumer_price_index/samples/index_item_0002_area_13100_series.json"
+        },
+        {
+          "areaCode": "00000",
+          "areaLabel": "national",
+          "itemCode": "1001",
+          "params": {
+            "cdArea": "00000",
+            "cdCat01": "1001",
+            "cdTab": "1",
+            "limit": "1000",
+            "startPosition": "1"
+          },
+          "sample": "inspections/consumer_price_index/samples/index_item_1001_area_00000_series.json"
+        },
+        {
+          "areaCode": "13100",
+          "areaLabel": "tokyo",
+          "itemCode": "1001",
+          "params": {
+            "cdArea": "13100",
+            "cdCat01": "1001",
+            "cdTab": "1",
+            "limit": "1000",
+            "startPosition": "1"
+          },
+          "sample": "inspections/consumer_price_index/samples/index_item_1001_area_13100_series.json"
         }
       ],
       "url": "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData",
