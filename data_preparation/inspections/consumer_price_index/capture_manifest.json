@@ -1,0 +1,60 @@
+{
+  "capturedAtUtc": "2026-11-15T08:55:13Z",
+  "credentialHandling": "ESTAT_APP_ID is read from the environment; saved API responses have appId values redacted.",
+  "endpoints": {
+    "getMetaInfo": {
+      "params": {
+        "explanationGetFlg": "Y",
+        "lang": "J",
+        "statsDataId": "0004052037"
+      },
+      "sample": "inspections/consumer_price_index/samples/meta_info.json",
+      "url": "https://api.e-stat.go.jp/rest/3.0/app/json/getMetaInfo"
+    },
+    "getStatsData": {
+      "fixedParams": {
+        "metaGetFlg": "N",
+        "statsDataId": "0004052037"
+      },
+      "indexMeasureCountSample": {
+        "params": {
+          "cdTab": "1",
+          "limit": "3",
+          "startPosition": "1"
+        },
+        "sample": "inspections/consumer_price_index/samples/index_measure_start_1_limit_3.json"
+      },
+      "indexSeriesSample": {
+        "params": {
+          "cdArea": "00000",
+          "cdCat01": "0001",
+          "cdTab": "1",
+          "limit": "1000",
+          "startPosition": "1"
+        },
+        "sample": "inspections/consumer_price_index/samples/index_national_overall_series.json"
+      },
+      "pages": [
+        {
+          "limit": 3,
+          "sample": "inspections/consumer_price_index/samples/stats_data_start_1_limit_3.json",
+          "startPosition": "1"
+        },
+        {
+          "limit": 3,
+          "sample": "inspections/consumer_price_index/samples/stats_data_start_4_limit_3.json",
+          "startPosition": "4"
+        }
+      ],
+      "url": "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData",
+      "volumeSample": {
+        "params": {
+          "limit": "1000",
+          "startPosition": "1"
+        },
+        "sample": "inspections/consumer_price_index/samples/stats_data_start_1_limit_1000.json"
+      }
+    }
+  },
+  "tableId": "0004052037"
+}

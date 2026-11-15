@@ -18,6 +18,9 @@ fn main() {
     if modules::projects::workers_by_age_employment_type_education_sex::run_inspection(&args) {
         return;
     }
+    if modules::projects::consumer_price_index::run_inspection(&args) {
+        return;
+    }
     if modules::projects::social_security_budget_flow::run_inspection(&args) {
         return;
     }
@@ -64,7 +67,7 @@ fn main() {
 fn print_usage() {
     println!("Usage: ./scripts/prepare.sh run -- <command> [arguments]");
     println!(
-        "Commands include commodity-prices, prefectures-update, asset-distribution, vegetable-relay, workers-by-age-employment-type-education-sex, and social-security-budget-flow."
+        "Commands include commodity-prices, prefectures-update, asset-distribution, vegetable-relay, workers-by-age-employment-type-education-sex, consumer-price-index-inspect, and social-security-budget-flow."
     );
     println!(
         "Vegetable inspections: vegetable-relay-inspect-workbooks, vegetable-relay-acquire-product-observations, vegetable-relay-verify-product-mappings, vegetable-relay-verify-daikon-mapping, vegetable-relay-validate-m3-m5."

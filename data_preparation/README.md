@@ -58,6 +58,16 @@ e-Stat 表 `0004056120` の全メタデータ・ページ分割データを取�
 
 このデータは `VITE_STORAGE_BASE_URL` で指定する外部ストレージの `/asset_distribution/` 以下から配信します。GitHub Actions の現行 workflow はフロントエンドのみを GitHub Pages に公開し、外部データのアップロードやキャッシュ更新は行いません。
 
+## 消費者物価指数のAPI調査
+
+e-Stat 表 `0004052037` のメタデータと小さなAPI応答標本を取得します。
+
+```sh
+./scripts/prepare.sh run -- consumer-price-index-inspect
+```
+
+分類規模、取得ファイル、API接続確認の状況は[調査記録](inspections/consumer_price_index/README.md)を参照してください。
+
 ## 野菜の産地別卸売データ
 
 clone 後、ネット接続と e-Stat のアプリケーション ID を用意し、`data_preparation/` から次を実行すると野菜の産地リレー用データを生成できます。

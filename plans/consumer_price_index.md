@@ -22,10 +22,12 @@ Add a page for exploring Japan's CPI over time, following the comparison workflo
 
 Work in `data_preparation/inspections/consumer_price_index/`.
 
-- [ ] Retrieve the e-Stat table metadata and a small API sample for the index measure.
-- [ ] Record the codes and hierarchy for items, regions, measures, and time; confirm the codes that identify monthly observations and the index measure.
+**Progress:** The public page and API capture confirm the table title, publication timestamp, four axes and their codes (`tab`, `cat01`, `area`, `time`), classification sizes, index measure code (`tab=1`), item hierarchy fields, monthly time level (`@level=4`), and a 2026-10 latest month in the table. The API reports 4,626,165 records for the index measure. A 1,000-record sample is 170,596 bytes with metadata omitted; the official API FAQ documents a 100,000-record response limit. The captured national overall series has no October observation; the no-data marker is documented in its response note. Metadata and `getStatsData` disagree on total record count by 2,348, so full pagination, representative missing/special values, revision checks, and final output sizing remain open. See the [inspection record](../data_preparation/inspections/consumer_price_index/README.md).
+
+- [x] Retrieve the e-Stat table metadata and a small API sample for the index measure.
+- [x] Record the codes and hierarchy for items, regions, measures, and time; confirm the codes that identify monthly observations and the index measure.
 - [ ] Check missing/special values, revisions, latest available period, API response limits/pagination, and estimated data volume for the full table.
-- [ ] Save reproducible request details and small raw samples with a README describing findings and caveats.
+- [x] Save reproducible request details and small raw samples with a README describing findings and caveats.
 - [ ] Define the frontend data contract: lookup fields, series identity, ordered time-value pairs, and how missing values are represented. Choose a file/chunk layout based on the measured data volume.
 
 - [ ] **Checkpoint:** The sample can be decoded unambiguously and the output layout is small enough to load by selected item/region without downloading the whole table at once.
