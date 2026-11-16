@@ -43,7 +43,12 @@ export function transformData(series, view) {
     chartData: {
       animation: false,
       aria: { enabled: true },
-      tooltip: { trigger: "axis" },
+      tooltip: {
+        trigger: "axis",
+        ...(view === "normalized"
+          ? { valueFormatter: (value) => Number(value).toFixed(1) }
+          : {}),
+      },
       legend: { type: "scroll", left: 56, top: 8 },
       grid: { left: 64, right: 24, top: 48, bottom: 88 },
       xAxis: { type: "category", data: labels },

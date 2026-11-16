@@ -6,8 +6,10 @@ import {
 
 const chunkRequests = new Map();
 
-async function fetchJson(url) {
+/** @param {string} url @param {{ missingIsEmpty?: boolean }} [options] */
+async function fetchJson(url, { missingIsEmpty = false } = {}) {
   const response = await fetch(url);
+  if (response.status === 404 && missingIsEmpty) return undefined;
   if (!response.ok) {
     throw new Error(`データを取得できませんでした (HTTP ${response.status})`);
   }
@@ -30,12 +32,12 @@ export async function fetchSeries({ itemCode, areaCode, itemIndex, itemCount }) 
   const url = `${CPI_DATA_PATH}/series/area_${areaCode}_items_${padded(firstItemIndex)}_${padded(lastItemIndex)}.json`;
   let request = chunkRequests.get(url);
   if (!request) {
-    request = fetchJson(url);
+    request = fetchJson(url, { missingIsEmpty: true });
     chunkRequests.set(url, request);
     request.catch(() => chunkRequests.delete(url));
   }
   const chunk = await request;
-  return chunk.find(
+  return chunk?.find(
     (series) => series.itemCode === itemCode && series.areaCode === areaCode,
   );
 }

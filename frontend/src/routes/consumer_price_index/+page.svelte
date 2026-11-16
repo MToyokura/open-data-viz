@@ -1,6 +1,7 @@
 <script>
   import { onMount, untrack } from "svelte";
   import { useResponsivePanels } from "#lib/useResponsivePanels.svelte.js";
+  import deleteIcon from "#lib/assets/icons/delete.svg";
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
   import LicenseLink from "#lib/LicenseLink.svelte";
   import LoadState from "#lib/LoadState.svelte";
@@ -143,7 +144,6 @@
   const rows = [
     { label: "統計名", value: "2025年基準 消費者物価指数" },
     { label: "統計表ID", id: "0004052037", url: "https://www.e-stat.go.jp/dbview?sid=0004052037", linkLabel: "e-Statで統計表を見る" },
-    { label: "基準時", value: "2025年 = 100" },
     { label: "単位", value: "指数（円で表す小売価格ではありません）" },
   ];
 
@@ -188,7 +188,7 @@
                         {#if seriesStates[key]?.status === "loading"}<span class="muted" role="status">取得中…</span>
                         {:else if seriesStates[key]?.status === "error"}<span class="error" role="alert">{seriesStates[key].error}</span><button type="button" onclick={() => retrySeries(item)}>再試行</button>
                         {:else if seriesStates[key]?.status === "empty"}<span class="muted" role="status">該当データなし</span>{/if}
-                        <button type="button" class="remove-button" aria-label="{item.itemName}【{item.areaName}】を削除" onclick={() => handleRemove(item)}>削除</button>
+                        <button type="button" class="icon-button" aria-label="{item.itemName}【{item.areaName}】を選択中一覧から削除" onclick={() => handleRemove(item)}><img src={deleteIcon} alt="" aria-hidden="true" /></button>
                       </li>
                     {/each}
                   </ul>
@@ -201,7 +201,11 @@
 
         <ReferencePanel title="データについて">
           <h3>表示について</h3>
-          <p>指数は2025年を100とした値です。正規化表示は選択系列の共通基準月を100とした相対的な変化で、円で表す価格ではありません。</p>
+          <p>統計の指数は、2025年平均を100として作られています（価格そのものの円額ではありません）。</p>
+          {#if view === "normalized"}
+            <p>最新月基準では、選択した系列すべてにデータがある最も新しい月を比較の起点にし、その月の指数を各系列で100にそろえます。ほかの月は起点に対する変化を表します（110は10％高く、90は10％低い値です）。</p>
+            {#if chartResult.referenceMonth}<p>比較の起点にした月：{chartResult.referenceMonth}</p>{/if}
+          {/if}
           <h3>出典</h3>
           <ReferenceTable {rows} />
         </ReferencePanel>
@@ -210,8 +214,8 @@
 
       <section class="chart-panel" aria-label="消費者物価指数の推移">
         <div class="view-toggle" role="group" aria-label="指数の表示方法">
-          <button type="button" aria-pressed={view === "index"} class={{ active: view === "index" }} onclick={() => (view = "index")}>指数（2025年 = 100）</button>
-          <button type="button" aria-pressed={view === "normalized"} class={{ active: view === "normalized" }} onclick={() => (view = "normalized")}>共通基準月 = 100</button>
+          <button type="button" aria-pressed={view === "index"} class={{ active: view === "index" }} onclick={() => (view = "index")}>2025年基準</button>
+          <button type="button" aria-pressed={view === "normalized"} class={{ active: view === "normalized" }} onclick={() => (view = "normalized")}>最新月基準</button>
         </div>
         {#if selectedCombinations.length > 40}
           <div class="empty-chart"><h2>選択数を減らしてください</h2><p>一度に表示できるのは40系列までです。</p></div>
@@ -222,9 +226,8 @@
         {:else if loadedSeries.length === 0}
           <div class="empty-chart"><h2>表示できる系列がありません</h2><p>選択した品目と地域の組み合わせにはデータがありません。</p></div>
         {:else if view === "normalized" && !chartResult.referenceMonth}
-          <div class="empty-chart"><h2>共通の基準月がありません</h2><p>選択した系列には、すべてで値がある月がありません。</p></div>
+          <div class="empty-chart"><h2>共通して値がある月がありません</h2><p>選択した系列すべてに値がある月がないため、表示できません。</p></div>
         {:else if chartResult.chartData}
-          {#if chartResult.referenceMonth}<p class="reference-month">正規化の基準月：{chartResult.referenceMonth}</p>{/if}
           <LineChart chartData={chartResult.chartData} />
         {:else}
           <div class="empty-chart"><h2>表示できる系列がありません</h2><p>別の品目または地域を選んでください。</p></div>
@@ -236,16 +239,16 @@
 
 <style>
   .chart-panel { --chart-height: calc(100dvh - 12rem); }
-  .view-toggle { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); }
+  .view-toggle { display: flex; justify-content: flex-end; gap: var(--space-2); margin: var(--space-4) 0; }
   .view-toggle button { padding: var(--space-1) var(--space-3); border: var(--border-default); border-radius: var(--radius-md); background: var(--surface-color); cursor: pointer; }
   .view-toggle button.active { border-color: var(--focus-color); background: var(--surface-muted-color); font-weight: 600; }
-  .reference-month { margin: var(--space-2) 0 0; text-align: right; font-size: 0.875rem; }
   .empty-chart { min-height: 40vh; display: grid; align-content: center; justify-items: center; text-align: center; }
   .empty-chart h2 { margin-bottom: var(--space-2); }
   .selected-list ul { margin: 0; padding-left: 1.25rem; }
   .selected-list li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; }
   .selected-list li > span:first-child { flex: 1 1 12rem; }
-  .remove-button, .reset-button { padding: var(--space-1) var(--space-2); }
+  .selected-list li > .icon-button { margin-right: var(--space-3); }
+  .reset-button { padding: var(--space-1) var(--space-2); }
   .error { color: var(--error-color, #a00); }
   @media (max-width: 50rem) { .chart-panel { --chart-height: 55vh; } }
 </style>
