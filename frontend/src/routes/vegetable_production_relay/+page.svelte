@@ -10,6 +10,9 @@
   import { aggregateSankey } from "./utils/aggregateSankey.js";
   import { useRelayData } from "./utils/useRelayData.svelte.js";
 
+  const MIN_MARKER_SCALE = 1;
+  const DEFAULT_MARKER_SCALE = 5;
+
   const relayData = useRelayData();
   let aggregation = $derived(relayData.aggregation);
   let dataError = $derived(relayData.error?.message ?? "");
@@ -30,7 +33,8 @@
   );
   let selectedMonth = $state("2021-01");
   let selectedPrefecture = $state("");
-  let scale = $state(5);
+  let scale = $state(DEFAULT_MARKER_SCALE);
+  let markerShape = $state("circle");
 
   function reloadPage() {
     window.location.reload();
@@ -167,19 +171,29 @@
     }
   }
   /** @param {string} name */
-  function selectPrefecture(name) {
-    selectedPrefecture = name;
+  function loadPrefectureDetail(name) {
     const code = observationsByPrefecture[name]?.consignor_prefecture_code;
     if (code) void relayData.selectPrefectureDetail(code);
   }
 
-  function retryDetail() {
-    const code = selectedObservation?.consignor_prefecture_code;
-    if (code) void relayData.selectPrefectureDetail(code);
+  /** @param {string} name */
+  function selectPrefecture(name) {
+    selectedPrefecture = name;
+    loadPrefectureDetail(name);
   }
+
+  function retryDetail() {
+    loadPrefectureDetail(selectedPrefecture);
+  }
+
+  /** @param {number} value */
+  function normalizeScale(value) {
+    return Math.max(MIN_MARKER_SCALE, Number(value) || DEFAULT_MARKER_SCALE);
+  }
+
   /** @param {number} amount */
   function adjustScale(amount) {
-    scale = Math.max(1, Number((scale + amount).toFixed(1)));
+    scale = normalizeScale(Number((scale + amount).toFixed(1)));
   }
   const quantityFormatter = new Intl.NumberFormat("ja-JP", {
     maximumFractionDigits: 2,
@@ -264,9 +278,9 @@
               <h2>
                 {selectedProductLabel} · {displayMonth(selectedMonth)}の出荷数量
               </h2>
-              <p>円の面積は報告値の合計に比例します</p>
+              <p>マーカーの面積は報告値の合計に比例します</p>
               <p class="map-instructions">
-                都道府県または円を選ぶと、詳細パネルに報告値と消費地域別の内訳を表示します。地図上のスクロールで拡大・縮小できます。
+                都道府県またはマーカーを選ぶと、詳細パネルに報告値と消費地域別の内訳を表示します。地図上のスクロールで拡大・縮小できます。
               </p>
             </div>
           </div>
@@ -296,6 +310,7 @@
                 {observationsByPrefecture}
                 sourceUnit={yearData?.source_unit ?? null}
                 {scale}
+                {markerShape}
                 onSelect={selectPrefecture}
                 --relay-map-height="100%"
                 --relay-map-min-height="0"
@@ -321,26 +336,49 @@
               </select>
             </label>
             <div class="scale-control">
-              <span class="control-label">円の大きさ</span>
+              <span class="control-label"
+                >{markerShape === "circle" ? "円" : "四角形"}の大きさ</span
+              >
               <button
                 class="step-button scale-smaller"
-                aria-label="円を小さく"
+                aria-label="マーカーを小さく"
                 onclick={() => adjustScale(-1)}
-                disabled={scale <= 1}>−</button
+                disabled={scale <= MIN_MARKER_SCALE}>−</button
               >
               <input
-                aria-label="円のスケール"
+                aria-label="マーカーのスケール"
                 type="number"
-                min="1"
+                min={MIN_MARKER_SCALE}
                 step="1"
                 bind:value={scale}
-                onblur={() => (scale = Math.max(1, Number(scale) || 5))}
+                onblur={() => (scale = normalizeScale(scale))}
               />
               <button
                 class="step-button scale-larger"
-                aria-label="円を大きく"
+                aria-label="マーカーを大きく"
                 onclick={() => adjustScale(1)}>＋</button
               >
+            </div>
+            <div class="shape-settings">
+              <span class="control-label">形を変える</span>
+              <div
+                class="shape-control"
+                role="group"
+                aria-label="地図マーカーの形"
+              >
+                <button
+                  type="button"
+                  class={{ active: markerShape === "circle" }}
+                  aria-pressed={markerShape === "circle"}
+                  onclick={() => (markerShape = "circle")}>円</button
+                >
+                <button
+                  type="button"
+                  class={{ active: markerShape === "square" }}
+                  aria-pressed={markerShape === "square"}
+                  onclick={() => (markerShape = "square")}>四角形</button
+                >
+              </div>
             </div>
             <div class="month-control">
               <button
@@ -619,6 +657,24 @@
   }
   .scale-control > .control-label {
     grid-area: label;
+  }
+  .shape-control {
+    display: flex;
+    gap: var(--space-1);
+  }
+  .shape-settings {
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+  }
+  .shape-control button {
+    min-height: var(--control-height);
+    padding-inline: var(--space-3);
+  }
+  .shape-control button.active {
+    border-color: var(--focus-color);
+    background: var(--surface-muted-color);
+    font-weight: 600;
   }
   .scale-control > .scale-smaller {
     grid-area: smaller;
