@@ -72,8 +72,6 @@
       label: "表分類",
       value: "野菜の主要消費地域別・産地別の卸売数量及び卸売価格",
     },
-  ]);
-  const mapSourceRows = [
     {
       label: "地図データ",
       value: "国土交通省「国土数値情報 行政区域データ（N03）」2026年版",
@@ -88,7 +86,7 @@
         },
       ],
     },
-  ];
+  ]);
   let monthIndex = $derived(months.indexOf(selectedMonth));
   let monthObservations = $derived(
     yearData?.months.filter((item) => item.month === selectedMonth) ?? [],
@@ -252,8 +250,6 @@
     </ul>
     <h3>出典</h3>
     <ReferenceTable rows={referenceRows} />
-    <h3>地図データ</h3>
-    <ReferenceTable rows={mapSourceRows} />
   </ReferencePanel>
   <LicenseLink />
 {/snippet}
