@@ -2,14 +2,18 @@
   import homeIcon from "#lib/assets/icons/home.svg";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
 
-  let { title } = $props();
+  let { title, asLabel = false } = $props();
 </script>
 
 <header class="page-heading">
   <a href={`${VITE_ROOT_PATH}/`} aria-label="ホームに戻る">
     <img src={homeIcon} alt="" />
   </a>
-  <h1>{title}</h1>
+  {#if asLabel}
+    <span class="page-heading-title">{title}</span>
+  {:else}
+    <h1 class="page-heading-title">{title}</h1>
+  {/if}
 </header>
 
 <style>
@@ -40,13 +44,15 @@
     height: 24px;
   }
 
-  h1 {
+  .page-heading-title {
     grid-column: 2;
     grid-row: 1;
     min-width: 0;
     justify-self: stretch;
     margin: 0;
+    font-family: inherit;
     font-size: 1.25rem;
+    font-weight: 700;
     text-align: center;
     overflow-wrap: anywhere;
   }
@@ -57,7 +63,7 @@
       padding: var(--space-3) var(--space-4);
     }
 
-    h1 {
+    .page-heading-title {
       font-size: 1.1rem;
     }
   }

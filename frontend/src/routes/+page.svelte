@@ -72,7 +72,9 @@
     <section aria-labelledby="articles-title">
       <h2 id="articles-title">記事</h2>
       <div class="card-grid">
-        <a class="card" href={`${VITE_ROOT_PATH}/articles`}>モノの価格の推移を見る</a>
+        <a class="card" href={`${VITE_ROOT_PATH}/articles/commodity_prices`}
+          >モノの価格の推移を見る</a
+        >
       </div>
     </section>
 

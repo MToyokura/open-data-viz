@@ -15,7 +15,7 @@
   line-height: 1.4;
 }
 
-.article-page .article-content h1 {
+.article-page .article-content .article-title {
   margin: 0 0 0.25rem;
   font-size: clamp(1.7rem, 5vw, 2.15rem);
 }
