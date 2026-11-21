@@ -7,10 +7,6 @@
       title: "物価と買い物",
       projects: [
         {
-          title: "海面漁業魚種別漁獲量",
-          href: `${VITE_ROOT_PATH}/marine_fishery_catch`,
-        },
-        {
           title: "消費者物価指数",
           href: `${VITE_ROOT_PATH}/consumer_price_index`,
         },
@@ -24,6 +20,10 @@
       id: "food",
       title: "食と農業",
       projects: [
+        {
+          title: "海面漁業魚種別漁獲量",
+          href: `${VITE_ROOT_PATH}/marine_fishery_catch`,
+        },
         {
           title: "野菜の産地リレー",
           href: `${VITE_ROOT_PATH}/vegetable_production_relay`,

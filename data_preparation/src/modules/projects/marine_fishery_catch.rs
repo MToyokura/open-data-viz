@@ -163,16 +163,39 @@ fn column_name(mut n:usize)->String { let mut s=String::new(); while n>0 { let r
 fn parse_year(s:&str)->Option<i32> { let start=s.find('(')?+1; let digits=&s[start..start+4]; digits.parse().ok() }
 
 fn commit(root: &Path, stage: &Path) -> Result<(), Box<dyn Error>> {
-    for dir in ["raw_data", "transformed_data"] {
+    let dirs = ["raw_data", "transformed_data"];
+    let mut backed_up = Vec::new();
+    let mut installed = Vec::new();
+    for dir in dirs {
         let dest = root.join(dir);
         let backup = root.join(format!(".{dir}.previous"));
         if backup.exists() { fs::remove_dir_all(&backup)?; }
-        if dest.exists() { fs::rename(&dest, &backup)?; }
-        if let Err(error) = fs::rename(stage.join(dir), &dest) {
-            if backup.exists() { let _ = fs::rename(&backup, &dest); }
+        if dest.exists() {
+            if let Err(error) = fs::rename(&dest, &backup) {
+                for previous in backed_up.iter().rev() {
+                    let previous_dest = root.join(previous);
+                    let previous_backup = root.join(format!(".{previous}.previous"));
+                    let _ = fs::rename(previous_backup, previous_dest);
+                }
+                return Err(error.into());
+            }
+            backed_up.push(dir);
+        }
+    }
+    for dir in dirs {
+        if let Err(error) = fs::rename(stage.join(dir), root.join(dir)) {
+            for previous in installed.iter().rev() {
+                let _ = fs::remove_dir_all(root.join(previous));
+            }
+            for previous in backed_up.iter().rev() {
+                let _ = fs::rename(root.join(format!(".{previous}.previous")), root.join(previous));
+            }
             return Err(error.into());
         }
-        if backup.exists() { fs::remove_dir_all(backup)?; }
+        installed.push(dir);
+    }
+    for dir in backed_up {
+        fs::remove_dir_all(root.join(format!(".{dir}.previous")))?;
     }
     fs::remove_dir_all(stage)?;
     Ok(())

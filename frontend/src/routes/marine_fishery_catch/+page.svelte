@@ -13,7 +13,7 @@
   /** @typedef {{years:number[],series:FisherySeries[],notes:(string|{text:string})[]}} FisheryData */
 
   const sourceUrl =
-    "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040416370&fileKind=0";
+    "https://www.e-stat.go.jp/stat-search/files?tclass=000001024930&cycle=0";
   let data = $state.raw(
     /** @type {FisheryData} */ ({ years: [], series: [], notes: [] }),
   );
@@ -40,6 +40,10 @@
   let selected = $derived(
     selectedIds.flatMap((id) => series.filter((item) => item.id === id)),
   );
+  /** @param {FisherySeries} item */
+  function seriesLabel(item) {
+    return item.type === "total" ? item.label : item.groupPath.join(" › ");
+  }
   let chartOption = $derived({
     animation: false,
     tooltip: {
@@ -66,7 +70,7 @@
       },
     },
     series: selected.map((item) => ({
-      name: item.label,
+      name: seriesLabel(item),
       type: "line",
       showSymbol: false,
       connectNulls: false,
@@ -105,7 +109,9 @@
     if (selectedIds.includes(id)) {
       selectedIds = selectedIds.filter((selectedId) => selectedId !== id);
     } else {
-      selectedIds = [...selectedIds, id];
+      const replacingInitialTotal =
+        selected.length === 1 && selected[0].type === "total";
+      selectedIds = replacingInitialTotal ? [id] : [...selectedIds, id];
     }
   }
 
@@ -211,7 +217,7 @@
                   <ul>
                     {#each selected as item (item.id)}
                       <li>
-                        <span>{item.label}</span>
+                        <span>{seriesLabel(item)}</span>
                         <button
                           type="button"
                           class="icon-button"
@@ -295,6 +301,37 @@
           role="img"
           aria-label="選択した魚種の年別漁獲量を示す折れ線グラフ"
         ></div>
+        {#if status === "loaded"}
+          <div class="data-table-wrapper">
+            <table>
+              <caption>年別漁獲量（トン）</caption>
+              <thead>
+                <tr>
+                  <th scope="col">年</th>
+                  {#each selected as item (item.id)}
+                    <th scope="col">{seriesLabel(item)}</th>
+                  {/each}
+                </tr>
+              </thead>
+              <tbody>
+                {#each data.years as year, index (year)}
+                  <tr>
+                    <th scope="row">{year}</th>
+                    {#each selected as item (item.id)}
+                      <td
+                        >{item.values[index] == null
+                          ? "データなし"
+                          : Number(item.values[index]).toLocaleString(
+                              "ja-JP",
+                            )}</td
+                      >
+                    {/each}
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        {/if}
       </section>
     </div>
   </main>
@@ -353,6 +390,31 @@
     height: var(--chart-height);
     min-height: 30rem;
     width: 100%;
+  }
+  .data-table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+    margin-top: var(--space-3);
+  }
+  table {
+    border-collapse: collapse;
+    min-width: 100%;
+    text-align: right;
+  }
+  caption {
+    text-align: left;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+  }
+  th,
+  td {
+    padding: var(--space-2);
+    border-bottom: var(--border-default);
+    white-space: nowrap;
+  }
+  thead th:first-child,
+  tbody th {
+    text-align: left;
   }
   .source-notes {
     margin-top: var(--space-3);
