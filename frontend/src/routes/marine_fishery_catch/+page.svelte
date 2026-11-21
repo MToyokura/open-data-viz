@@ -21,7 +21,7 @@
   let status = $state(/** @type {"loading"|"loaded"|"error"} */ ("loading"));
   let error = $state("");
   let query = $state("");
-  let selectedIds = $state(["total"]);
+  let selectedIds = $state(/** @type {string[]} */ ([]));
   const panels = useResponsivePanels(() => selectedIds.length, {
     mobileOpen: true,
   });
@@ -98,10 +98,6 @@
       if (!Array.isArray(payload.years) || !Array.isArray(payload.series))
         throw new Error("データ形式を確認できませんでした");
       data = payload;
-      selectedIds = [
-        payload.series.find((item) => item.id === "total")?.id ??
-          payload.series[0]?.id,
-      ].filter(Boolean);
       status = "loaded";
     } catch (cause) {
       error =
@@ -115,9 +111,7 @@
     if (selectedIds.includes(id)) {
       selectedIds = selectedIds.filter((selectedId) => selectedId !== id);
     } else {
-      const replacingInitialTotal =
-        selected.length === 1 && selected[0].type === "total";
-      selectedIds = replacingInitialTotal ? [id] : [...selectedIds, id];
+      selectedIds = [...selectedIds, id];
     }
   }
 
@@ -313,10 +307,16 @@
       >
         <div
           bind:this={chartNode}
-          class="chart"
+          class={["chart", { "chart-hidden": selected.length === 0 }]}
           role="img"
           aria-label="選択した魚種の年別漁獲量を示す折れ線グラフ"
         ></div>
+        {#if status === "loaded" && selected.length === 0}
+          <div class="empty-chart">
+            <h2>漁獲量の推移を比較</h2>
+            <p>魚種・分類を選ぶと、ここにグラフが表示されます。</p>
+          </div>
+        {/if}
       </section>
     </div>
   </main>
@@ -325,6 +325,7 @@
 <style>
   .chart-panel {
     min-width: 0;
+    display: grid;
   }
   .chart-panel {
     --chart-height: calc(100dvh - 12rem);
@@ -372,9 +373,16 @@
     line-height: 1.35;
   }
   .chart {
+    grid-area: 1 / 1;
     height: var(--chart-height);
     min-height: 30rem;
     width: 100%;
+  }
+  .chart-hidden {
+    visibility: hidden;
+  }
+  .empty-chart {
+    grid-area: 1 / 1;
   }
   .source-notes {
     margin-top: var(--space-3);

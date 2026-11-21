@@ -55,10 +55,14 @@ test("shows each relevant source note once while any related series is selected"
       name: "ちだい･きだい",
     });
     const separate = screen.getByRole("checkbox", { name: "ちだい" });
+    const emptyChart = "漁獲量の推移を比較";
     const heading = "選択中の系列に関する注記";
+    expect(screen.getByRole("checkbox", { name: "漁獲量計" })).not.toBeChecked();
+    expect(screen.getByRole("heading", { name: emptyChart })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: heading })).toBeNull();
 
     await fireEvent.click(combined);
+    expect(screen.queryByRole("heading", { name: emptyChart })).toBeNull();
     const list = screen.getByRole("heading", {
       name: heading,
     }).nextElementSibling;
@@ -74,6 +78,7 @@ test("shows each relevant source note once while any related series is selected"
 
     await fireEvent.click(separate);
     expect(screen.queryByRole("heading", { name: heading })).toBeNull();
+    expect(screen.getByRole("heading", { name: emptyChart })).toBeInTheDocument();
   } finally {
     view.unmount();
     vi.unstubAllGlobals();
