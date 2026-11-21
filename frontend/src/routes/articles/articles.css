@@ -1,4 +1,8 @@
 /* Shared layout and typography for articles under /articles. */
+.article-page .page-content {
+  padding-bottom: calc(var(--space-8) * 3);
+}
+
 .article-page .article-content {
   max-width: 39rem;
   margin: 0 auto;
