@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { transformData } from "../transformData.js";
+import { commodityMonth, transformData } from "../transformData.js";
 
 /** @typedef {import("../../constants/types.js").CommodityPrices} CommodityPrices */
 /** @typedef {import("echarts").EChartsOption} EChartsOption */
@@ -38,15 +38,17 @@ function returnMockedData() {
   ];
 }
 
-/** @param {EChartsOption} option */
+/** @param {EChartsOption | null} option */
 function getLabels(option) {
+  if (!option) return [];
   return /** @type {{ data: string[] }} */ (
     /** @type {unknown} */ (option.xAxis)
   ).data;
 }
 
-/** @param {EChartsOption} option */
+/** @param {EChartsOption | null} option */
 function getSeries(option) {
+  if (!option) return [];
   return /** @type {{ name: string, data: (number | null)[] }[]} */ (
     /** @type {unknown} */ (option.series)
   );
@@ -57,20 +59,20 @@ describe("transformData", () => {
 
   test("transformData should handle empty array", () => {
     const result = transformData([]);
-    expect(getLabels(result)).toEqual([]);
-    expect(getSeries(result)).toEqual([]);
+    expect(getLabels(result.chartData)).toEqual([]);
+    expect(getSeries(result.chartData)).toEqual([]);
   });
 
   test("transformData should transform data correctly with single commodity", () => {
     const singleItemData = [dummyData[0]];
-    const result = transformData(singleItemData);
+    const result = transformData(singleItemData).chartData;
 
     // Check dates are collected and sorted correctly
     expect(getLabels(result)).toEqual([
-      "2024-12",
-      "2025-01",
-      "2025-02",
-      "2025-03",
+      "2024年12月",
+      "2025年01月",
+      "2025年02月",
+      "2025年03月",
     ]);
 
     // Check dataset structure
@@ -84,19 +86,19 @@ describe("transformData", () => {
   });
 
   test("transformData should handle multiple commodities with different dates", () => {
-    const result = transformData(dummyData);
+    const result = transformData(dummyData).chartData;
 
     // All unique dates from both commodities should be included and sorted
     expect(getLabels(result)).toEqual([
-      "2000-01",
-      "2000-02",
-      "2000-03",
-      "2000-04",
-      "2000-05",
-      "2024-12",
-      "2025-01",
-      "2025-02",
-      "2025-03",
+      "2000年01月",
+      "2000年02月",
+      "2000年03月",
+      "2000年04月",
+      "2000年05月",
+      "2024年12月",
+      "2025年01月",
+      "2025年02月",
+      "2025年03月",
     ]);
 
     // Should have two datasets
@@ -140,30 +142,30 @@ describe("transformData", () => {
       },
     ];
 
-    const result = transformData(dataWithInvalidValue);
+    const result = transformData(dataWithInvalidValue).chartData;
 
     // The N/A value should be converted to null
     expect(getSeries(result)[0].data).toContain(null);
 
     // Check if the rest of the values are still correctly processed
-    expect(getLabels(result)).toContain("2025-04");
+    expect(getLabels(result)).toContain("2025年04月");
   });
 
   test("transformData should format labels correctly", () => {
-    const result = transformData(dummyData);
+    const result = transformData(dummyData).chartData;
 
     // Check that the date format is YYYY-MM
     expect(
-      (getLabels(result) ?? []).every((label) => /^\d{4}-\d{2}$/.test(label)),
+      (getLabels(result) ?? []).every((label) => /^\d{4}年\d{2}月$/.test(label)),
     ).toBe(true);
 
     // Check specific examples
-    expect(getLabels(result)).toContain("2025-03");
-    expect(getLabels(result)).toContain("2000-01");
+    expect(getLabels(result)).toContain("2025年03月");
+    expect(getLabels(result)).toContain("2000年01月");
   });
 
   test("transformData should create correct dataset labels", () => {
-    const result = transformData(dummyData);
+    const result = transformData(dummyData).chartData;
 
     expect(getSeries(result)[0].name).toBe(
       "1001 うるち米(単一原料米,「コシヒカリ」)【札幌市】",
@@ -171,5 +173,29 @@ describe("transformData", () => {
     expect(getSeries(result)[1].name).toBe(
       "1002 うるち米(単一原料米,「コシヒカリ」以外)【函館市】",
     );
+  });
+
+  test("decodes e-Stat months and offers only positive common months", () => {
+    expect(commodityMonth("2025000303")).toBe("2025-03");
+    expect(commodityMonth("2024001212")).toBe("2024-12");
+    expect(commodityMonth("2025001301")).toBeNull();
+    const result = transformData(dummyData);
+    expect(result.availableMonths).toEqual(["2025-01", "2025-02", "2025-03"]);
+  });
+
+  test("rebases each series to 100 and retains missing values as gaps", () => {
+    const result = transformData(dummyData, "2025-02");
+    expect(result.referenceMonth).toBe("2025-02");
+    expect(result.availableMonths).toContain("2025-02");
+    const series = getSeries(result.chartData);
+    expect(series[0].data.slice(-3)).toEqual([100, 100, 4221 / 3948 * 100]);
+    expect(series[0].data[0]).toBeNull();
+    expect(series[1].data.at(-1)).toBeCloseTo(4169 / 3934 * 100);
+  });
+
+  test("falls back to yen when the chosen month is not common", () => {
+    const result = transformData(dummyData, "2000-01");
+    expect(result.referenceMonth).toBeNull();
+    expect(getSeries(result.chartData)[0].data.at(-1)).toBe(4221);
   });
 });
