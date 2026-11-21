@@ -56,7 +56,7 @@
     <p>ゆっくりですが内容を充実させていきたいと思っています。</p>
 
     <section aria-labelledby="projects-title">
-      <h2 id="projects-title">ページ一覧</h2>
+      <h2 id="projects-title">データ可視化</h2>
       {#each categories as category (category.id)}
         <section aria-labelledby={category.id}>
           <h3 id={category.id}>{category.title}</h3>
@@ -67,6 +67,15 @@
           </div>
         </section>
       {/each}
+    </section>
+
+    <section aria-labelledby="articles-title">
+      <h2 id="articles-title">記事</h2>
+      <div class="card-grid">
+        <a class="card" href={`${VITE_ROOT_PATH}/articles/commodity_prices`}
+          >モノの価格の推移を見る</a
+        >
+      </div>
     </section>
 
     <div>
@@ -110,5 +119,6 @@
     border-radius: var(--radius-md);
     color: inherit;
     text-decoration: none;
+    text-align: center;
   }
 </style>

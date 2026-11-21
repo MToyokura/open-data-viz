@@ -33,9 +33,14 @@ function valuesByMonth(item) {
  * in yen. Passing a common YYYY-MM month rebases each series to 100 at that month.
  * @param {CommodityPrices[]} data
  * @param {string} [selectedMonth]
+ * @param {string} [initialStartMonth]
  * @returns {{ chartData: EChartsOption | null, availableMonths: string[], referenceMonth: string | null }}
  */
-export function transformData(data, selectedMonth = "") {
+export function transformData(
+  data,
+  selectedMonth = "",
+  initialStartMonth = "",
+) {
   const maps = data.map(valuesByMonth);
   const dates = [...new Set(maps.flatMap((map) => [...map.keys()]))].sort();
   const availableMonths = dates.filter(
@@ -102,8 +107,9 @@ export function transformData(data, selectedMonth = "") {
                 xAxisIndex: 0,
                 show: true,
                 realtime: true,
-                start: 0,
-                end: 100,
+                ...(initialStartMonth
+                  ? { startValue: initialStartMonth.replace("-", "年") + "月" }
+                  : { start: 0, end: 100 }),
                 height: 20,
                 bottom: 8,
                 showDetail: false,
@@ -112,6 +118,9 @@ export function transformData(data, selectedMonth = "") {
               {
                 type: "inside",
                 xAxisIndex: 0,
+                ...(initialStartMonth
+                  ? { startValue: initialStartMonth.replace("-", "年") + "月" }
+                  : {}),
                 zoomOnMouseWheel: true,
                 moveOnMouseMove: true,
                 moveOnMouseWheel: false,

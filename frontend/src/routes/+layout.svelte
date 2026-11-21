@@ -22,6 +22,7 @@
     page.url.pathname.replace(/\/+$/, "") ===
       VITE_ROOT_PATH.replace(/\/+$/, ""),
   );
+  const isArticlePage = $derived(page.url.pathname.includes("/articles"));
 </script>
 
 <svelte:head>
@@ -32,7 +33,7 @@
   />
 </svelte:head>
 
-{#if !isWorkspace && !isHome}
+{#if !isWorkspace && !isArticlePage && !isHome}
   <nav class="site-nav">
     <a href={`${VITE_ROOT_PATH}/`} aria-label="ホームに戻る">
       <img src={homeIcon} alt="" />
