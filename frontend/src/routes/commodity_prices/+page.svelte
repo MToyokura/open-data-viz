@@ -20,60 +20,154 @@
   let excludedPairKeys = $state(/** @type {string[]} */ ([]));
   let rebaseEnabled = $state(false);
   let selectedMonth = $state(/** @type {string|null} */ (null));
-  let commodityPricesByKey = $state.raw(/** @type {Record<string, CommodityPrices>} */ ({}));
-  let seriesStates = $state(/** @type {Record<string, { status: "loading"|"loaded"|"error"|"empty", error?: string }>} */ ({}));
+  let commodityPricesByKey = $state.raw(
+    /** @type {Record<string, CommodityPrices>} */ ({}),
+  );
+  let seriesStates = $state(
+    /** @type {Record<string, { status: "loading"|"loaded"|"error"|"empty", error?: string }>} */ ({}),
+  );
   const inFlightRequests = Object.create(null);
-  const panels = useResponsivePanels(() => selectedCombinations.length, { mobileOpen: true });
+  const panels = useResponsivePanels(() => selectedCombinations.length, {
+    mobileOpen: true,
+  });
   let selectedCombinations = $derived.by(() => {
     const products = cat02LookupResult.cat02Lookup ?? [];
     const areas = areaLookupResult.areaLookup ?? [];
-    return selectedCat02Codes.flatMap((cat02Code) => selectedAreaCodes.flatMap((areaCode) => {
-      const key = `${cat02Code}:${areaCode}`;
-      const product = products.find((entry) => entry.cat02_code === cat02Code);
-      const area = areas.find((entry) => entry.area_code === areaCode);
-      return product && area && !excludedPairKeys.includes(key) ? [{ cat02Code, areaCode, cat02Name: product.cat02_name, areaName: area.area_name }] : [];
-    }));
+    return selectedCat02Codes.flatMap((cat02Code) =>
+      selectedAreaCodes.flatMap((areaCode) => {
+        const key = `${cat02Code}:${areaCode}`;
+        const product = products.find(
+          (entry) => entry.cat02_code === cat02Code,
+        );
+        const area = areas.find((entry) => entry.area_code === areaCode);
+        return product && area && !excludedPairKeys.includes(key)
+          ? [
+              {
+                cat02Code,
+                areaCode,
+                cat02Name: product.cat02_name,
+                areaName: area.area_name,
+              },
+            ]
+          : [];
+      }),
+    );
   });
-  let activeKeys = $derived(selectedCombinations.map(({cat02Code, areaCode}) => `${cat02Code}:${areaCode}`));
-  let selectedCommodityPrices = $derived(activeKeys.map((key) => commodityPricesByKey[key]).filter(Boolean));
-  let allResolved = $derived(selectedCombinations.length > 0 && selectedCombinations.every(({cat02Code, areaCode}) => ["loaded", "empty"].includes(seriesStates[`${cat02Code}:${areaCode}`]?.status)));
-  let hasError = $derived(selectedCombinations.some(({cat02Code, areaCode}) => seriesStates[`${cat02Code}:${areaCode}`]?.status === "error"));
-  let result = $derived(allResolved ? transformData(selectedCommodityPrices, selectedMonth ?? "") : null);
+  let activeKeys = $derived(
+    selectedCombinations.map(
+      ({ cat02Code, areaCode }) => `${cat02Code}:${areaCode}`,
+    ),
+  );
+  let selectedCommodityPrices = $derived(
+    activeKeys.map((key) => commodityPricesByKey[key]).filter(Boolean),
+  );
+  let allResolved = $derived(
+    selectedCombinations.length > 0 &&
+      selectedCombinations.every(({ cat02Code, areaCode }) =>
+        ["loaded", "empty"].includes(
+          seriesStates[`${cat02Code}:${areaCode}`]?.status,
+        ),
+      ),
+  );
+  let hasError = $derived(
+    selectedCombinations.some(
+      ({ cat02Code, areaCode }) =>
+        seriesStates[`${cat02Code}:${areaCode}`]?.status === "error",
+    ),
+  );
+  let result = $derived(
+    allResolved
+      ? transformData(selectedCommodityPrices, selectedMonth ?? "")
+      : null,
+  );
   let chartData = $derived(result?.chartData ?? null);
   let availableMonths = $derived(result?.availableMonths ?? []);
   let effectiveMonth = $derived(result?.referenceMonth ?? null);
   let sliderMonths = $derived(availableMonths);
-  let sliderIndex = $derived(effectiveMonth ? sliderMonths.indexOf(effectiveMonth) : Math.max(0, sliderMonths.length - 1));
+  let sliderIndex = $derived(
+    effectiveMonth
+      ? sliderMonths.indexOf(effectiveMonth)
+      : Math.max(0, sliderMonths.length - 1),
+  );
   /** @param {string} month */
-  function formatMonth(month) { const [year, number] = month.split("-"); return `${year}年${Number(number)}月`; }
-  $effect(() => { const pairs = selectedCombinations; untrack(() => pairs.forEach((pair) => void loadSeries(pair))); });
+  function formatMonth(month) {
+    const [year, number] = month.split("-");
+    return `${year}年${Number(number)}月`;
+  }
+  $effect(() => {
+    const pairs = selectedCombinations;
+    untrack(() => pairs.forEach((pair) => void loadSeries(pair)));
+  });
   /** @param {{cat02Code:string, areaCode:string}} pair @param {boolean} [retry] */
   async function loadSeries(pair, retry = false) {
-    const {cat02Code, areaCode} = pair; const key = `${cat02Code}:${areaCode}`;
-    if (commodityPricesByKey[key] && !retry) { seriesStates[key] = {status:"loaded"}; return; }
+    const { cat02Code, areaCode } = pair;
+    const key = `${cat02Code}:${areaCode}`;
+    if (commodityPricesByKey[key] && !retry) {
+      seriesStates[key] = { status: "loaded" };
+      return;
+    }
     if (seriesStates[key]?.status === "empty" && !retry) return;
     let request = inFlightRequests[key];
-    if (!request) { seriesStates[key] = {status:"loading"}; request = fetchCommodityPrices({cat02Code, areaCode}); inFlightRequests[key] = request; }
+    if (!request) {
+      seriesStates[key] = { status: "loading" };
+      request = fetchCommodityPrices({ cat02Code, areaCode });
+      inFlightRequests[key] = request;
+    }
     try {
       const data = await request;
-      if (data && data.time_value_pairs?.some(/** @param {{value:string|number}} entry */ (entry) => Number.isFinite(Number(entry.value)))) { commodityPricesByKey[key] = data; seriesStates[key] = {status:"loaded"}; }
-      else seriesStates[key] = {status:"empty"};
-    } catch (cause) { seriesStates[key] = {status:"error", error:cause instanceof Error ? cause.message : "データの取得に失敗しました"}; }
-    finally { if (inFlightRequests[key] === request) delete inFlightRequests[key]; }
+      if (
+        data &&
+        data.time_value_pairs?.some(
+          /** @param {{value:string|number}} entry */ (entry) =>
+            Number.isFinite(Number(entry.value)),
+        )
+      ) {
+        commodityPricesByKey[key] = data;
+        seriesStates[key] = { status: "loaded" };
+      } else seriesStates[key] = { status: "empty" };
+    } catch (cause) {
+      seriesStates[key] = {
+        status: "error",
+        error:
+          cause instanceof Error ? cause.message : "データの取得に失敗しました",
+      };
+    } finally {
+      if (inFlightRequests[key] === request) delete inFlightRequests[key];
+    }
   }
   /** @param {string} cat02Code @param {string} areaCode */
-  function retrySeries(cat02Code, areaCode) { delete seriesStates[`${cat02Code}:${areaCode}`]; void loadSeries({cat02Code, areaCode}, true); }
-  function handleReset() { selectedCat02Codes = []; selectedAreaCodes = []; excludedPairKeys = []; selectedMonth = null; rebaseEnabled = false; }
+  function retrySeries(cat02Code, areaCode) {
+    delete seriesStates[`${cat02Code}:${areaCode}`];
+    void loadSeries({ cat02Code, areaCode }, true);
+  }
+  function handleReset() {
+    selectedCat02Codes = [];
+    selectedAreaCodes = [];
+    excludedPairKeys = [];
+    selectedMonth = null;
+    rebaseEnabled = false;
+  }
   /** @param {Event & {currentTarget: HTMLInputElement}} event */
   function toggleRebase(event) {
     rebaseEnabled = event.currentTarget.checked;
-    if (rebaseEnabled && availableMonths.length > 0 && !availableMonths.includes(selectedMonth ?? "")) selectedMonth = availableMonths.at(-1) ?? null;
+    if (
+      rebaseEnabled &&
+      availableMonths.length > 0 &&
+      !availableMonths.includes(selectedMonth ?? "")
+    )
+      selectedMonth = availableMonths.at(-1) ?? null;
     if (!rebaseEnabled) selectedMonth = null;
   }
   /** @param {string} cat02Code @param {string} areaCode */
-  function handleRemove(cat02Code, areaCode) { const key = `${cat02Code}:${areaCode}`; if (!excludedPairKeys.includes(key)) excludedPairKeys = [...excludedPairKeys, key]; }
+  function handleRemove(cat02Code, areaCode) {
+    const key = `${cat02Code}:${areaCode}`;
+    if (!excludedPairKeys.includes(key))
+      excludedPairKeys = [...excludedPairKeys, key];
+  }
   /** @param {Event & {currentTarget: HTMLInputElement}} event */
-  function changeSlider(event) { selectedMonth = sliderMonths[Number(event.currentTarget.value)] ?? null; }
+  function changeSlider(event) {
+    selectedMonth = sliderMonths[Number(event.currentTarget.value)] ?? null;
+  }
 </script>
 
 <svelte:head>
@@ -169,7 +263,10 @@
               <button
                 onclick={handleReset}
                 class="reset-button"
-                disabled={selectedCat02Codes.length === 0 && selectedAreaCodes.length === 0 && excludedPairKeys.length === 0 && selectedMonth === null}>すべて消去</button
+                disabled={selectedCat02Codes.length === 0 &&
+                  selectedAreaCodes.length === 0 &&
+                  excludedPairKeys.length === 0 &&
+                  selectedMonth === null}>すべて消去</button
               >
             </details>
           </section>
@@ -181,29 +278,56 @@
       <section class="chart-panel" aria-label="価格推移グラフ">
         <div class="reference-controls">
           <label class="rebase-toggle">
-            <input type="checkbox" checked={rebaseEnabled} disabled={availableMonths.length === 0 && !rebaseEnabled} onchange={toggleRebase} />
+            <input
+              type="checkbox"
+              checked={rebaseEnabled}
+              disabled={availableMonths.length === 0 && !rebaseEnabled}
+              onchange={toggleRebase}
+            />
             基準月で指数化
           </label>
           {#if rebaseEnabled && selectedCombinations.length > 0 && allResolved && availableMonths.length > 0}
-            <label>基準月
+            <label
+              >基準月
               <select bind:value={selectedMonth}>
-                {#each availableMonths as month (month)}<option value={month}>{formatMonth(month)}（100）</option>{/each}
+                {#each availableMonths as month (month)}<option value={month}
+                    >{formatMonth(month)}（100）</option
+                  >{/each}
               </select>
             </label>
             {#if availableMonths.length > 1}
-              <input aria-label="基準月を選択" type="range" min="0" max={sliderMonths.length - 1} value={sliderIndex} oninput={changeSlider} />
+              <input
+                aria-label="基準月を選択"
+                type="range"
+                min="0"
+                max={sliderMonths.length - 1}
+                value={sliderIndex}
+                oninput={changeSlider}
+              />
             {/if}
           {/if}
         </div>
-        {#if rebaseEnabled && selectedMonth && !availableMonths.includes(selectedMonth)}<p class="muted">系列の選択が変わったため、選択中の基準月は利用できません。共通の月を選び直してください。</p>{/if}
+        {#if rebaseEnabled && selectedMonth && !availableMonths.includes(selectedMonth)}<p
+            class="muted"
+          >
+            系列の選択が変わったため、選択中の基準月は利用できません。共通の月を選び直してください。
+          </p>{/if}
         {#if hasError && selectedCommodityPrices.length === 0}
-          <LoadState state="error" message="価格データを取得できませんでした。選択中一覧から再試行してください。" />
+          <LoadState
+            state="error"
+            message="価格データを取得できませんでした。選択中一覧から再試行してください。"
+          />
         {:else if selectedCombinations.length > 0 && !allResolved}
           <LoadState state="loading" message="価格データを読み込んでいます…" />
         {:else if selectedCombinations.length > 0 && selectedCommodityPrices.length === 0}
-          <div class="empty-chart"><h2>該当データがありません</h2><p>選択中の品目と地域の組み合わせに価格データがありません。</p></div>
+          <div class="empty-chart">
+            <h2>該当データがありません</h2>
+            <p>選択中の品目と地域の組み合わせに価格データがありません。</p>
+          </div>
         {:else if hasError}
-          <p class="muted">取得できない系列があります。利用可能な系列を表示しています。</p>
+          <p class="muted">
+            取得できない系列があります。利用可能な系列を表示しています。
+          </p>
         {/if}
         {#if chartData}
           <LineChart {chartData} />
@@ -227,9 +351,20 @@
   .chart-panel {
     --chart-height: calc(100dvh - 12rem);
   }
-  .reference-controls { display:flex; align-items:center; gap:1rem; margin-bottom:.75rem; }
-  .reference-controls label { display:flex; align-items:center; gap:.5rem; }
-  .reference-controls input[type="range"] { flex:1; }
+  .reference-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .reference-controls label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .reference-controls input[type="range"] {
+    flex: 1;
+  }
 
   @media (max-width: 50rem) {
     .chart-panel {

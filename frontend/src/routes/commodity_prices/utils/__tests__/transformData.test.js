@@ -156,7 +156,9 @@ describe("transformData", () => {
 
     // Check that the date format is YYYY-MM
     expect(
-      (getLabels(result) ?? []).every((label) => /^\d{4}年\d{2}月$/.test(label)),
+      (getLabels(result) ?? []).every((label) =>
+        /^\d{4}年\d{2}月$/.test(label),
+      ),
     ).toBe(true);
 
     // Check specific examples
@@ -188,9 +190,9 @@ describe("transformData", () => {
     expect(result.referenceMonth).toBe("2025-02");
     expect(result.availableMonths).toContain("2025-02");
     const series = getSeries(result.chartData);
-    expect(series[0].data.slice(-3)).toEqual([100, 100, 4221 / 3948 * 100]);
+    expect(series[0].data.slice(-3)).toEqual([100, 100, (4221 / 3948) * 100]);
     expect(series[0].data[0]).toBeNull();
-    expect(series[1].data.at(-1)).toBeCloseTo(4169 / 3934 * 100);
+    expect(series[1].data.at(-1)).toBeCloseTo((4169 / 3934) * 100);
   });
 
   test("falls back to yen when the chosen month is not common", () => {

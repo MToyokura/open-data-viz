@@ -11,7 +11,9 @@ export function commodityMonth(time) {
   if (!/^\d{10}$/.test(time)) return null;
   const year = time.slice(0, 4);
   const month = Number(time.slice(6, 8));
-  return month >= 1 && month <= 12 ? `${year}-${String(month).padStart(2, "0")}` : null;
+  return month >= 1 && month <= 12
+    ? `${year}-${String(month).padStart(2, "0")}`
+    : null;
 }
 
 /** @param {CommodityPrices} item */
@@ -36,14 +38,20 @@ function valuesByMonth(item) {
 export function transformData(data, selectedMonth = "") {
   const maps = data.map(valuesByMonth);
   const dates = [...new Set(maps.flatMap((map) => [...map.keys()]))].sort();
-  const availableMonths = dates.filter((month) =>
-    maps.length > 0 && maps.every((map) => {
-      const value = map.get(month);
-      return typeof value === "number" && Number.isFinite(value) && value > 0;
-    }),
+  const availableMonths = dates.filter(
+    (month) =>
+      maps.length > 0 &&
+      maps.every((map) => {
+        const value = map.get(month);
+        return typeof value === "number" && Number.isFinite(value) && value > 0;
+      }),
   );
-  const referenceMonth = availableMonths.includes(selectedMonth) ? selectedMonth : null;
-  const refValues = referenceMonth ? maps.map((map) => map.get(referenceMonth)) : [];
+  const referenceMonth = availableMonths.includes(selectedMonth)
+    ? selectedMonth
+    : null;
+  const refValues = referenceMonth
+    ? maps.map((map) => map.get(referenceMonth))
+    : [];
   const series = data.map((item, index) => ({
     name: `${item.cat02_name}【${item.area_name}】`,
     type: /** @type {"line"} */ ("line"),
@@ -61,27 +69,56 @@ export function transformData(data, selectedMonth = "") {
   return {
     availableMonths,
     referenceMonth,
-    chartData: data.length === 0 ? null : {
-      animation: false,
-      aria: { enabled: true },
-      tooltip: {
-        trigger: "axis",
-        ...(referenceMonth ? { valueFormatter: (value) => typeof value === "number" ? value.toFixed(1) : "–" } : {}),
-      },
-      legend: { type: "scroll", left: 56, top: 8 },
-      grid: { left: 64, right: 24, top: 48, bottom: 88 },
-      xAxis: { type: "category", data: dates.map((date) => date.replace("-", "年") + "月") },
-      yAxis: {
-        type: "value",
-        name: referenceMonth ? "共通基準月＝100" : "価格（円）",
-        nameLocation: "middle",
-        nameGap: 46,
-      },
-      dataZoom: [
-        { type: "slider", xAxisIndex: 0, show: true, realtime: true, start: 0, end: 100, height: 20, bottom: 8, showDetail: false, brushSelect: false },
-        { type: "inside", xAxisIndex: 0, zoomOnMouseWheel: true, moveOnMouseMove: true, moveOnMouseWheel: false, preventDefaultMouseMove: true },
-      ],
-      series,
-    },
+    chartData:
+      data.length === 0
+        ? null
+        : {
+            animation: false,
+            aria: { enabled: true },
+            tooltip: {
+              trigger: "axis",
+              ...(referenceMonth
+                ? {
+                    valueFormatter: (value) =>
+                      typeof value === "number" ? value.toFixed(1) : "–",
+                  }
+                : {}),
+            },
+            legend: { type: "scroll", left: 56, top: 8 },
+            grid: { left: 64, right: 24, top: 48, bottom: 88 },
+            xAxis: {
+              type: "category",
+              data: dates.map((date) => date.replace("-", "年") + "月"),
+            },
+            yAxis: {
+              type: "value",
+              name: referenceMonth ? "共通基準月＝100" : "価格（円）",
+              nameLocation: "middle",
+              nameGap: 46,
+            },
+            dataZoom: [
+              {
+                type: "slider",
+                xAxisIndex: 0,
+                show: true,
+                realtime: true,
+                start: 0,
+                end: 100,
+                height: 20,
+                bottom: 8,
+                showDetail: false,
+                brushSelect: false,
+              },
+              {
+                type: "inside",
+                xAxisIndex: 0,
+                zoomOnMouseWheel: true,
+                moveOnMouseMove: true,
+                moveOnMouseWheel: false,
+                preventDefaultMouseMove: true,
+              },
+            ],
+            series,
+          },
   };
 }

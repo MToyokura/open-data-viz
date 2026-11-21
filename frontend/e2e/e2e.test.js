@@ -56,7 +56,10 @@ test("commodity_prices page has expected content and behavior", async ({
           cat02_name: "食パン",
           area_code: "01100",
           area_name: "札幌市",
-          time_value_pairs: [{ time: "2025000101", value: "200" }, { time: "2025000201", value: "210" }],
+          time_value_pairs: [
+            { time: "2025000101", value: "200" },
+            { time: "2025000201", value: "210" },
+          ],
         },
       }),
   );
