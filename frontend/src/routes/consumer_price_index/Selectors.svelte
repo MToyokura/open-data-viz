@@ -1,4 +1,6 @@
 <script>
+  import { buildItemDisplayHierarchy } from "./utils/itemDisplayHierarchy.js";
+
   /** @typedef {{ code: string, name: string, level?: string, parentCode?: string }} Item */
   /** @typedef {{ code: string, name: string }} Region */
   /** @typedef {{ itemCode: string, areaCode: string }} SelectedCombination */
@@ -13,8 +15,9 @@
   } = $props();
   let itemQuery = $state("");
   let regionQuery = $state("");
+  let displayItems = $derived(buildItemDisplayHierarchy(items));
   let filteredItems = $derived(
-    items.filter((item) => item.name.includes(itemQuery.trim())),
+    displayItems.filter((item) => item.name.includes(itemQuery.trim())),
   );
   let filteredRegions = $derived(
     regions.filter((region) => region.name.includes(regionQuery.trim())),
@@ -71,10 +74,7 @@
     </label>
     <div class="options item-options">
       {#each filteredItems as item (item.code)}
-        <label
-          class="option"
-          style:--depth={Math.max(0, Number(item.level ?? 1) - 1)}
-        >
+        <label class="option" style:--depth={item.displayDepth}>
           <input
             type="checkbox"
             checked={itemIsSelected(item.code)}
