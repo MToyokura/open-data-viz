@@ -96,6 +96,10 @@ clone 後、ネット接続と e-Stat のアプリケーション ID を用意�
 
 生成の仕組み、調査コマンド、ファイル形式、データの解釈は[野菜リレーの実験・調査記録](inspections/vegetable_production_relay/README.md)を参照してください。
 
+## 海面漁業魚種別漁獲量
+
+全国累年統計のワークブックから年別・魚種別漁獲量と原資料の注記を生成します。保存済みワークブックを再変換する場合は `./data_preparation/scripts/prepare.sh run -- marine-fishery-catch --transform-only` を実行します。調査時の構造と照合点は[調査記録](inspections/marine_fishery_catch/README.md)を参照してください。
+
 ## 都道府県データ
 
 ```sh

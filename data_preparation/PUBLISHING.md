@@ -11,6 +11,7 @@
 | 雇用者数 | `workers_by_age_employment_type_education_sex/meta_data/options.json`、`transformed_data/` 内の JSON |
 | 消費者物価指数 | `consumer_price_index/transformed_data/` 内の JSON |
 | 野菜の産地リレー | `vegetable_production_relay/products.json`、`*.summary.json`、`veg-*/details/` 内の JSON |
+| 海面漁業魚種別漁獲量 | `marine_fishery_catch/transformed_data/catches.json` |
 | 都道府県地図 | `prefectures/N03-20260101_prefecture_simplified.geojson` |
 
 公開対象は `scripts/publish.sh` に列挙しています。生成形式やフロントエンドの読み込み先を変更した場合は、この一覧とスクリプトも更新してください。
@@ -39,6 +40,12 @@ GCS_BUCKET=gs://YOUR_BUCKET
 
 ```sh
 ./data_preparation/scripts/publish.sh --only asset_distribution,workers_by_age_employment_type_education_sex
+```
+
+海面漁業漁獲量だけを公開する場合は、生成済みの `catches.json` を確認してから次を実行します。
+
+```sh
+./data_preparation/scripts/publish.sh --only marine_fishery_catch
 ```
 
 指定しなかったプロジェクトの出力はアップロード対象に含まれません。プロジェクト名はスクリプトの `--help` で確認できます。
