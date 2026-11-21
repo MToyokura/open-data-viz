@@ -20,6 +20,25 @@
   font-size: clamp(1.7rem, 5vw, 2.15rem);
 }
 
+.article-page .article-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.5rem 0 0;
+  color: var(--text-muted-color);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.article-page .article-dates div {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.article-page .article-dates dd {
+  margin: 0;
+}
+
 .article-page .article-content h2 {
   margin: 3rem 0 0.8rem;
   font-size: 1.55rem;
