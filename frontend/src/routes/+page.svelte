@@ -1,30 +1,48 @@
 <script>
   import { VITE_ROOT_PATH } from "#lib/paths.js";
 
-  const projects = [
+  const categories = [
     {
-      title: "消費者物価指数",
-      href: `${VITE_ROOT_PATH}/consumer_price_index`,
+      id: "prices",
+      title: "物価と買い物",
+      projects: [
+        {
+          title: "消費者物価指数",
+          href: `${VITE_ROOT_PATH}/consumer_price_index`,
+        },
+        {
+          title: "主要品目の都市別小売価格",
+          href: `${VITE_ROOT_PATH}/commodity_prices`,
+        },
+      ],
     },
     {
-      title: "主要品目の都市別小売価格",
-      href: `${VITE_ROOT_PATH}/commodity_prices`,
+      id: "food",
+      title: "食と農業",
+      projects: [
+        {
+          title: "野菜の産地リレー",
+          href: `${VITE_ROOT_PATH}/vegetable_production_relay`,
+        },
+      ],
     },
     {
-      title: "野菜の産地リレー",
-      href: `${VITE_ROOT_PATH}/vegetable_production_relay`,
-    },
-    {
-      title: "年齢階級，教育，雇用形態別雇用者数",
-      href: `${VITE_ROOT_PATH}/workers_by_age_employment_type_education_sex`,
-    },
-    {
-      title: "日本の純資産分布",
-      href: `${VITE_ROOT_PATH}/asset_distribution`,
-    },
-    {
-      title: "社会保障給付費収支",
-      href: `${VITE_ROOT_PATH}/social_security_budget_flow`,
+      id: "society",
+      title: "雇用・資産・社会保障",
+      projects: [
+        {
+          title: "年齢階級，教育，雇用形態別雇用者数",
+          href: `${VITE_ROOT_PATH}/workers_by_age_employment_type_education_sex`,
+        },
+        {
+          title: "日本の純資産分布",
+          href: `${VITE_ROOT_PATH}/asset_distribution`,
+        },
+        {
+          title: "社会保障給付費収支",
+          href: `${VITE_ROOT_PATH}/social_security_budget_flow`,
+        },
+      ],
     },
   ];
 </script>
@@ -38,12 +56,17 @@
     <p>ゆっくりですが内容を充実させていきたいと思っています。</p>
 
     <section aria-labelledby="projects-title">
-      <h2 id="projects-title">今あるもの</h2>
-      <div class="card-grid">
-        {#each projects as project (project.href)}
-          <a class="card" href={project.href}>{project.title}</a>
-        {/each}
-      </div>
+      <h2 id="projects-title">ページ一覧</h2>
+      {#each categories as category (category.id)}
+        <section aria-labelledby={category.id}>
+          <h3 id={category.id}>{category.title}</h3>
+          <div class="card-grid">
+            {#each category.projects as project (project.href)}
+              <a class="card" href={project.href}>{project.title}</a>
+            {/each}
+          </div>
+        </section>
+      {/each}
     </section>
 
     <div>
@@ -76,7 +99,7 @@
 
   .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
     gap: 1rem;
   }
 
