@@ -174,14 +174,14 @@
             </details>
           </section>
         {/if}
-        <Reference {rebaseEnabled} />
+        <Reference rebaseEnabled={effectiveMonth !== null} />
         <LicenseLink />
       </aside>
 
       <section class="chart-panel" aria-label="価格推移グラフ">
         <div class="reference-controls">
           <label class="rebase-toggle">
-            <input type="checkbox" checked={rebaseEnabled} disabled={availableMonths.length === 0} onchange={toggleRebase} />
+            <input type="checkbox" checked={rebaseEnabled} disabled={availableMonths.length === 0 && !rebaseEnabled} onchange={toggleRebase} />
             基準月で指数化
           </label>
           {#if rebaseEnabled && selectedCombinations.length > 0 && allResolved && availableMonths.length > 0}
@@ -196,10 +196,10 @@
           {/if}
         </div>
         {#if rebaseEnabled && selectedMonth && !availableMonths.includes(selectedMonth)}<p class="muted">系列の選択が変わったため、選択中の基準月は利用できません。共通の月を選び直してください。</p>{/if}
-        {#if selectedCombinations.length > 0 && !allResolved}
-          <LoadState state="loading" message="価格データを読み込んでいます…" />
-        {:else if hasError && selectedCommodityPrices.length === 0}
+        {#if hasError && selectedCommodityPrices.length === 0}
           <LoadState state="error" message="価格データを取得できませんでした。選択中一覧から再試行してください。" />
+        {:else if selectedCombinations.length > 0 && !allResolved}
+          <LoadState state="loading" message="価格データを読み込んでいます…" />
         {:else if selectedCombinations.length > 0 && selectedCommodityPrices.length === 0}
           <div class="empty-chart"><h2>該当データがありません</h2><p>選択中の品目と地域の組み合わせに価格データがありません。</p></div>
         {:else if hasError}

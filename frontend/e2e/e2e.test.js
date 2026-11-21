@@ -69,7 +69,7 @@ test("commodity_prices page has expected content and behavior", async ({
       .top,
   }));
   expect(panelPositions.chart).toBeLessThan(panelPositions.controls);
-  await page.locator(".selector-panel > summary").click();
+  await expect(page.locator(".selector-panel")).toHaveAttribute("open", "");
   const area = page.getByRole("checkbox", { name: "札幌市" });
   await expect(area).toBeEnabled();
   await expect(

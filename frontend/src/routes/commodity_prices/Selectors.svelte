@@ -11,11 +11,11 @@
   /** @param {string[]} values @param {string} value @param {boolean} checked */
   const toggle = (values, value, checked) => checked ? [...new Set([...values, value])] : values.filter((entry) => entry !== value);
   /** @param {string} code */
-  function itemIsSelected(code) { return selectedAreaCodes.length > 0 && selectedCombinations.filter((entry) => entry.cat02Code === code).length === selectedAreaCodes.length; }
+  function itemIsSelected(code) { return selectedAreaCodes.length === 0 ? selectedCat02Codes.includes(code) : selectedCombinations.filter((entry) => entry.cat02Code === code).length === selectedAreaCodes.length; }
   /** @param {string} code */
   function itemIsPartial(code) { const n = selectedCombinations.filter((entry) => entry.cat02Code === code).length; return n > 0 && n < selectedAreaCodes.length; }
   /** @param {string} code */
-  function areaIsSelected(code) { return selectedCat02Codes.length > 0 && selectedCombinations.filter((entry) => entry.areaCode === code).length === selectedCat02Codes.length; }
+  function areaIsSelected(code) { return selectedCat02Codes.length === 0 ? selectedAreaCodes.includes(code) : selectedCombinations.filter((entry) => entry.areaCode === code).length === selectedCat02Codes.length; }
   /** @param {string} code */
   function areaIsPartial(code) { const n = selectedCombinations.filter((entry) => entry.areaCode === code).length; return n > 0 && n < selectedCat02Codes.length; }
 </script>
