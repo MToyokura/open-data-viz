@@ -83,7 +83,10 @@ test("commodity_prices page has expected content and behavior", async ({
 
   await expect(page.getByText("食パン【札幌市】")).toBeVisible();
   await expect(page.locator(".chart-scroll-container")).toBeVisible();
-  await page.getByRole("button", { name: "スクロール表示" }).click();
+  const fitToggle = page.getByRole("button", { name: "画面幅に収める" });
+  await expect(fitToggle).toHaveAttribute("aria-pressed", "true");
+  await fitToggle.click();
+  await expect(fitToggle).toHaveAttribute("aria-pressed", "false");
   const scrollRegion = page.getByRole("region", {
     name: "価格推移グラフ。左右にスクロールできます",
   });
@@ -96,6 +99,9 @@ test("commodity_prices page has expected content and behavior", async ({
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(375);
+  await fitToggle.click();
+  await expect(fitToggle).toHaveAttribute("aria-pressed", "true");
+  await expect(scrollRegion).toHaveCount(0);
 });
 
 test("social security chart uses the shared tooltip style on hover", async ({

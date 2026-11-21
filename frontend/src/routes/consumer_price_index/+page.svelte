@@ -23,6 +23,7 @@
   let lookupLoading = $state(true);
   let selectedItemCodes = $state(/** @type {string[]} */ ([]));
   let selectedAreaCodes = $state(/** @type {string[]} */ ([]));
+  let excludedCombinationKeys = $state(/** @type {string[]} */ ([]));
   let selectedMonth = $state(/** @type {string | null} */ (null));
   /** @type {"index" | "normalized"} */
   let view = $derived(selectedMonth === null ? "index" : "normalized");
@@ -36,26 +37,31 @@
     const itemOptions = items;
     const regionOptions = regions;
     if (!itemOptions || !regionOptions) return [];
-    return selectedItemCodes.flatMap((itemCode) => {
-      const item = itemOptions.find((entry) => entry.code === itemCode);
-      if (!item) return [];
-      return selectedAreaCodes.flatMap((areaCode) => {
-        const region = regionOptions.find((entry) => entry.code === areaCode);
-        return region
-          ? [
-              {
-                itemCode,
-                areaCode,
-                itemName: item.name,
-                areaName: region.name,
-                itemIndex: itemOptions.findIndex(
-                  (entry) => entry.code === itemCode,
-                ),
-              },
-            ]
-          : [];
-      });
-    });
+    return selectedItemCodes
+      .flatMap((itemCode) => {
+        const item = itemOptions.find((entry) => entry.code === itemCode);
+        if (!item) return [];
+        return selectedAreaCodes.flatMap((areaCode) => {
+          const region = regionOptions.find((entry) => entry.code === areaCode);
+          return region
+            ? [
+                {
+                  itemCode,
+                  areaCode,
+                  itemName: item.name,
+                  areaName: region.name,
+                  itemIndex: itemOptions.findIndex(
+                    (entry) => entry.code === itemCode,
+                  ),
+                },
+              ]
+            : [];
+        });
+      })
+      .filter(
+        ({ itemCode, areaCode }) =>
+          !excludedCombinationKeys.includes(`${itemCode}:${areaCode}`),
+      );
   });
   let loadedSeries = $derived(
     selectedCombinations
@@ -172,20 +178,16 @@
   function handleReset() {
     selectedItemCodes = [];
     selectedAreaCodes = [];
+    excludedCombinationKeys = [];
     seriesStates = {};
     selectedMonth = null;
   }
 
   /** @param {{ itemCode: string, areaCode: string }} combination */
   function handleRemove(combination) {
-    if (selectedItemCodes.length === 1) {
-      selectedAreaCodes = selectedAreaCodes.filter(
-        (code) => code !== combination.areaCode,
-      );
-    } else {
-      selectedItemCodes = selectedItemCodes.filter(
-        (code) => code !== combination.itemCode,
-      );
+    const key = `${combination.itemCode}:${combination.areaCode}`;
+    if (!excludedCombinationKeys.includes(key)) {
+      excludedCombinationKeys = [...excludedCombinationKeys, key];
     }
   }
 
@@ -226,6 +228,8 @@
                 <Selectors
                   bind:selectedItemCodes
                   bind:selectedAreaCodes
+                  bind:excludedCombinationKeys
+                  {selectedCombinations}
                   {items}
                   {regions}
                 />
