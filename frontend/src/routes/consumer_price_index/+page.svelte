@@ -85,7 +85,7 @@
     ),
   );
   let chartResult = $derived(
-    allSelectedLoaded && selectedCombinations.length <= 40
+    allSelectedLoaded
       ? transformData(loadedSeries, view, selectedMonth ?? "")
       : { chartData: null, referenceMonth: null, availableMonths: [] },
   );
@@ -122,7 +122,7 @@
 
   $effect(() => {
     const combinations = selectedCombinations;
-    if (combinations.length === 0 || combinations.length > 40) return;
+    if (combinations.length === 0) return;
     untrack(() => {
       for (const combination of combinations) void loadCombination(combination);
     });
@@ -234,11 +234,6 @@
                   {items}
                   {regions}
                 />
-                {#if selectedCombinations.length > 40}
-                  <p class="error" role="alert">
-                    選択数が多いため、40系列以下になるよう品目または地域を減らしてください。
-                  </p>
-                {/if}
               </div>
             </details>
           </section>
@@ -319,9 +314,7 @@
           <select
             id="cpi-reference-month"
             bind:value={selectedMonth}
-            disabled={!allSelectedLoaded ||
-              selectedCombinations.length > 40 ||
-              loadedSeries.length === 0}
+            disabled={!allSelectedLoaded || loadedSeries.length === 0}
           >
             <option value={null}>2025年平均＝100（公表値）</option>
             {#if selectedMonth && !chartResult.availableMonths.includes(selectedMonth)}
@@ -357,12 +350,7 @@
           {/if}
         </div>
         <div class="chart-content">
-          {#if selectedCombinations.length > 40}
-            <div class="empty-chart">
-              <h2>選択数を減らしてください</h2>
-              <p>一度に表示できるのは40系列までです。</p>
-            </div>
-          {:else if selectedCombinations.length === 0}
+          {#if selectedCombinations.length === 0}
             <div class="empty-chart">
               <h2>指数の推移を比較</h2>
               <p>品目と地域を選ぶと、ここにグラフが表示されます。</p>

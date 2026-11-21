@@ -77,10 +77,6 @@
         >
           <input
             type="checkbox"
-            disabled={!selectedItemCodes.includes(item.code) &&
-              selectedItemCodes.length *
-                Math.max(1, selectedAreaCodes.length) >=
-                40}
             checked={itemIsSelected(item.code)}
             onchange={(event) => {
               selectedItemCodes = toggle(
@@ -118,10 +114,6 @@
         <label class="option">
           <input
             type="checkbox"
-            disabled={!selectedAreaCodes.includes(region.code) &&
-              selectedAreaCodes.length *
-                Math.max(1, selectedItemCodes.length) >=
-                40}
             checked={areaIsSelected(region.code)}
             onchange={(event) => {
               selectedAreaCodes = toggle(
@@ -148,10 +140,6 @@
     </div>
   </fieldset>
 </div>
-
-<p class="selection-limit">
-  一度に比較できる系列は40件までです。系列数は選択した品目数 × 地域数です。
-</p>
 
 <style>
   .selector-group {
@@ -214,10 +202,5 @@
   .muted {
     color: var(--text-muted-color);
     font-size: 0.875rem;
-  }
-  .selection-limit {
-    margin: 0;
-    color: var(--text-muted-color);
-    font-size: 0.8rem;
   }
 </style>
