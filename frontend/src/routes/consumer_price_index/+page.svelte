@@ -80,6 +80,13 @@
       ? transformData(loadedSeries, view, selectedMonth)
       : { chartData: null, referenceMonth: null, availableMonths: [] },
   );
+  let sliderMonths = $derived(chartResult.availableMonths.toReversed());
+  let sliderMax = $derived(Math.max(0, sliderMonths.length - 1));
+  let sliderIndex = $derived(
+    chartResult.referenceMonth
+      ? sliderMonths.indexOf(chartResult.referenceMonth)
+      : sliderMax,
+  );
 
   /** @param {string} month */
   function formatMonth(month) {
@@ -349,6 +356,22 @@
                 )}＝100（公表CPIを換算）</span
               >
             {/if}
+            {#if sliderMonths.length > 1}
+              <input
+                class="reference-month-slider"
+                type="range"
+                aria-label="基準月をスライダーで選ぶ"
+                aria-valuetext={formatMonth(sliderMonths[sliderIndex])}
+                min={0}
+                max={sliderMax}
+                step={1}
+                value={sliderIndex}
+                oninput={(event) => {
+                  selectedMonth =
+                    sliderMonths[event.currentTarget.valueAsNumber];
+                }}
+              />
+            {/if}
           </div>
         {/if}
         {#if selectedCombinations.length > 40}
@@ -431,6 +454,12 @@
   .reference-month select {
     min-height: 2.75rem;
     max-width: 100%;
+  }
+  .reference-month-slider {
+    flex: 0 0 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    margin: 0;
   }
   .empty-chart {
     min-height: 40vh;
