@@ -6,6 +6,7 @@ use modules::projects::commodity_prices::process_commodity_prices::process_commo
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if modules::projects::marine_fishery_catch::run(&args) { return; }
     if modules::projects::asset_distribution::run(&args) {
         return;
     }
@@ -70,7 +71,7 @@ fn main() {
 fn print_usage() {
     println!("Usage: ./scripts/prepare.sh run -- <command> [arguments]");
     println!(
-        "Commands include commodity-prices, prefectures-update, asset-distribution, vegetable-relay, workers-by-age-employment-type-education-sex, consumer-price-index, consumer-price-index-inspect, and social-security-budget-flow."
+        "Commands include commodity-prices, prefectures-update, asset-distribution, vegetable-relay, workers-by-age-employment-type-education-sex, consumer-price-index, consumer-price-index-inspect, social-security-budget-flow, and marine-fishery-catch."
     );
     println!(
         "Vegetable inspections: vegetable-relay-inspect-workbooks, vegetable-relay-acquire-product-observations, vegetable-relay-verify-product-mappings, vegetable-relay-verify-daikon-mapping, vegetable-relay-validate-m3-m5."
