@@ -56,7 +56,10 @@ test("commodity_prices page has expected content and behavior", async ({
           cat02_name: "食パン",
           area_code: "01100",
           area_name: "札幌市",
-          time_value_pairs: [{ time: "2025-01-01", value: "200" }],
+          time_value_pairs: [
+            { time: "2025000101", value: "200" },
+            { time: "2025000201", value: "210" },
+          ],
         },
       }),
   );
@@ -69,16 +72,14 @@ test("commodity_prices page has expected content and behavior", async ({
       .top,
   }));
   expect(panelPositions.chart).toBeLessThan(panelPositions.controls);
-  await page.locator(".selector-panel > summary").click();
+  await expect(page.locator(".selector-panel")).toHaveAttribute("open", "");
   const area = page.getByRole("checkbox", { name: "札幌市" });
-  await expect(area).toBeDisabled();
-  await expect(area).toHaveCSS("opacity", "0.6");
+  await expect(area).toBeEnabled();
   await expect(
     page.getByText("品目と地域を選ぶと、ここにグラフが表示されます。"),
   ).toBeVisible();
 
-  await page.getByRole("radio", { name: "食パン" }).check();
-  await expect(area).toBeEnabled();
+  await page.getByRole("checkbox", { name: "食パン" }).check();
   await area.check();
 
   await expect(page.getByText("食パン【札幌市】")).toBeVisible();

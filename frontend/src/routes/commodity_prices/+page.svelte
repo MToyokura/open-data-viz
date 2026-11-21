@@ -12,118 +12,120 @@
   import { transformData } from "./utils/transformData";
   import { useAreaLookup } from "./utils/useAreaLookup.svelte";
   import { useCat02Lookup } from "./utils/useCat02Lookup.svelte";
-
   /** @typedef {import("./constants/types.js").CommodityPrices} CommodityPrices */
-
   const cat02LookupResult = useCat02Lookup();
   const areaLookupResult = useAreaLookup();
-
-  let selectedCat02Code = $state("");
-  let selectedAreaCodesByCat02 = $state(
-    /** @type {Record<string, string[]>} */ ({}),
+  let selectedCat02Codes = $state(/** @type {string[]} */ ([]));
+  let selectedAreaCodes = $state(/** @type {string[]} */ ([]));
+  let excludedPairKeys = $state(/** @type {string[]} */ ([]));
+  let rebaseEnabled = $state(false);
+  let selectedMonth = $state(/** @type {string|null} */ (null));
+  let commodityPricesByKey = $state.raw(
+    /** @type {Record<string, CommodityPrices>} */ ({}),
   );
-  let commodityPrices = $state(/** @type {CommodityPrices[]} */ ([]));
   let seriesStates = $state(
-    /** @type {Record<string, { status: "loading"|"loaded"|"error"|"empty", error?: string }>} */
-    ({}),
+    /** @type {Record<string, { status: "loading"|"loaded"|"error"|"empty", error?: string }>} */ ({}),
   );
-  const panels = useResponsivePanels(() => selectedCombinations.length);
-  let fetchGeneration = 0;
-  /** @type {Record<string, Promise<CommodityPrices | undefined>>} */
-  let inFlightRequests = Object.create(null);
-
-  let selectedCommodityPrices = $derived.by(() => {
-    const selectedSeries = Object.entries(selectedAreaCodesByCat02).flatMap(
-      ([cat02Code, areaCodes]) =>
-        areaCodes.map((areaCode) => `${cat02Code}:${areaCode}`),
-    );
-    return commodityPrices.filter((item) =>
-      selectedSeries.includes(`${item.cat02_code}:${item.area_code}`),
+  const inFlightRequests = Object.create(null);
+  const panels = useResponsivePanels(() => selectedCombinations.length, {
+    mobileOpen: true,
+  });
+  let selectedCombinations = $derived.by(() => {
+    const products = cat02LookupResult.cat02Lookup ?? [];
+    const areas = areaLookupResult.areaLookup ?? [];
+    return selectedCat02Codes.flatMap((cat02Code) =>
+      selectedAreaCodes.flatMap((areaCode) => {
+        const key = `${cat02Code}:${areaCode}`;
+        const product = products.find(
+          (entry) => entry.cat02_code === cat02Code,
+        );
+        const area = areas.find((entry) => entry.area_code === areaCode);
+        return product && area && !excludedPairKeys.includes(key)
+          ? [
+              {
+                cat02Code,
+                areaCode,
+                cat02Name: product.cat02_name,
+                areaName: area.area_name,
+              },
+            ]
+          : [];
+      }),
     );
   });
-  let chartData = $derived(
-    selectedCommodityPrices.length > 0
-      ? transformData(selectedCommodityPrices)
+  let activeKeys = $derived(
+    selectedCombinations.map(
+      ({ cat02Code, areaCode }) => `${cat02Code}:${areaCode}`,
+    ),
+  );
+  let selectedCommodityPrices = $derived(
+    activeKeys.map((key) => commodityPricesByKey[key]).filter(Boolean),
+  );
+  let allResolved = $derived(
+    selectedCombinations.length > 0 &&
+      selectedCombinations.every(({ cat02Code, areaCode }) =>
+        ["loaded", "empty"].includes(
+          seriesStates[`${cat02Code}:${areaCode}`]?.status,
+        ),
+      ),
+  );
+  let hasError = $derived(
+    selectedCombinations.some(
+      ({ cat02Code, areaCode }) =>
+        seriesStates[`${cat02Code}:${areaCode}`]?.status === "error",
+    ),
+  );
+  let result = $derived(
+    allResolved
+      ? transformData(selectedCommodityPrices, selectedMonth ?? "")
       : null,
   );
-  let selectedCombinations = $derived.by(() => {
-    const cat02Lookup = cat02LookupResult.cat02Lookup ?? [];
-    const areaLookup = areaLookupResult.areaLookup ?? [];
-    return Object.entries(selectedAreaCodesByCat02).flatMap(
-      ([cat02Code, areaCodes]) => {
-        const cat02 = cat02Lookup.find((item) => item.cat02_code === cat02Code);
-        return areaCodes.flatMap((areaCode) => {
-          const area = areaLookup.find((item) => item.area_code === areaCode);
-          return cat02 && area
-            ? [
-                {
-                  cat02Code,
-                  areaCode,
-                  cat02Name: cat02.cat02_name,
-                  areaName: area.area_name,
-                },
-              ]
-            : [];
-        });
-      },
-    );
-  });
-
-  // Fetch data when the selected items and areas change
+  let chartData = $derived(result?.chartData ?? null);
+  let availableMonths = $derived(result?.availableMonths ?? []);
+  let effectiveMonth = $derived(result?.referenceMonth ?? null);
+  let sliderMonths = $derived(availableMonths);
+  let sliderIndex = $derived(
+    effectiveMonth
+      ? sliderMonths.indexOf(effectiveMonth)
+      : Math.max(0, sliderMonths.length - 1),
+  );
+  /** @param {string} month */
+  function formatMonth(month) {
+    const [year, number] = month.split("-");
+    return `${year}年${Number(number)}月`;
+  }
   $effect(() => {
-    const selectedAreaCodes = selectedAreaCodesByCat02[selectedCat02Code] ?? [];
-    const generation = ++fetchGeneration;
-
-    if (selectedCat02Code && selectedAreaCodes.length > 0) {
-      untrack(() => {
-        void Promise.all(
-          selectedAreaCodes.map((areaCode) =>
-            loadSeries(selectedCat02Code, areaCode, generation),
-          ),
-        );
-      });
-    }
+    const pairs = selectedCombinations;
+    untrack(() => pairs.forEach((pair) => void loadSeries(pair)));
   });
-
-  /**
-   * @param {string} cat02Code
-   * @param {string} areaCode
-   * @param {number} generation
-   */
-  async function loadSeries(cat02Code, areaCode, generation = fetchGeneration) {
+  /** @param {{cat02Code:string, areaCode:string}} pair @param {boolean} [retry] */
+  async function loadSeries(pair, retry = false) {
+    const { cat02Code, areaCode } = pair;
     const key = `${cat02Code}:${areaCode}`;
-    if (
-      commodityPrices.some(
-        (item) => `${item.cat02_code}:${item.area_code}` === key,
-      )
-    ) {
+    if (commodityPricesByKey[key] && !retry) {
       seriesStates[key] = { status: "loaded" };
       return;
     }
-
+    if (seriesStates[key]?.status === "empty" && !retry) return;
     let request = inFlightRequests[key];
     if (!request) {
       seriesStates[key] = { status: "loading" };
       request = fetchCommodityPrices({ cat02Code, areaCode });
       inFlightRequests[key] = request;
     }
-
     try {
       const data = await request;
-      if (generation !== fetchGeneration) return;
-      if (data) {
-        const alreadyAdded = commodityPrices.some(
-          (item) =>
-            item.cat02_code === data.cat02_code &&
-            item.area_code === data.area_code,
-        );
-        if (!alreadyAdded) commodityPrices.push(data);
+      if (
+        data &&
+        data.time_value_pairs?.some(
+          /** @param {{value:string|number}} entry */ (entry) =>
+            Number.isFinite(Number(entry.value)),
+        )
+      ) {
+        commodityPricesByKey[key] = data;
         seriesStates[key] = { status: "loaded" };
-      } else {
-        seriesStates[key] = { status: "empty" };
-      }
+      } else seriesStates[key] = { status: "empty" };
     } catch (cause) {
-      if (generation !== fetchGeneration) return;
       seriesStates[key] = {
         status: "error",
         error:
@@ -133,34 +135,38 @@
       if (inFlightRequests[key] === request) delete inFlightRequests[key];
     }
   }
-
   /** @param {string} cat02Code @param {string} areaCode */
   function retrySeries(cat02Code, areaCode) {
-    const key = `${cat02Code}:${areaCode}`;
-    delete seriesStates[key];
-    void loadSeries(cat02Code, areaCode);
+    delete seriesStates[`${cat02Code}:${areaCode}`];
+    void loadSeries({ cat02Code, areaCode }, true);
   }
-
   function handleReset() {
-    fetchGeneration += 1;
-    inFlightRequests = Object.create(null);
-    selectedAreaCodesByCat02 = {};
-    commodityPrices = [];
-    seriesStates = {};
+    selectedCat02Codes = [];
+    selectedAreaCodes = [];
+    excludedPairKeys = [];
+    selectedMonth = null;
+    rebaseEnabled = false;
   }
-
+  /** @param {Event & {currentTarget: HTMLInputElement}} event */
+  function toggleRebase(event) {
+    rebaseEnabled = event.currentTarget.checked;
+    if (
+      rebaseEnabled &&
+      availableMonths.length > 0 &&
+      !availableMonths.includes(selectedMonth ?? "")
+    )
+      selectedMonth = availableMonths.at(-1) ?? null;
+    if (!rebaseEnabled) selectedMonth = null;
+  }
   /** @param {string} cat02Code @param {string} areaCode */
   function handleRemove(cat02Code, areaCode) {
-    const selectedAreaCodes = selectedAreaCodesByCat02[cat02Code] ?? [];
-    const remainingAreaCodes = selectedAreaCodes.filter(
-      (code) => code !== areaCode,
-    );
-    selectedAreaCodesByCat02 = { ...selectedAreaCodesByCat02 };
-    if (remainingAreaCodes.length > 0) {
-      selectedAreaCodesByCat02[cat02Code] = remainingAreaCodes;
-    } else {
-      delete selectedAreaCodesByCat02[cat02Code];
-    }
+    const key = `${cat02Code}:${areaCode}`;
+    if (!excludedPairKeys.includes(key))
+      excludedPairKeys = [...excludedPairKeys, key];
+  }
+  /** @param {Event & {currentTarget: HTMLInputElement}} event */
+  function changeSlider(event) {
+    selectedMonth = sliderMonths[Number(event.currentTarget.value)] ?? null;
   }
 </script>
 
@@ -192,8 +198,10 @@
               <summary>品目・地域を選択</summary>
               <div class="selector-panel-content">
                 <Selectors
-                  bind:selectedCat02Code
-                  bind:selectedAreaCodesByCat02
+                  bind:selectedCat02Codes
+                  bind:selectedAreaCodes
+                  bind:excludedPairKeys
+                  {selectedCombinations}
                   cat02Lookup={cat02LookupResult.cat02Lookup}
                   areaLookup={areaLookupResult.areaLookup}
                 />
@@ -255,16 +263,72 @@
               <button
                 onclick={handleReset}
                 class="reset-button"
-                disabled={selectedCombinations.length === 0}>すべて消去</button
+                disabled={selectedCat02Codes.length === 0 &&
+                  selectedAreaCodes.length === 0 &&
+                  excludedPairKeys.length === 0 &&
+                  selectedMonth === null}>すべて消去</button
               >
             </details>
           </section>
         {/if}
-        <Reference />
+        <Reference rebaseEnabled={effectiveMonth !== null} />
         <LicenseLink />
       </aside>
 
       <section class="chart-panel" aria-label="価格推移グラフ">
+        <div class="reference-controls">
+          <label class="rebase-toggle">
+            <input
+              type="checkbox"
+              checked={rebaseEnabled}
+              disabled={availableMonths.length === 0 && !rebaseEnabled}
+              onchange={toggleRebase}
+            />
+            基準月で指数化
+          </label>
+          {#if rebaseEnabled && selectedCombinations.length > 0 && allResolved && availableMonths.length > 0}
+            <label
+              >基準月
+              <select bind:value={selectedMonth}>
+                {#each availableMonths as month (month)}<option value={month}
+                    >{formatMonth(month)}（100）</option
+                  >{/each}
+              </select>
+            </label>
+            {#if availableMonths.length > 1}
+              <input
+                aria-label="基準月を選択"
+                type="range"
+                min="0"
+                max={sliderMonths.length - 1}
+                value={sliderIndex}
+                oninput={changeSlider}
+              />
+            {/if}
+          {/if}
+        </div>
+        {#if rebaseEnabled && selectedMonth && !availableMonths.includes(selectedMonth)}<p
+            class="muted"
+          >
+            系列の選択が変わったため、選択中の基準月は利用できません。共通の月を選び直してください。
+          </p>{/if}
+        {#if hasError && selectedCommodityPrices.length === 0}
+          <LoadState
+            state="error"
+            message="価格データを取得できませんでした。選択中一覧から再試行してください。"
+          />
+        {:else if selectedCombinations.length > 0 && !allResolved}
+          <LoadState state="loading" message="価格データを読み込んでいます…" />
+        {:else if selectedCombinations.length > 0 && selectedCommodityPrices.length === 0}
+          <div class="empty-chart">
+            <h2>該当データがありません</h2>
+            <p>選択中の品目と地域の組み合わせに価格データがありません。</p>
+          </div>
+        {:else if hasError}
+          <p class="muted">
+            取得できない系列があります。利用可能な系列を表示しています。
+          </p>
+        {/if}
         {#if chartData}
           <LineChart {chartData} />
         {:else if selectedCombinations.length > 0}
@@ -286,6 +350,20 @@
 <style>
   .chart-panel {
     --chart-height: calc(100dvh - 12rem);
+  }
+  .reference-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .reference-controls label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .reference-controls input[type="range"] {
+    flex: 1;
   }
 
   @media (max-width: 50rem) {
