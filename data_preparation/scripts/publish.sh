@@ -12,6 +12,7 @@ Projects:
   asset_distribution
   commodity_prices
   workers_by_age_employment_type_education_sex
+  consumer_price_index
   vegetable_production_relay
   prefectures
   social_security_budget_flow
@@ -24,6 +25,7 @@ PROJECTS=(
   asset_distribution
   commodity_prices
   workers_by_age_employment_type_education_sex
+  consumer_price_index
   vegetable_production_relay
   prefectures
   social_security_budget_flow
@@ -127,6 +129,9 @@ fi
 if should_publish workers_by_age_employment_type_education_sex; then
   copy_file "$OUTPUT/workers_by_age_employment_type_education_sex/meta_data/options.json" workers_by_age_employment_type_education_sex/meta_data/options.json
   copy_json_tree "$OUTPUT/workers_by_age_employment_type_education_sex/transformed_data" workers_by_age_employment_type_education_sex/transformed_data
+fi
+if should_publish consumer_price_index; then
+  copy_json_tree "$OUTPUT/consumer_price_index/transformed_data" consumer_price_index/transformed_data
 fi
 
 if should_publish vegetable_production_relay; then

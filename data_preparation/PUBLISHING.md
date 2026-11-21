@@ -9,6 +9,7 @@
 | 純資産分布 | `asset_distribution/manifest.json`、`asset_distribution/items/*.json` |
 | 小売物価 | `commodity_prices/meta_data/{cat02_lookup,area_lookup}.json`、`commodity_prices/transformed_data/` 内の JSON |
 | 雇用者数 | `workers_by_age_employment_type_education_sex/meta_data/options.json`、`transformed_data/` 内の JSON |
+| 消費者物価指数 | `consumer_price_index/transformed_data/` 内の JSON |
 | 野菜の産地リレー | `vegetable_production_relay/products.json`、`*.summary.json`、`veg-*/details/` 内の JSON |
 | 都道府県地図 | `prefectures/N03-20260101_prefecture_simplified.geojson` |
 
@@ -28,7 +29,13 @@ GCS_BUCKET=gs://YOUR_BUCKET
 ./data_preparation/scripts/publish.sh
 ```
 
-特定のデータだけを公開する場合は `--only` にプロジェクト名をカンマ区切りで指定します。たとえば、純資産分布と雇用者数を公開する場合は次のように実行します。
+特定のデータだけを公開する場合は `--only` にプロジェクト名をカンマ区切りで指定します。たとえば、CPI のみ公開する場合は次のように実行します。
+
+```sh
+./data_preparation/scripts/publish.sh --only consumer_price_index
+```
+
+複数のデータを指定する場合はプロジェクト名をカンマ区切りで指定します。
 
 ```sh
 ./data_preparation/scripts/publish.sh --only asset_distribution,workers_by_age_employment_type_education_sex
