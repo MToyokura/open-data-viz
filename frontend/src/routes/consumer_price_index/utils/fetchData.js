@@ -4,6 +4,9 @@ import {
   CPI_REGIONS_PATH,
 } from "../constants/constants.js";
 
+/** @typedef {import("./transformData.js").CpiSeries} CpiSeries */
+
+/** @type {Map<string, Promise<CpiSeries[] | undefined>>} */
 const chunkRequests = new Map();
 
 /** @param {string} url @param {{ missingIsEmpty?: boolean }} [options] */
@@ -28,6 +31,7 @@ export async function fetchLookups() {
 export async function fetchSeries({ itemCode, areaCode, itemIndex, itemCount }) {
   const firstItemIndex = Math.floor(itemIndex / 10) * 10;
   const lastItemIndex = Math.min(firstItemIndex + 9, itemCount - 1);
+  /** @param {number} value */
   const padded = (value) => String(value).padStart(4, "0");
   const url = `${CPI_DATA_PATH}/series/area_${areaCode}_items_${padded(firstItemIndex)}_${padded(lastItemIndex)}.json`;
   let request = chunkRequests.get(url);

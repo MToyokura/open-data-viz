@@ -17,6 +17,7 @@
     regions.filter((region) => region.name.includes(regionQuery.trim())),
   );
 
+  /** @param {string[]} values @param {string} value @param {boolean} checked */
   function toggle(values, value, checked) {
     return checked
       ? [...values, value]

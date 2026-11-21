@@ -14,7 +14,7 @@
 
   /** @typedef {{ code: string, name: string, level?: string, parentCode?: string }} Item */
   /** @typedef {{ code: string, name: string }} Region */
-  /** @typedef {{ itemCode: string, areaCode: string, itemName: string, areaName: string, timeValuePairs: [string, number][] }} CpiSeries */
+  /** @typedef {import("./utils/transformData.js").CpiSeries} CpiSeries */
   /** @typedef {{ status: "loading"|"loaded"|"error"|"empty", error?: string }} SeriesState */
 
   let items = $state.raw(/** @type {Item[] | null} */ (null));
@@ -24,6 +24,7 @@
   let selectedItemCodes = $state(/** @type {string[]} */ ([]));
   let selectedAreaCodes = $state(/** @type {string[]} */ ([]));
   let view = $state(/** @type {"index" | "normalized"} */ ("index"));
+  let selectedMonth = $state("");
   let seriesByKey = $state.raw(/** @type {Record<string, CpiSeries>} */ ({}));
   let seriesStates = $state(/** @type {Record<string, SeriesState>} */ ({}));
   /** @type {Record<string, Promise<CpiSeries | undefined>>} */
@@ -31,12 +32,14 @@
   const panels = useResponsivePanels(() => selectedCombinations.length);
 
   let selectedCombinations = $derived.by(() => {
-    if (!items || !regions) return [];
+    const itemOptions = items;
+    const regionOptions = regions;
+    if (!itemOptions || !regionOptions) return [];
     return selectedItemCodes.flatMap((itemCode) => {
-      const item = items.find((entry) => entry.code === itemCode);
+      const item = itemOptions.find((entry) => entry.code === itemCode);
       if (!item) return [];
       return selectedAreaCodes.flatMap((areaCode) => {
-        const region = regions.find((entry) => entry.code === areaCode);
+        const region = regionOptions.find((entry) => entry.code === areaCode);
         return region
           ? [
               {
@@ -44,7 +47,9 @@
                 areaCode,
                 itemName: item.name,
                 areaName: region.name,
-                itemIndex: items.findIndex((entry) => entry.code === itemCode),
+                itemIndex: itemOptions.findIndex(
+                  (entry) => entry.code === itemCode,
+                ),
               },
             ]
           : [];
@@ -64,11 +69,23 @@
         ),
       ),
   );
-  let chartResult = $derived(
-    allSelectedLoaded
-      ? transformData(loadedSeries, view)
-      : { chartData: null, referenceMonth: null },
+  let hasSeriesError = $derived(
+    selectedCombinations.some(
+      ({ itemCode, areaCode }) =>
+        seriesStates[`${itemCode}:${areaCode}`]?.status === "error",
+    ),
   );
+  let chartResult = $derived(
+    allSelectedLoaded && selectedCombinations.length <= 40
+      ? transformData(loadedSeries, view, selectedMonth)
+      : { chartData: null, referenceMonth: null, availableMonths: [] },
+  );
+
+  /** @param {string} month */
+  function formatMonth(month) {
+    const [year, number] = month.split("-");
+    return `${year}年${Number(number)}月`;
+  }
 
   async function loadLookups() {
     lookupLoading = true;
@@ -148,6 +165,7 @@
     selectedItemCodes = [];
     selectedAreaCodes = [];
     seriesStates = {};
+    selectedMonth = "";
   }
 
   /** @param {{ itemCode: string, areaCode: string }} combination */
@@ -263,7 +281,8 @@
                 type="button"
                 onclick={handleReset}
                 class="reset-button"
-                disabled={selectedCombinations.length === 0}>すべて消去</button
+                disabled={selectedCombinations.length === 0 && !selectedMonth}
+                >すべて消去</button
               >
             </details>
           </section>
@@ -274,13 +293,13 @@
           <p>
             統計の指数は、2025年平均を100として作られています（価格そのものの円額ではありません）。
           </p>
+          <p>
+            長期の推移には公式の接続指数を使っています。接続指数の品目構成とウエイトは各時期の基準に従います。
+          </p>
           {#if view === "normalized"}
             <p>
-              最新月基準では、選択した系列すべてにデータがある最も新しい月を比較の起点にし、その月の指数を各系列で100にそろえます。ほかの月は起点に対する変化を表します。
+              基準月を選ぶと、各系列の公表指数をその系列の基準月の指数で割り、100を掛けます。105なら基準月から約5%の上昇です。都市間では物価の変化率を比較できます。価格水準の差の比較には使えません。単月を起点にすると、季節性や一時的な値動きが比較に影響します。
             </p>
-            {#if chartResult.referenceMonth}<p>
-                比較の起点にした月：{chartResult.referenceMonth}
-              </p>{/if}
           {/if}
           <h3>出典</h3>
           <ReferenceTable {rows} />
@@ -300,9 +319,38 @@
             type="button"
             aria-pressed={view === "normalized"}
             class={{ active: view === "normalized" }}
-            onclick={() => (view = "normalized")}>最新月基準</button
+            onclick={() => (view = "normalized")}>基準月を選ぶ</button
           >
         </div>
+        {#if view === "normalized"}
+          <div class="reference-month">
+            <label for="cpi-reference-month">基準月</label>
+            <select
+              id="cpi-reference-month"
+              bind:value={selectedMonth}
+              disabled={!allSelectedLoaded ||
+                selectedCombinations.length > 40 ||
+                loadedSeries.length === 0}
+            >
+              <option value="">最新の共通月（自動）</option>
+              {#if selectedMonth && !chartResult.availableMonths.includes(selectedMonth)}
+                <option value={selectedMonth} disabled
+                  >{formatMonth(selectedMonth)}</option
+                >
+              {/if}
+              {#each chartResult.availableMonths as month (month)}
+                <option value={month}>{formatMonth(month)}</option>
+              {/each}
+            </select>
+            {#if chartResult.referenceMonth}
+              <span
+                >{formatMonth(
+                  chartResult.referenceMonth,
+                )}＝100（公表CPIを換算）</span
+              >
+            {/if}
+          </div>
+        {/if}
         {#if selectedCombinations.length > 40}
           <div class="empty-chart">
             <h2>選択数を減らしてください</h2>
@@ -315,7 +363,11 @@
           </div>
         {:else if !allSelectedLoaded}
           <div class="empty-chart">
-            <h2>系列を読み込んでいます</h2>
+            <h2>
+              {hasSeriesError
+                ? "取得できなかった系列があります"
+                : "系列を読み込んでいます"}
+            </h2>
             <p>選択中の系列の状態は一覧で確認できます。</p>
           </div>
         {:else if loadedSeries.length === 0}
@@ -325,8 +377,14 @@
           </div>
         {:else if view === "normalized" && !chartResult.referenceMonth}
           <div class="empty-chart">
-            <h2>共通して値がある月がありません</h2>
-            <p>選択した系列すべてに値がある月がないため、表示できません。</p>
+            {#if chartResult.availableMonths.length === 0}
+              <h2>共通して値がある月がありません</h2>
+            {/if}
+            {#if selectedMonth}
+              <p role="status">
+                選んだ月に値がない系列があります。別の月を選んでください
+              </p>
+            {/if}
           </div>
         {:else if chartResult.chartData}
           <LineChart chartData={chartResult.chartData} />
@@ -362,6 +420,17 @@
     border-color: var(--focus-color);
     background: var(--surface-muted-color);
     font-weight: 600;
+  }
+  .reference-month {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  .reference-month select {
+    min-height: 2.75rem;
+    max-width: 100%;
   }
   .empty-chart {
     min-height: 40vh;
