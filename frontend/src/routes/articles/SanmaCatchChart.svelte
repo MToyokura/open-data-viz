@@ -31,6 +31,7 @@
     [2024, 39335],
   ];
 
+  /** @type {HTMLDivElement | undefined} */
   let container;
 
   onMount(() => {
@@ -42,10 +43,11 @@
 
     import("echarts")
       .then(({ init }) => {
-        if (disposed) return;
+        if (disposed || !container) return;
 
         chart = init(container);
-        chart.setOption({
+        /** @type {import("echarts").EChartsOption} */
+        const options = {
           animation: false,
           aria: { enabled: true },
           tooltip: { trigger: "axis" },
@@ -77,7 +79,8 @@
               barMaxWidth: 18,
             },
           ],
-        });
+        };
+        chart.setOption(options);
 
         resizeObserver = new ResizeObserver(() => chart?.resize());
         resizeObserver.observe(container);

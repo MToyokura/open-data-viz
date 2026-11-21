@@ -8,6 +8,7 @@
 
   /** @type {{ series: { cat02Code: string, areaCode: string }[], label: string, initialStartMonth?: string }} */
   let { series, label, initialStartMonth = "" } = $props();
+  /** @type {HTMLDivElement | undefined} */
   let container;
   let chart = $state.raw(/** @type {EChartsType | null} */ (null));
   let chartData = $state.raw(/** @type {EChartsOption | null} */ (null));
@@ -15,13 +16,17 @@
 
   onMount(() => {
     let disposed = false;
+    /** @type {ResizeObserver | undefined} */
     let resizeObserver;
 
     Promise.all(series.map((item) => fetchCommodityPrices(item)))
       .then((results) => {
         if (disposed) return;
-        const valid = results.filter((item) => item?.time_value_pairs?.length);
-        if (valid.length !== results.length) {
+        const valid = results.filter((item) => item !== undefined);
+        if (
+          valid.length !== results.length ||
+          valid.some((item) => !item.time_value_pairs?.length)
+        ) {
           status = "empty";
           return;
         }
@@ -34,7 +39,7 @@
 
     import("echarts")
       .then(({ init }) => {
-        if (disposed) return;
+        if (disposed || !container) return;
         chart = init(container);
         resizeObserver = new ResizeObserver(() => chart?.resize());
         resizeObserver.observe(container);
