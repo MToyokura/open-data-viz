@@ -31,7 +31,9 @@
   let seriesStates = $state(/** @type {Record<string, SeriesState>} */ ({}));
   /** @type {Record<string, Promise<CpiSeries | undefined>>} */
   let inFlightRequests = Object.create(null);
-  const panels = useResponsivePanels(() => selectedCombinations.length);
+  const panels = useResponsivePanels(() => selectedCombinations.length, {
+    mobileOpen: true,
+  });
 
   let selectedCombinations = $derived.by(() => {
     const itemOptions = items;
@@ -361,49 +363,51 @@
             />
           {/if}
         </div>
-        {#if selectedCombinations.length > 40}
-          <div class="empty-chart">
-            <h2>選択数を減らしてください</h2>
-            <p>一度に表示できるのは40系列までです。</p>
-          </div>
-        {:else if selectedCombinations.length === 0}
-          <div class="empty-chart">
-            <h2>指数の推移を比較</h2>
-            <p>品目と地域を選ぶと、ここにグラフが表示されます。</p>
-          </div>
-        {:else if !allSelectedLoaded}
-          <div class="empty-chart">
-            <h2>
-              {hasSeriesError
-                ? "取得できなかった系列があります"
-                : "系列を読み込んでいます"}
-            </h2>
-            <p>選択中の系列の状態は一覧で確認できます。</p>
-          </div>
-        {:else if loadedSeries.length === 0}
-          <div class="empty-chart">
-            <h2>表示できる系列がありません</h2>
-            <p>選択した品目と地域の組み合わせにはデータがありません。</p>
-          </div>
-        {:else if view === "normalized" && !chartResult.referenceMonth}
-          <div class="empty-chart">
-            {#if chartResult.availableMonths.length === 0}
-              <h2>共通して値がある月がありません</h2>
-            {/if}
-            {#if selectedMonth}
-              <p role="status">
-                選んだ月に値がない系列があります。別の月を選んでください
-              </p>
-            {/if}
-          </div>
-        {:else if chartResult.chartData}
-          <LineChart chartData={chartResult.chartData} />
-        {:else}
-          <div class="empty-chart">
-            <h2>表示できる系列がありません</h2>
-            <p>別の品目または地域を選んでください。</p>
-          </div>
-        {/if}
+        <div class="chart-content">
+          {#if selectedCombinations.length > 40}
+            <div class="empty-chart">
+              <h2>選択数を減らしてください</h2>
+              <p>一度に表示できるのは40系列までです。</p>
+            </div>
+          {:else if selectedCombinations.length === 0}
+            <div class="empty-chart">
+              <h2>指数の推移を比較</h2>
+              <p>品目と地域を選ぶと、ここにグラフが表示されます。</p>
+            </div>
+          {:else if !allSelectedLoaded}
+            <div class="empty-chart">
+              <h2>
+                {hasSeriesError
+                  ? "取得できなかった系列があります"
+                  : "系列を読み込んでいます"}
+              </h2>
+              <p>選択中の系列の状態は一覧で確認できます。</p>
+            </div>
+          {:else if loadedSeries.length === 0}
+            <div class="empty-chart">
+              <h2>表示できる系列がありません</h2>
+              <p>選択した品目と地域の組み合わせにはデータがありません。</p>
+            </div>
+          {:else if view === "normalized" && !chartResult.referenceMonth}
+            <div class="empty-chart">
+              {#if chartResult.availableMonths.length === 0}
+                <h2>共通して値がある月がありません</h2>
+              {/if}
+              {#if selectedMonth}
+                <p role="status">
+                  選んだ月に値がない系列があります。別の月を選んでください
+                </p>
+              {/if}
+            </div>
+          {:else if chartResult.chartData}
+            <LineChart chartData={chartResult.chartData} />
+          {:else}
+            <div class="empty-chart">
+              <h2>表示できる系列がありません</h2>
+              <p>別の品目または地域を選んでください。</p>
+            </div>
+          {/if}
+        </div>
       </section>
     </div>
   </main>
@@ -412,6 +416,14 @@
 <style>
   .chart-panel {
     --chart-height: calc(100dvh - 12rem);
+    display: flex;
+    flex-direction: column;
+  }
+  .reference-month {
+    order: 0;
+  }
+  .chart-content {
+    order: 1;
   }
   .reference-month {
     display: flex;
@@ -466,6 +478,12 @@
   @media (max-width: 50rem) {
     .chart-panel {
       --chart-height: 55vh;
+    }
+    .reference-month {
+      order: 1;
+    }
+    .chart-content {
+      order: 0;
     }
   }
 </style>
