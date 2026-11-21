@@ -1,6 +1,7 @@
 <script>
   import { VITE_ROOT_PATH } from "#lib/paths.js";
   import ArticleChart from "../ArticleChart.svelte";
+  import SanmaCatchChart from "../SanmaCatchChart.svelte";
 
   const tokyo = "13100";
   const videoAreas = ["13100", "01100", "27100", "40130"];
@@ -29,8 +30,8 @@
         <div>
           <dt>更新日時</dt>
           <dd>
-            <time datetime="2026-11-21T17:39:00+09:00"
-              >2026年11月21日 17:39</time
+            <time datetime="2026-11-21T17:56:00+09:00"
+              >2026年11月21日 17:56</time
             >
           </dd>
         </div>
@@ -84,10 +85,8 @@
           >海面漁業魚種別漁獲量累年統計（全国）</a
         >）
       </p>
-      <div class="separate-chart separate-chart--small">
-        さんまの漁獲量の推移（別途対応）
-      </div>
-      <p>顕著な減少傾向となっています。</p>
+      <SanmaCatchChart />
+      <p>顕著な減少傾向となっていますが、2023年からは上昇に転じています。</p>
     </section>
 
     <section>
