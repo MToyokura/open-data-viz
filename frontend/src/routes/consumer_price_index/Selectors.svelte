@@ -191,7 +191,10 @@
     border: 1px solid var(--focus-color);
     border-radius: 0.2rem;
     background-color: var(--focus-color);
-    background-image: linear-gradient(var(--surface-color), var(--surface-color));
+    background-image: linear-gradient(
+      var(--surface-color),
+      var(--surface-color)
+    );
     background-repeat: no-repeat;
     background-position: center;
     background-size: 60% 3px;

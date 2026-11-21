@@ -4,7 +4,10 @@ import { onMount } from "svelte";
  * @param {() => number} getSeriesCount
  * @param {{ mobileOpen?: boolean }} [options]
  */
-export function useResponsivePanels(getSeriesCount, { mobileOpen = false } = {}) {
+export function useResponsivePanels(
+  getSeriesCount,
+  { mobileOpen = false } = {},
+) {
   const panels = $state({ isSelectorOpen: true, isComparisonOpen: true });
 
   onMount(() => {

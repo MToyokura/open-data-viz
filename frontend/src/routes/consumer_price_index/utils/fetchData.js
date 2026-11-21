@@ -28,7 +28,12 @@ export async function fetchLookups() {
 }
 
 /** @param {{ itemCode: string, areaCode: string, itemIndex: number, itemCount: number }} params */
-export async function fetchSeries({ itemCode, areaCode, itemIndex, itemCount }) {
+export async function fetchSeries({
+  itemCode,
+  areaCode,
+  itemIndex,
+  itemCount,
+}) {
   const firstItemIndex = Math.floor(itemIndex / 10) * 10;
   const lastItemIndex = Math.min(firstItemIndex + 9, itemCount - 1);
   /** @param {number} value */
