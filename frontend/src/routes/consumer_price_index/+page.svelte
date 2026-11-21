@@ -23,8 +23,9 @@
   let lookupLoading = $state(true);
   let selectedItemCodes = $state(/** @type {string[]} */ ([]));
   let selectedAreaCodes = $state(/** @type {string[]} */ ([]));
-  let view = $state(/** @type {"index" | "normalized"} */ ("index"));
-  let selectedMonth = $state("");
+  let selectedMonth = $state(/** @type {string | null} */ (null));
+  /** @type {"index" | "normalized"} */
+  let view = $derived(selectedMonth === null ? "index" : "normalized");
   let seriesByKey = $state.raw(/** @type {Record<string, CpiSeries>} */ ({}));
   let seriesStates = $state(/** @type {Record<string, SeriesState>} */ ({}));
   /** @type {Record<string, Promise<CpiSeries | undefined>>} */
@@ -77,7 +78,7 @@
   );
   let chartResult = $derived(
     allSelectedLoaded && selectedCombinations.length <= 40
-      ? transformData(loadedSeries, view, selectedMonth)
+      ? transformData(loadedSeries, view, selectedMonth ?? "")
       : { chartData: null, referenceMonth: null, availableMonths: [] },
   );
   let sliderMonths = $derived(chartResult.availableMonths.toReversed());
@@ -172,7 +173,7 @@
     selectedItemCodes = [];
     selectedAreaCodes = [];
     seriesStates = {};
-    selectedMonth = "";
+    selectedMonth = null;
   }
 
   /** @param {{ itemCode: string, areaCode: string }} combination */
@@ -315,65 +316,48 @@
       </aside>
 
       <section class="chart-panel" aria-label="消費者物価指数の推移">
-        <div class="view-toggle" role="group" aria-label="指数の表示方法">
-          <button
-            type="button"
-            aria-pressed={view === "index"}
-            class={{ active: view === "index" }}
-            onclick={() => (view = "index")}>2025年基準</button
+        <div class="reference-month">
+          <label for="cpi-reference-month">基準月</label>
+          <select
+            id="cpi-reference-month"
+            bind:value={selectedMonth}
+            disabled={!allSelectedLoaded ||
+              selectedCombinations.length > 40 ||
+              loadedSeries.length === 0}
           >
-          <button
-            type="button"
-            aria-pressed={view === "normalized"}
-            class={{ active: view === "normalized" }}
-            onclick={() => (view = "normalized")}>基準月を選ぶ</button
-          >
-        </div>
-        {#if view === "normalized"}
-          <div class="reference-month">
-            <label for="cpi-reference-month">基準月</label>
-            <select
-              id="cpi-reference-month"
-              bind:value={selectedMonth}
-              disabled={!allSelectedLoaded ||
-                selectedCombinations.length > 40 ||
-                loadedSeries.length === 0}
-            >
-              <option value="">最新の共通月（自動）</option>
-              {#if selectedMonth && !chartResult.availableMonths.includes(selectedMonth)}
-                <option value={selectedMonth} disabled
-                  >{formatMonth(selectedMonth)}</option
-                >
-              {/if}
-              {#each chartResult.availableMonths as month (month)}
-                <option value={month}>{formatMonth(month)}</option>
-              {/each}
-            </select>
-            {#if chartResult.referenceMonth}
-              <span
-                >{formatMonth(
-                  chartResult.referenceMonth,
-                )}＝100（公表CPIを換算）</span
+            <option value={null}>2025年平均＝100（公表値）</option>
+            {#if selectedMonth && !chartResult.availableMonths.includes(selectedMonth)}
+              <option value={selectedMonth} disabled
+                >{formatMonth(selectedMonth)}</option
               >
             {/if}
-            {#if sliderMonths.length > 1}
-              <input
-                class="reference-month-slider"
-                type="range"
-                aria-label="基準月をスライダーで選ぶ"
-                aria-valuetext={formatMonth(sliderMonths[sliderIndex])}
-                min={0}
-                max={sliderMax}
-                step={1}
-                value={sliderIndex}
-                oninput={(event) => {
-                  selectedMonth =
-                    sliderMonths[event.currentTarget.valueAsNumber];
-                }}
-              />
-            {/if}
-          </div>
-        {/if}
+            {#each chartResult.availableMonths as month (month)}
+              <option value={month}>{formatMonth(month)}</option>
+            {/each}
+          </select>
+          {#if chartResult.referenceMonth}
+            <span
+              >{formatMonth(
+                chartResult.referenceMonth,
+              )}＝100（公表CPIを換算）</span
+            >
+          {/if}
+          {#if sliderMonths.length > 1}
+            <input
+              class="reference-month-slider"
+              type="range"
+              aria-label="基準月をスライダーで選ぶ"
+              aria-valuetext={formatMonth(sliderMonths[sliderIndex])}
+              min={0}
+              max={sliderMax}
+              step={1}
+              value={sliderIndex}
+              oninput={(event) => {
+                selectedMonth = sliderMonths[event.currentTarget.valueAsNumber];
+              }}
+            />
+          {/if}
+        </div>
         {#if selectedCombinations.length > 40}
           <div class="empty-chart">
             <h2>選択数を減らしてください</h2>
@@ -426,30 +410,12 @@
   .chart-panel {
     --chart-height: calc(100dvh - 12rem);
   }
-  .view-toggle {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-2);
-    margin: var(--space-4) 0;
-  }
-  .view-toggle button {
-    padding: var(--space-1) var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-color);
-    cursor: pointer;
-  }
-  .view-toggle button.active {
-    border-color: var(--focus-color);
-    background: var(--surface-muted-color);
-    font-weight: 600;
-  }
   .reference-month {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
-    margin-bottom: var(--space-2);
+    margin: var(--space-4) 0 var(--space-2);
   }
   .reference-month select {
     min-height: 2.75rem;

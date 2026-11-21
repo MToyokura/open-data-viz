@@ -53,7 +53,10 @@ test("rebases every series using its own value in the selected month", () => {
   if (!Array.isArray(values)) throw new Error("Expected plotted values");
   expect(tooltip.valueFormatter(values[2])).toBe("105.0");
   expect(transformData(input, "normalized").referenceMonth).toBe("2025-02");
-  expect(plottedValues(transformData(input, "index", "2025-01"))).toEqual([
+  const published = transformData(input, "index", "2025-01");
+  expect(published.availableMonths).toEqual(result.availableMonths);
+  expect(published.referenceMonth).toBeNull();
+  expect(plottedValues(published)).toEqual([
     [101, 105, 110.2, null],
     [null, 80, 84, 88],
   ]);

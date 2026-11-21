@@ -14,24 +14,19 @@ export function transformData(series, view, selectedMonth = "") {
     ),
   ].sort();
   const valuesBySeries = series.map((item) => new Map(item.timeValuePairs));
-  const availableMonths =
-    view === "normalized"
-      ? dates
-          .filter((date) =>
-            valuesBySeries.every((values) => {
-              const value = values.get(date);
-              return (
-                typeof value === "number" && Number.isFinite(value) && value > 0
-              );
-            }),
-          )
-          .reverse()
-      : [];
-  const referenceMonth = selectedMonth
-    ? availableMonths.includes(selectedMonth)
-      ? selectedMonth
-      : null
-    : (availableMonths[0] ?? null);
+  const availableMonths = dates
+    .filter((date) =>
+      valuesBySeries.every((values) => {
+        const value = values.get(date);
+        return typeof value === "number" && Number.isFinite(value) && value > 0;
+      }),
+    )
+    .reverse();
+  const requestedMonth = selectedMonth || availableMonths[0];
+  const referenceMonth =
+    view === "normalized" && availableMonths.includes(requestedMonth)
+      ? requestedMonth
+      : null;
 
   if (series.length === 0 || (view === "normalized" && !referenceMonth)) {
     return { chartData: null, referenceMonth, availableMonths };
