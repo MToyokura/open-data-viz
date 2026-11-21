@@ -56,6 +56,7 @@
       <ArticleChart
         series={[{ cat02Code: "01001", areaCode: tokyo }]}
         label="特別区部におけるコシヒカリの価格の推移"
+        initialStartMonth="2010-01"
       />
       <p>
         2024年の7月あたりから価格が上昇し、2025年秋には5400円台まで上がったことがわかります。
@@ -99,6 +100,7 @@
       <ArticleChart
         series={[{ cat02Code: "01341", areaCode: tokyo }]}
         label="特別区部における鶏卵の価格の推移"
+        initialStartMonth="2018-01"
       />
       <p>
         2023年に価格が上昇し、2024年に少し落ち着いたものの2025年に入り再び価格が上昇しています。
@@ -141,6 +143,7 @@
           areaCode,
         }))}
         label="特別区部、札幌市、大阪市、福岡市におけるビデオソフトレンタル料の推移"
+        initialStartMonth="2006-07"
       />
       <p>
         地域差があって興味深かったので特別区部、札幌市、大阪市、福岡市を表示対象としています。

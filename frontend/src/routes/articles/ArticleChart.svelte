@@ -6,8 +6,8 @@
   /** @typedef {import("echarts").EChartsType} EChartsType */
   /** @typedef {import("echarts").EChartsOption} EChartsOption */
 
-  /** @type {{ series: { cat02Code: string, areaCode: string }[], label: string }} */
-  let { series, label } = $props();
+  /** @type {{ series: { cat02Code: string, areaCode: string }[], label: string, initialStartMonth?: string }} */
+  let { series, label, initialStartMonth = "" } = $props();
   let container;
   let chart = $state.raw(/** @type {EChartsType | null} */ (null));
   let chartData = $state.raw(/** @type {EChartsOption | null} */ (null));
@@ -25,7 +25,7 @@
           status = "empty";
           return;
         }
-        chartData = transformData(valid).chartData;
+        chartData = transformData(valid, "", initialStartMonth).chartData;
         status = chartData ? "loaded" : "empty";
       })
       .catch(() => {
