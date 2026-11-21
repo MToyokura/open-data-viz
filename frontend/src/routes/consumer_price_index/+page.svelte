@@ -199,7 +199,6 @@
       url: "https://www.e-stat.go.jp/dbview?sid=0004052037",
       linkLabel: "e-Statで統計表を見る",
     },
-    { label: "単位", value: "指数（円で表す小売価格ではありません）" },
   ];
 </script>
 
