@@ -18,6 +18,7 @@
   let selectedCat02Codes = $state(/** @type {string[]} */ ([]));
   let selectedAreaCodes = $state(/** @type {string[]} */ ([]));
   let excludedPairKeys = $state(/** @type {string[]} */ ([]));
+  let rebaseEnabled = $state(false);
   let selectedMonth = $state(/** @type {string|null} */ (null));
   let commodityPricesByKey = $state.raw(/** @type {Record<string, CommodityPrices>} */ ({}));
   let seriesStates = $state(/** @type {Record<string, { status: "loading"|"loaded"|"error"|"empty", error?: string }>} */ ({}));
@@ -41,7 +42,7 @@
   let chartData = $derived(result?.chartData ?? null);
   let availableMonths = $derived(result?.availableMonths ?? []);
   let effectiveMonth = $derived(result?.referenceMonth ?? null);
-  let sliderMonths = $derived([...availableMonths].reverse());
+  let sliderMonths = $derived(availableMonths);
   let sliderIndex = $derived(effectiveMonth ? sliderMonths.indexOf(effectiveMonth) : Math.max(0, sliderMonths.length - 1));
   /** @param {string} month */
   function formatMonth(month) { const [year, number] = month.split("-"); return `${year}年${Number(number)}月`; }
@@ -62,7 +63,13 @@
   }
   /** @param {string} cat02Code @param {string} areaCode */
   function retrySeries(cat02Code, areaCode) { delete seriesStates[`${cat02Code}:${areaCode}`]; void loadSeries({cat02Code, areaCode}, true); }
-  function handleReset() { selectedCat02Codes = []; selectedAreaCodes = []; excludedPairKeys = []; selectedMonth = null; }
+  function handleReset() { selectedCat02Codes = []; selectedAreaCodes = []; excludedPairKeys = []; selectedMonth = null; rebaseEnabled = false; }
+  /** @param {Event & {currentTarget: HTMLInputElement}} event */
+  function toggleRebase(event) {
+    rebaseEnabled = event.currentTarget.checked;
+    if (rebaseEnabled && availableMonths.length > 0 && !availableMonths.includes(selectedMonth ?? "")) selectedMonth = availableMonths.at(-1) ?? null;
+    if (!rebaseEnabled) selectedMonth = null;
+  }
   /** @param {string} cat02Code @param {string} areaCode */
   function handleRemove(cat02Code, areaCode) { const key = `${cat02Code}:${areaCode}`; if (!excludedPairKeys.includes(key)) excludedPairKeys = [...excludedPairKeys, key]; }
   /** @param {Event & {currentTarget: HTMLInputElement}} event */
@@ -167,25 +174,28 @@
             </details>
           </section>
         {/if}
-        <Reference />
+        <Reference {rebaseEnabled} />
         <LicenseLink />
       </aside>
 
       <section class="chart-panel" aria-label="価格推移グラフ">
-        {#if selectedCombinations.length > 0 && allResolved}
-          <div class="reference-controls">
+        <div class="reference-controls">
+          <label class="rebase-toggle">
+            <input type="checkbox" checked={rebaseEnabled} disabled={availableMonths.length === 0} onchange={toggleRebase} />
+            基準月で指数化
+          </label>
+          {#if rebaseEnabled && selectedCombinations.length > 0 && allResolved && availableMonths.length > 0}
             <label>基準月
               <select bind:value={selectedMonth}>
-                <option value={null}>価格（円）</option>
                 {#each availableMonths as month (month)}<option value={month}>{formatMonth(month)}（100）</option>{/each}
               </select>
             </label>
             {#if availableMonths.length > 1}
               <input aria-label="基準月を選択" type="range" min="0" max={sliderMonths.length - 1} value={sliderIndex} oninput={changeSlider} />
             {/if}
-          </div>
-        {/if}
-        {#if selectedMonth && !availableMonths.includes(selectedMonth)}<p class="muted">選択中の系列すべてに価格がある月を基準月に選んでください。</p>{/if}
+          {/if}
+        </div>
+        {#if rebaseEnabled && selectedMonth && !availableMonths.includes(selectedMonth)}<p class="muted">系列の選択が変わったため、選択中の基準月は利用できません。共通の月を選び直してください。</p>{/if}
         {#if selectedCombinations.length > 0 && !allResolved}
           <LoadState state="loading" message="価格データを読み込んでいます…" />
         {:else if hasError && selectedCommodityPrices.length === 0}
