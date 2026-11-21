@@ -2,25 +2,15 @@
   /** @type {{ mode: "fit"|"scroll", onchange: (mode: "fit"|"scroll") => void }} */
   let { mode = $bindable(), onchange } = $props();
 
-  /** @param {"fit"|"scroll"} nextMode */
-  function selectMode(nextMode) {
-    mode = nextMode;
-    onchange(nextMode);
+  function toggleMode() {
+    mode = mode === "fit" ? "scroll" : "fit";
+    onchange(mode);
   }
 </script>
 
-<div class="chart-view-controls" role="group" aria-label="グラフの表示方法">
-  <button
-    type="button"
-    class:active={mode === "fit"}
-    aria-pressed={mode === "fit"}
-    onclick={() => selectMode("fit")}>画面幅表示</button
-  >
-  <button
-    type="button"
-    class:active={mode === "scroll"}
-    aria-pressed={mode === "scroll"}
-    onclick={() => selectMode("scroll")}>スクロール表示</button
+<div class="chart-view-controls">
+  <button type="button" aria-pressed={mode === "fit"} onclick={toggleMode}
+    >画面幅に収める</button
   >
 </div>
 
@@ -28,7 +18,6 @@
   .chart-view-controls {
     display: flex;
     justify-content: flex-end;
-    gap: var(--space-2);
     margin-top: var(--space-4);
   }
 
@@ -41,7 +30,7 @@
     cursor: pointer;
   }
 
-  button.active {
+  button[aria-pressed="true"] {
     border-color: var(--focus-color);
     background: var(--surface-muted-color);
     font-weight: 600;

@@ -12,6 +12,7 @@ Projects:
   asset_distribution
   commodity_prices
   workers_by_age_employment_type_education_sex
+  consumer_price_index
   vegetable_production_relay
   prefectures
   social_security_budget_flow
@@ -24,6 +25,7 @@ PROJECTS=(
   asset_distribution
   commodity_prices
   workers_by_age_employment_type_education_sex
+  consumer_price_index
   vegetable_production_relay
   prefectures
   social_security_budget_flow
@@ -128,6 +130,9 @@ if should_publish workers_by_age_employment_type_education_sex; then
   copy_file "$OUTPUT/workers_by_age_employment_type_education_sex/meta_data/options.json" workers_by_age_employment_type_education_sex/meta_data/options.json
   copy_json_tree "$OUTPUT/workers_by_age_employment_type_education_sex/transformed_data" workers_by_age_employment_type_education_sex/transformed_data
 fi
+if should_publish consumer_price_index; then
+  copy_json_tree "$OUTPUT/consumer_price_index/transformed_data" consumer_price_index/transformed_data
+fi
 
 if should_publish vegetable_production_relay; then
   copy_file "$OUTPUT/vegetable_production_relay/products.json" vegetable_production_relay/products.json
@@ -160,22 +165,29 @@ for file in "${files[@]}"; do
   mv "$file.gz" "$file"
 done
 
-printf 'Syncing JSON files to %s...\n' "$GCS_BUCKET"
-gcloud storage rsync "$PUBLISH_DIR" "$GCS_BUCKET" \
-  --recursive \
-  --checksums-only \
-  --exclude='.*\.geojson$' \
-  --content-type=application/json \
-  --content-encoding=gzip \
-  --cache-control='public, max-age=300, no-transform'
+mapfile -d '' json_files < <(find "$PUBLISH_DIR" -type f -name '*.json' -print0)
+mapfile -d '' geojson_files < <(find "$PUBLISH_DIR" -type f -name '*.geojson' -print0)
 
-printf 'Syncing GeoJSON files to %s...\n' "$GCS_BUCKET"
-gcloud storage rsync "$PUBLISH_DIR" "$GCS_BUCKET" \
-  --recursive \
-  --checksums-only \
-  --exclude='.*\.json$' \
-  --content-type=application/geo+json \
-  --content-encoding=gzip \
-  --cache-control='public, max-age=300, no-transform'
+if ((${#json_files[@]})); then
+  printf 'Syncing JSON files to %s...\n' "$GCS_BUCKET"
+  gcloud storage rsync "$PUBLISH_DIR" "$GCS_BUCKET" \
+    --recursive \
+    --checksums-only \
+    --exclude='.*\.geojson$' \
+    --content-type=application/json \
+    --content-encoding=gzip \
+    --cache-control='public, max-age=300, no-transform'
+fi
+
+if ((${#geojson_files[@]})); then
+  printf 'Syncing GeoJSON files to %s...\n' "$GCS_BUCKET"
+  gcloud storage rsync "$PUBLISH_DIR" "$GCS_BUCKET" \
+    --recursive \
+    --checksums-only \
+    --exclude='.*\.json$' \
+    --content-type=application/geo+json \
+    --content-encoding=gzip \
+    --cache-control='public, max-age=300, no-transform'
+fi
 
 echo 'Publishing complete.'

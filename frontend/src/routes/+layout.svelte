@@ -11,6 +11,7 @@
   const isWorkspace = $derived(
     isRelay ||
       page.url.pathname.includes("/commodity_prices") ||
+      page.url.pathname.includes("/consumer_price_index") ||
       page.url.pathname.includes("/asset_distribution") ||
       page.url.pathname.includes("/social_security_budget_flow") ||
       page.url.pathname.includes(
