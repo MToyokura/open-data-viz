@@ -10,7 +10,8 @@
   import { onMount } from "svelte";
 
   /** @typedef {{id:string,label:string,groupPath:string[],type:string,values:(number|null)[]}} FisherySeries */
-  /** @typedef {{years:number[],series:FisherySeries[],notes:(string|{text:string})[]}} FisheryData */
+  /** @typedef {{number:number,text:string,seriesIds:string[],yearRanges:[number, number][]}} SourceNote */
+  /** @typedef {{years:number[],series:FisherySeries[],notes:(string|SourceNote)[]}} FisheryData */
 
   const sourceUrl =
     "https://www.e-stat.go.jp/stat-search/files?tclass=000001024930&cycle=0";
@@ -39,6 +40,11 @@
   );
   let selected = $derived(
     selectedIds.flatMap((id) => series.filter((item) => item.id === id)),
+  );
+  let selectedNotes = $derived(
+    data.notes
+      .filter((note) => typeof note !== "string")
+      .filter((note) => note.seriesIds.some((id) => selectedIds.includes(id))),
   );
   /** @param {FisherySeries} item */
   function seriesLabel(item) {
@@ -120,7 +126,7 @@
     selectedIds = selectedIds.filter((selectedId) => selectedId !== id);
   }
 
-  /** @param {string | {text:string}} note */
+  /** @param {string | SourceNote} note */
   function noteText(note) {
     const text = typeof note === "string" ? note : note.text;
     return text.replace(/^\s*\d+[.．]\s*/, "");
@@ -245,18 +251,28 @@
             </details>
           </section>
           <ReferencePanel title="データについて">
-            <h3>表示について</h3>
-            <ul class="reference-notes">
-              <li>
-                出典に掲載された合計・小計・魚種別の値をそのまま表示します。
-              </li>
-              <li>
-                「…」はデータなしです。2011年の震災後、岩手・宮城・福島県の調査データが欠ける年があります。
-              </li>
-              {#if selected.some((item) => item.id.includes("kuro") || item.label.includes("くろまぐろ"))}
-                <li>くろまぐろは1994年までみなみまぐろを含む定義です。</li>
-              {/if}
-            </ul>
+            <p>
+              2011年の漁獲量には、東日本大震災で失われた岩手・宮城・福島の一部の調査データが含まれていません。
+            </p>
+            {#if selectedNotes.length > 0}
+              <h3>選択中の系列に関する注記</h3>
+              <ol class="reference-notes">
+                {#each selectedNotes as note (note.number)}
+                  <li value={note.number}>
+                    {noteText(note)}
+                    {#if note.yearRanges.length > 0}
+                      <span class="note-years">
+                        {note.yearRanges
+                          .map(([start, end]) =>
+                            start === end ? `${start}年` : `${start}〜${end}年`,
+                          )
+                          .join("、")}
+                      </span>
+                    {/if}
+                  </li>
+                {/each}
+              </ol>
+            {/if}
             <details class="source-notes">
               <summary
                 >原資料の注記をすべて表示（{data.notes.length}件）</summary
@@ -301,37 +317,6 @@
           role="img"
           aria-label="選択した魚種の年別漁獲量を示す折れ線グラフ"
         ></div>
-        {#if status === "loaded"}
-          <div class="data-table-wrapper">
-            <table>
-              <caption>年別漁獲量（トン）</caption>
-              <thead>
-                <tr>
-                  <th scope="col">年</th>
-                  {#each selected as item (item.id)}
-                    <th scope="col">{seriesLabel(item)}</th>
-                  {/each}
-                </tr>
-              </thead>
-              <tbody>
-                {#each data.years as year, index (year)}
-                  <tr>
-                    <th scope="row">{year}</th>
-                    {#each selected as item (item.id)}
-                      <td
-                        >{item.values[index] == null
-                          ? "データなし"
-                          : Number(item.values[index]).toLocaleString(
-                              "ja-JP",
-                            )}</td
-                      >
-                    {/each}
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </div>
-        {/if}
       </section>
     </div>
   </main>
@@ -391,31 +376,6 @@
     min-height: 30rem;
     width: 100%;
   }
-  .data-table-wrapper {
-    max-width: 100%;
-    overflow-x: auto;
-    margin-top: var(--space-3);
-  }
-  table {
-    border-collapse: collapse;
-    min-width: 100%;
-    text-align: right;
-  }
-  caption {
-    text-align: left;
-    font-weight: 600;
-    margin-bottom: var(--space-2);
-  }
-  th,
-  td {
-    padding: var(--space-2);
-    border-bottom: var(--border-default);
-    white-space: nowrap;
-  }
-  thead th:first-child,
-  tbody th {
-    text-align: left;
-  }
   .source-notes {
     margin-top: var(--space-3);
     border-top: var(--border-default);
@@ -432,6 +392,10 @@
   }
   .source-notes li + li {
     margin-top: var(--space-2);
+  }
+  .note-years {
+    display: block;
+    color: var(--text-muted-color);
   }
   @media (max-width: 50rem) {
     .options {

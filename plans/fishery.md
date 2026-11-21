@@ -26,7 +26,7 @@ Of 7,659 catch cells, 1,114 contain the text marker `… ` with trailing whitesp
 ## 2. Build the visualization page
 
 - Add the SvelteKit route under `frontend/src/routes/marine_fishery_catch/` and link it from the home page’s 食と農業 section using `VITE_ROOT_PATH`. Fetch the generated JSON from `VITE_STORAGE_BASE_URL` and use the existing workspace, load-state and reference components where applicable.
-- Open with a line chart of the national total (漁獲量計). Provide a searchable series selector grouped by the workbook hierarchy and let users compare a few series on the same tonne axis. Switch to the first selected species when the user leaves the total view so the total’s scale does not flatten the initial species chart. Show year and exact tonnes in tooltips and in a keyboard-accessible table for the selected series. Break lines at `null` values and label those entries `データなし`.
+- Open with a line chart of the national total (漁獲量計). Provide a searchable series selector grouped by the workbook hierarchy and let users compare a few series on the same tonne axis. Switch to the first selected species when the user leaves the total view so the total’s scale does not flatten the initial species chart. Show the year and exact tonnes for the selected series in chart tooltips. Break lines at `null` values and label those entries `データなし`.
 - Place the source link, year coverage and notes next to the chart. Show the 2011 coverage caveat and surface relevant definition changes for selected series, such as くろまぐろ including みなみまぐろ through 1994. Use the source series as published across definition changes and keep totals and subtotals individually selectable.
 
 ## 3. Publish and verify

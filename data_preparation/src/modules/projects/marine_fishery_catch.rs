@@ -3,6 +3,48 @@ use std::{collections::BTreeMap, error::Error, fs, path::Path, process::{Command
 const URL: &str = "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040416370&fileKind=0";
 const ROOT: &str = "output/marine_fishery_catch";
 
+// In source note order (Sheet1!B80:B107). Empty columns denote table-wide
+// notes, and empty year ranges mean the source gives no specific years.
+const NOTE_SCOPE: [(&str, &[(i32, i32)]); 28] = [
+    ("", &[]),                                         // 1
+    ("", &[(1956, 1963)]),                             // 2
+    ("", &[(1956, 1957)]),                             // 3
+    ("X AM AN BO BW", &[]),                            // 4
+    ("CT CV", &[(1956, 1997), (1998, 2024)]),           // 5
+    ("AV AW", &[(1968, 1968)]),                         // 6
+    ("AX AY BC BE BW", &[(1968, 1968)]),                // 7
+    ("E F", &[(1956, 1994)]),                           // 8
+    ("BH BI BJ", &[(1995, 2018), (2019, 2024)]),         // 9
+    ("BK BL BM BW", &[(1956, 1994), (2019, 2024)]),      // 10
+    ("W AZ BM BN BU BV BC BW", &[(1995, 2024)]),         // 11
+    ("CC CE CG", &[(1995, 2001), (2002, 2024)]),         // 12
+    ("CH DA", &[(1995, 2024)]),                         // 13
+    ("CU CV", &[(1983, 1989), (1990, 2024)]),            // 14
+    ("DE DG DH", &[(1995, 2024)]),                      // 15
+    ("J", &[(1956, 1994)]),                             // 16
+    ("E", &[(1995, 2024)]),                             // 17
+    ("AQ AU AV AW AX AY BA BE BP BQ BR BW", &[(2007, 2024)]), // 18
+    ("AQ AU AV AW AX AY BA BE BP BQ BR BW", &[(2007, 2024)]), // 19
+    ("CL CO CP CQ", &[(2007, 2024)]),                   // 20
+    ("CL CO CP CQ", &[(2007, 2024)]),                   // 21
+    ("CS CV", &[(2007, 2024)]),                         // 22
+    ("CS CV", &[(2007, 2024)]),                         // 23
+    ("CY DA", &[(2007, 2018), (2019, 2024)]),            // 24
+    ("CY DA", &[(2007, 2018), (2019, 2024)]),            // 25
+    ("DD DE DF DH", &[(2007, 2024)]),                   // 26
+    ("DD DE DF DH", &[(2007, 2024)]),                   // 27
+    ("", &[(2011, 2011)]),                             // 28
+];
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SourceNote {
+    number: usize,
+    text: String,
+    series_ids: Vec<String>,
+    year_ranges: &'static [(i32, i32)],
+}
+
 pub fn run(args: &[String]) -> bool {
     if args.first().map(String::as_str) != Some("marine-fishery-catch") { return false; }
     let result = match &args[1..] {
@@ -83,17 +125,32 @@ fn transform_to(source: &Path, output: &Path) -> Result<(), Box<dyn Error>> {
                 values.push(serde_json::json!(value));
             }
         }
-        series.push(serde_json::json!({"id":format!("col-{}",column_name(col).to_lowercase()),"column":column_name(col),"label":label,"groupPath":path,"type":kind,"values":values}));
+        let column = column_name(col);
+        series.push(serde_json::json!({"id":series_id(&column),"column":column,"label":label,"groupPath":path,"type":kind,"values":values}));
     }
     if series.len()!=111 || nulls!=1114 { return Err(format!("expected 111 series and 1,114 missing markers, got {} and {nulls}",series.len()).into()); }
     if series[0]["values"][0] != 4511923 || series[0]["values"][68] != 2786195 { return Err("national total reference values do not match".into()); }
     let sanma = series.iter().find(|s| s["label"]=="さんま").ok_or("さんま series missing")?;
     if sanma["values"][0] != 327813 || sanma["values"][68] != 39335 { return Err("さんま reference values do not match".into()); }
-    let notes: Vec<String> = (80..=107).map(|r|cell(r,2)).filter(|s|!s.is_empty()).collect();
-    let document = serde_json::json!({"schemaVersion":1,"source":{"title":"海面漁業魚種別漁獲量累年統計（全国）","url":URL,"unit":"t"},"years":years,"yearLabels":labels,"notes":notes,"series":series});
+    let mut notes = Vec::with_capacity(NOTE_SCOPE.len());
+    for (index, &(columns, year_ranges)) in NOTE_SCOPE.iter().enumerate() {
+        let row = 80 + index;
+        let number = index + 1;
+        let text = cell(row, 2);
+        if !text.starts_with(&format!("{number}.")) {
+            return Err(format!("expected source note {number} at Sheet1!B{row}").into());
+        }
+        let series_ids = columns.split_whitespace().map(series_id).collect();
+        notes.push(SourceNote { number, text, series_ids, year_ranges });
+    }
+    let document = serde_json::json!({"schemaVersion":2,"source":{"title":"海面漁業魚種別漁獲量累年統計（全国）","url":URL,"unit":"t"},"years":years,"yearLabels":labels,"notes":notes,"series":series});
     let mut bytes = serde_json::to_vec(&document)?; bytes.push(b'\n');
     fs::write(output, bytes)?;
     Ok(())
+}
+
+fn series_id(column: &str) -> String {
+    format!("col-{}", column.to_ascii_lowercase())
 }
 
 fn unzip_member(source: &Path, member: &str) -> Result<Vec<u8>, Box<dyn Error>> {
