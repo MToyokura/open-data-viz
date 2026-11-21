@@ -119,5 +119,6 @@
     border-radius: var(--radius-md);
     color: inherit;
     text-decoration: none;
+    text-align: center;
   }
 </style>

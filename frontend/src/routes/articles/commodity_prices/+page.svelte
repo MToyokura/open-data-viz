@@ -23,14 +23,10 @@
     <p>
       統計局の小売物価統計調査（動向編）のデータから個人的に興味のあったものをいくつかピックアップして見ていきたいと思います。
     </p>
-    <p>自身で探索したい場合はこちらのサイトへどうぞ。</p>
-    <a class="site-card" href={`${VITE_ROOT_PATH}/commodity_prices`}>
-      <strong>Open Data Viz</strong>
-      <span
-        >データの加工から可視化までのすべての工程を公開して、自由に利用できるようにすることをコンセプトに趣味で始めたプロジェクトです。</span
-      >
-      <small>mtoyokura.github.io</small>
-    </a>
+    <p>自身で探索したい場合はこちらをご覧ください。</p>
+    <a class="card" href={`${VITE_ROOT_PATH}/commodity_prices`}
+      >主要品目の都市別小売価格</a
+    >
     <p>
       本記事では基本的に東京都の特別区部（23区）の数値を見ていきます。表示期間は適当に切っています。
     </p>
@@ -154,13 +150,9 @@
       <p>
         記事冒頭でも紹介しましたが、小売物価統計調査（動向編）のデータを見るサイトを作りましたのでご興味ある方はどうぞ。
       </p>
-      <a class="site-card" href={`${VITE_ROOT_PATH}/commodity_prices`}>
-        <strong>Open Data Viz</strong>
-        <span
-          >データの加工から可視化までのすべての工程を公開して、自由に利用できるようにすることをコンセプトに趣味で始めたプロジェクトです。</span
-        >
-        <small>mtoyokura.github.io</small>
-      </a>
+      <a class="card" href={`${VITE_ROOT_PATH}/commodity_prices`}
+        >主要品目の都市別小売価格</a
+      >
       <p>
         なお、データを見るときは品目の詳細とデータの連続性を確認するようにしましょう。
       </p>

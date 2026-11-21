@@ -29,6 +29,19 @@
   margin: 1.25rem 0;
 }
 
+.article-page .article-content .card {
+  width: min(100%, 19.25rem);
+  box-sizing: border-box;
+  margin-inline: auto;
+  display: block;
+  padding: 1rem;
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+  text-align: center;
+}
+
 .article-page .separate-chart {
   display: grid;
   min-height: 10rem;
@@ -43,7 +56,6 @@
   min-height: 15rem;
 }
 
-.article-page .site-card,
 .article-page .news-card {
   display: grid;
   gap: 0.35rem;
@@ -55,14 +67,12 @@
   text-decoration: none;
 }
 
-.article-page .site-card span,
 .article-page .news-card span {
   color: var(--text-muted-color);
   font-size: 0.88rem;
   line-height: 1.6;
 }
 
-.article-page .site-card small,
 .article-page .news-card small {
   color: var(--text-muted-color);
   font-size: 0.78rem;
