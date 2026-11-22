@@ -59,17 +59,14 @@
   const contributionChart = $derived<EChartsOption>({
     animation: false,
     aria: { enabled: true },
-    tooltip: {
-      trigger: "axis",
-      valueFormatter: (value) => `${value} ポイント`,
-    },
+    tooltip: { trigger: "axis" },
     legend: { bottom: 8, selectedMode: false },
     grid: { left: 24, right: 24, top: 16, bottom: 64 },
     xAxis: {
       type: "value",
       min: 0,
       max: Math.max(100, Math.ceil(weightedIndex / 20) * 20),
-      name: "指数（ポイント）",
+      name: "指数",
       nameLocation: "middle",
       nameGap: 25,
     },
