@@ -1,5 +1,6 @@
 /* Shared layout and typography for articles under /articles. */
 .article-page .page-content {
+  padding-block-start: calc(var(--page-content-padding) + var(--space-4));
   padding-bottom: calc(var(--space-8) * 3);
 }
 

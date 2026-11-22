@@ -186,11 +186,31 @@
   }
 
   /** @param {{ itemCode: string, areaCode: string }} combination */
-  function handleRemove(combination) {
-    const key = `${combination.itemCode}:${combination.areaCode}`;
-    if (!excludedCombinationKeys.includes(key)) {
-      excludedCombinationKeys = [...excludedCombinationKeys, key];
+  function handleRemove({ itemCode, areaCode }) {
+    const remaining = selectedCombinations.filter(
+      (entry) => entry.itemCode !== itemCode || entry.areaCode !== areaCode,
+    );
+    const hasItem = remaining.some((entry) => entry.itemCode === itemCode);
+    const hasArea = remaining.some((entry) => entry.areaCode === areaCode);
+
+    if (hasItem && hasArea) {
+      excludedCombinationKeys = [
+        ...excludedCombinationKeys,
+        `${itemCode}:${areaCode}`,
+      ];
+      return;
     }
+    if (!hasItem) {
+      selectedItemCodes = selectedItemCodes.filter((code) => code !== itemCode);
+    }
+    if (!hasArea) {
+      selectedAreaCodes = selectedAreaCodes.filter((code) => code !== areaCode);
+    }
+    excludedCombinationKeys = excludedCombinationKeys.filter(
+      (key) =>
+        (hasItem || !key.startsWith(`${itemCode}:`)) &&
+        (hasArea || !key.endsWith(`:${areaCode}`)),
+    );
   }
 
   const rows = [

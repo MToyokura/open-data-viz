@@ -160,9 +160,30 @@
   }
   /** @param {string} cat02Code @param {string} areaCode */
   function handleRemove(cat02Code, areaCode) {
-    const key = `${cat02Code}:${areaCode}`;
-    if (!excludedPairKeys.includes(key))
-      excludedPairKeys = [...excludedPairKeys, key];
+    const remaining = selectedCombinations.filter(
+      (entry) => entry.cat02Code !== cat02Code || entry.areaCode !== areaCode,
+    );
+    const hasItem = remaining.some((entry) => entry.cat02Code === cat02Code);
+    const hasArea = remaining.some((entry) => entry.areaCode === areaCode);
+
+    if (hasItem && hasArea) {
+      excludedPairKeys = [
+        ...excludedPairKeys,
+        `${cat02Code}:${areaCode}`,
+      ];
+      return;
+    }
+    if (!hasItem) {
+      selectedCat02Codes = selectedCat02Codes.filter((code) => code !== cat02Code);
+    }
+    if (!hasArea) {
+      selectedAreaCodes = selectedAreaCodes.filter((code) => code !== areaCode);
+    }
+    excludedPairKeys = excludedPairKeys.filter(
+      (key) =>
+        (hasItem || !key.startsWith(`${cat02Code}:`)) &&
+        (hasArea || !key.endsWith(`:${areaCode}`)),
+    );
   }
   /** @param {Event & {currentTarget: HTMLInputElement}} event */
   function changeSlider(event) {
