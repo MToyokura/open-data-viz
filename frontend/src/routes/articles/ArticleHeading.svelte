@@ -11,9 +11,13 @@
   {id}
   class={["article-heading", { "article-title": level === "h1" }]}
 >
-  <a href="#{id}">
-    {title}<span class="anchor-symbol" aria-hidden="true">#</span>
-  </a>
+  {#if level === "h1"}
+    {title}
+  {:else}
+    <a href="#{id}">
+      {title}<span class="anchor-symbol" aria-hidden="true">#</span>
+    </a>
+  {/if}
 </svelte:element>
 
 <style>
