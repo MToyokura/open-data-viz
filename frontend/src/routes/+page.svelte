@@ -82,6 +82,11 @@
         <a class="card" href={`${VITE_ROOT_PATH}/articles/consumer_price_index`}
           >消費者物価指数の推移を見る</a
         >
+        <a
+          class="card"
+          href={`${VITE_ROOT_PATH}/articles/understanding_consumer_price_index`}
+          >消費者物価指数を理解する</a
+        >
       </div>
     </section>
 

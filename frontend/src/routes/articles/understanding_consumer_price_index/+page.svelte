@@ -286,7 +286,7 @@
           )}とし、今月も同じ量を買う場合の金額を表示します。
         </p>
         <p>
-          このシミュレーションでは、ウエイトの合計を{totalWeight}に固定しています。1品目のウエイトを変えると、残り2品目は変更前の比率に沿って整数で配分されます。残り2品目がともに0の場合は、できるだけ均等に配分します。
+          このシミュレーションでは、ウエイトの合計を{totalWeight}に固定しています。1品目のウエイトを変えると、残り2品目のウエイトも自動で調整されます。
         </p>
         {#each ingredients as ingredient (ingredient.name)}
           {@const baseAmount = (baseTotal * ingredient.weight) / totalWeight}
