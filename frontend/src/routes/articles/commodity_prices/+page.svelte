@@ -1,4 +1,5 @@
 <script>
+  import ArticleHeading from "../ArticleHeading.svelte";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
   import ArticleChart from "../ArticleChart.svelte";
   import SanmaCatchChart from "../SanmaCatchChart.svelte";
@@ -18,7 +19,11 @@
 <main class="page-content">
   <article class="article-content">
     <header class="article-header">
-      <h1 class="article-title">モノの価格の推移を見る</h1>
+      <ArticleHeading
+        id="article-title"
+        title="モノの価格の推移を見る"
+        level="h1"
+      />
       <dl class="article-dates">
         <div>
           <dt>作成日時</dt>
@@ -48,7 +53,10 @@
     <p>本記事では基本的に東京都の特別区部（23区）の数値を見ていきます。</p>
 
     <section>
-      <h2>1001 うるち米(単一原料米,「コシヒカリ」)</h2>
+      <ArticleHeading
+        id="rice"
+        title="1001 うるち米(単一原料米,「コシヒカリ」)"
+      />
       <p>
         <strong>銘柄：</strong
         >国内産，精米，単一原料米（産地，品種及び産年が同一のもの），袋入り（５ｋｇ入り），「コシヒカリ」
@@ -65,7 +73,7 @@
     </section>
 
     <section>
-      <h2>1108 さんま</h2>
+      <ArticleHeading id="saury" title="1108 さんま" />
       <p><strong>銘柄：</strong>丸（長さ約２５ｃｍ以上）</p>
       <p>
         <strong>連続性：</strong
@@ -90,7 +98,7 @@
     </section>
 
     <section>
-      <h2>1341 鶏卵</h2>
+      <ArticleHeading id="eggs" title="1341 鶏卵" />
       <p>
         <strong>銘柄：</strong
         >白色卵，パック詰（１０個入り），サイズ混合，〔卵重〕「ＭＳ５２ｇ～ＬＬ７６ｇ未満」，「ＭＳ５２ｇ～Ｌ７０ｇ未満」又は「Ｍ５８ｇ～Ｌ７０ｇ未満」
@@ -107,7 +115,7 @@
     </section>
 
     <section>
-      <h2>2136 牛丼(外食)</h2>
+      <ArticleHeading id="beef-bowl" title="2136 牛丼(外食)" />
       <p><strong>銘柄：</strong>並，持ち帰りは除く</p>
       <p><strong>連続性：</strong>2019年1月に持ち帰りは対象外となりました</p>
       <ArticleChart
@@ -133,7 +141,7 @@
     </section>
 
     <section>
-      <h2>9391 ビデオソフトレンタル料</h2>
+      <ArticleHeading id="video-rental" title="9391 ビデオソフトレンタル料" />
       <p><strong>銘柄：</strong>ＤＶＤビデオ，旧作，洋画，７泊８日</p>
       <p><strong>連続性：</strong>2006年7月以降変化なし</p>
       <ArticleChart
@@ -153,7 +161,7 @@
     </section>
 
     <section>
-      <h2>まとめ</h2>
+      <ArticleHeading id="summary" title="まとめ" />
       <p>
         記憶と照らし合わせながら見るとなかなかおもしろいのではないでしょうか。
       </p>
