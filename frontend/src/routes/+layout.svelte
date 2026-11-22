@@ -23,7 +23,9 @@
     page.url.pathname.replace(/\/+$/, "") ===
       VITE_ROOT_PATH.replace(/\/+$/, ""),
   );
-  const isArticlePage = $derived(page.url.pathname.includes("/articles"));
+  const isArticlePage = $derived(
+    page.route.id?.startsWith("/articles/") === true,
+  );
 </script>
 
 <svelte:head>
@@ -46,7 +48,7 @@
   {@render children()}
 </div>
 
-{#if !isWorkspace}
+{#if !isWorkspace && !isArticlePage}
   <footer class="site-footer">
     <LicenseLink variant="footer" />
   </footer>
