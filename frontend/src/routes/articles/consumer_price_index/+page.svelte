@@ -157,6 +157,12 @@
     <p>
       消費者物価指数の品目・地域の組み合わせのうち、個人的に興味深く感じたものをいくつかピックアップしたいと思います。
     </p>
+    <p>
+      指数の読み方や品目ごとの計算方法は、補足記事「<a
+        href={`${VITE_ROOT_PATH}/articles/understanding_consumer_price_index`}
+        >消費者物価指数を理解する</a
+      >」で紹介しています。
+    </p>
     <p>ご自身で探索したい場合はこちらへ。</p>
     <a class="card" href={`${VITE_ROOT_PATH}/consumer_price_index`}
       >消費者物価指数</a
