@@ -1,5 +1,6 @@
 <script lang="ts">
   import LoadState from "#lib/LoadState.svelte";
+  import MathFormula from "#lib/MathFormula.svelte";
   import type { EChartsOption } from "echarts";
   import { onMount } from "svelte";
   import {
@@ -9,6 +10,8 @@
   import { transformData } from "../../consumer_price_index/utils/transformData.js";
   import ArticleHeading from "../ArticleHeading.svelte";
   import CpiArticleChart from "../consumer_price_index/CpiArticleChart.svelte";
+
+  const weightedExample = String.raw`\frac{80 \times 6 + 120 \times 3 + 115 \times 1}{6 + 3 + 1} = 95.5`;
 
   const title = "消費者物価指数を理解する";
   const chartLabel = "全国の生鮮食品及びエネルギーを除く総合";
@@ -123,6 +126,18 @@
   function formatChange(change: number) {
     return `${percentFormat.format(change)}％`;
   }
+
+  const totalFormula = $derived(
+    String.raw`\frac{${amountFormat.format(currentTotal)}}{${amountFormat.format(baseTotal)}} \times 100 ${Number(displayedIndex) === weightedIndex ? "=" : "\\approx"} ${displayedIndex}`,
+  );
+  const contributionFormula = $derived(
+    ingredients
+      .map(
+        ({ weight, priceChange }) =>
+          String.raw`${weight / totalWeight} \times ${100 + priceChange}`,
+      )
+      .join(" + ") + ` = ${displayedIndex}`,
+  );
 </script>
 
 <svelte:head>
@@ -237,25 +252,12 @@
           20％値上がりして 120 に、カレールウも 15％値上がりして 115
           になったとします。これを単純に平均すると、
         </p>
-        <math display="block"
-          ><mfrac
-            ><mrow><mn>80</mn><mo>+</mo><mn>120</mn><mo>+</mo><mn>115</mn></mrow
-            ><mn>3</mn></mfrac
-          ><mo>=</mo><mn>105</mn></math
-        >
+        <MathFormula display tex={String.raw`\frac{80 + 120 + 115}{3} = 105`} />
         <p>
           となり、基準時の 100
           に対して５％上昇したと計算されます。しかし、家計の消費支出上、この３品目に対する重要度は必ずしも同じではありません。この３品目の支出額の割合が、米６、牛肉３、カレールウ１であったとします。そこでこれらの値動きを、ウエイトを加味して計算すると、
         </p>
-        <math display="block"
-          ><mfrac
-            ><mrow
-              ><mn>80</mn><mo>×</mo><mn>6</mn><mo>+</mo><mn>120</mn><mo>×</mo
-              ><mn>3</mn><mo>+</mo><mn>115</mn><mo>×</mo><mn>1</mn></mrow
-            ><mrow><mn>6</mn><mo>+</mo><mn>3</mn><mo>+</mo><mn>1</mn></mrow
-            ></mfrac
-          ><mo>=</mo><mn>95.5</mn></math
-        >
+        <MathFormula display tex={weightedExample} />
         <p>
           となります。単純に計算した場合に比べてウエイトの大きさが反映され、4.5％の下落になりました。各品目の全体に占める支出額の割合を加味する、つまり、ウエイトを付けて平均する計算方法を「加重平均」といいます。
         </p>
@@ -263,16 +265,12 @@
       <p>
         引用の「米6、牛肉3、カレールウ1」は、基準時の支出額の比であり、これがウエイトです。たとえば、基準時に米に600円、牛肉に300円、カレールウに100円を支出したとします。今月も同じ量を買うと、上の価格変化を反映した支出額は、米480円、牛肉360円、カレールウ115円です。合計は955円なので、基準時の1,000円を100とした指数は次のようになります。
       </p>
-      <math display="block"
-        ><mfrac><mn>955</mn><mn>1,000</mn></mfrac><mo>×</mo><mn>100</mn><mo
-          >=</mo
-        ><mn>95.5</mn></math
-      >
+      <MathFormula
+        display
+        tex={String.raw`\frac{955}{1{,}000} \times 100 = 95.5`}
+      />
       <p>このとき、今月の支出に占める米の割合は次のとおりです。</p>
-      <math display="block"
-        ><mfrac><mn>480</mn><mn>955</mn></mfrac><mo>≈</mo><mn>50.3</mn><mo>%</mo
-        ></math
-      >
+      <MathFormula display tex={String.raw`\frac{480}{955} \approx 50.3\%`} />
       <p>
         米の値下がりとほかの品目の値上がりにより、米の支出割合は基準時の60％から今月の約50.3％に下がりました。しかしこの50.3％は指数の計算には使いません。消費者物価指数の計算には基準時の支出比
         6:3:1
@@ -333,16 +331,7 @@
         <p>
           <output>
             合計 {formatAmount(baseTotal)} → {formatAmount(currentTotal)}
-            <math display="block" class="simulation-formula">
-              <mfrac>
-                <mn>{amountFormat.format(currentTotal)}</mn>
-                <mn>{amountFormat.format(baseTotal)}</mn>
-              </mfrac>
-              <mo>×</mo>
-              <mn>100</mn>
-              <mo>{Number(displayedIndex) === weightedIndex ? "=" : "≈"}</mo>
-              <mn>{displayedIndex}</mn>
-            </math>
+            <MathFormula display tex={totalFormula} />
             加重平均 {displayedIndex}（基準時比 {formatChange(
               weightedIndex - 100,
             )}）
@@ -351,18 +340,7 @@
         <p>
           各品目の指数に基準時の支出割合を掛け、その結果を足すと全体の指数になります。
         </p>
-        <math display="block">
-          <mrow>
-            {#each ingredients as ingredient, index (ingredient.name)}
-              {#if index > 0}<mo>+</mo>{/if}
-              <mn>{ingredient.weight / totalWeight}</mn>
-              <mo>×</mo>
-              <mn>{100 + ingredient.priceChange}</mn>
-            {/each}
-            <mo>=</mo>
-            <mn>{displayedIndex}</mn>
-          </mrow>
-        </math>
+        <MathFormula display tex={contributionFormula} />
         <figure class="article-chart contribution-chart">
           <CpiArticleChart
             chartData={contributionChart}
@@ -377,363 +355,107 @@
       <p>
         先ほどのカレーの例で、各品目の指数を基準時の支出比6、3、1で加重平均しました。実は、そのときに使った次の式がラスパイレス式です。
       </p>
-      <math display="block"
-        ><mfrac
-          ><mrow
-            ><mn>80</mn><mo>×</mo><mn>6</mn><mo>+</mo><mn>120</mn><mo>×</mo><mn
-              >3</mn
-            ><mo>+</mo><mn>115</mn><mo>×</mo><mn>1</mn></mrow
-          ><mrow><mn>6</mn><mo>+</mo><mn>3</mn><mo>+</mo><mn>1</mn></mrow
-          ></mfrac
-        ><mo>=</mo><mn>95.5</mn></math
-      >
+      <MathFormula display tex={weightedExample} />
       <p>
         総務省統計局の『2025年基準
         消費者物価指数の解説』（PDF）には、「指数算式」という用語が出てきます。これは、品目ごとの価格から全体の指数を求める計算式のことです。この資料では、消費者物価指数の計算に「基準時加重相対法算式（ラスパイレス型）」を用いるとしています。先ほどカレーの例で使ったラスパイレス式を一般化すると、次のように書けます。
       </p>
-      <math display="block">
-        <msub><mi>I</mi><mi>t</mi></msub><mo>=</mo>
-        <mfrac
-          ><mrow
-            ><munderover
-              ><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi
-              ></munderover
-            ><msub><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mi>i</mi></mrow></msub
-            ><msub><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-            ></mrow
-          ><mrow
-            ><munderover
-              ><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi
-              ></munderover
-            ><msub><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-            ><msub><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-            ></mrow
-          ></mfrac
-        ><mo>×</mo><mn>100</mn><mo>=</mo>
-        <mfrac
-          ><mrow
-            ><munderover
-              ><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi
-              ></munderover
-            ><mfrac
-              ><msub><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mi>i</mi></mrow></msub
-              ><msub><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-              ></mfrac
-            ><msub><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-            ></mrow
-          ><mrow
-            ><munderover
-              ><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi
-              ></munderover
-            ><msub><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-            ></mrow
-          ></mfrac
-        ><mo>×</mo><mn>100</mn>
-      </math>
+      <MathFormula
+        display
+        tex={String.raw`
+          I_t = \frac{\sum\limits_{i=1}^n p_{t,i}q_{0,i}}{\sum\limits_{i=1}^n p_{0,i}q_{0,i}} \times 100 =
+            \frac{\sum\limits_{i=1}^n \frac{p_{t,i}}{p_{0,i}}w_{0,i}}{\sum\limits_{i=1}^n w_{0,i}} \times 100
+        `}
+      />
       <p>
         一般式の左側では、基準時と同じ量を買うのにかかる費用を、今月と基準時の価格で比べています。一般式の右側は、各品目の価格比を基準時の支出額で加重平均する形です。ウエイト
-        <math
-          ><msub><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub><mo
-            >=</mo
-          ><msub><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-          ><msub><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-          ></math
-        > を代入すると、2つの形が一致します。
+        <MathFormula tex={"w_{(0, i)} = p_{(0, i)}q_{(0, i)}"} /> を代入すると、2つの形が一致します。
       </p>
       <ul>
         <li>
-          <math><msub><mi>I</mi><mi>t</mi></msub></math> は比較時の全体の指数で、この例では今月の95.5です。
+          <MathFormula tex="I_t" /> は比較時の全体の指数で、この例では今月の95.5です。
         </li>
         <li>
-          <math><mn>0</mn></math> は基準時、<math><mi>t</mi></math> は比較時（今月）です。
+          <MathFormula tex="0" /> は基準時、<MathFormula tex="t" /> は比較時（今月）です。
         </li>
         <li>
-          <math><mi>i</mi></math>
-          は品目を表し、1が米、2が牛肉、3がカレールウです。<math
-            ><mi>n</mi></math
-          >
-          は品目数で、この例では3です。<math><mo>∑</mo></math> は3品目分を足し合わせることを表します。
+          <MathFormula tex="i" />
+          は品目を表し、1が米、2が牛肉、3がカレールウです。<MathFormula
+            tex="n"
+          />
+          は品目数で、この例では3です。<MathFormula tex={String.raw`\sum`} /> は3品目分を足し合わせることを表します。
         </li>
         <li>
-          <math
-            ><msub><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-            ></math
-          >
+          <MathFormula tex={"p_{(0, i)}"} />
           と
-          <math
-            ><msub><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mi>i</mi></mrow></msub
-            ></math
-          >
+          <MathFormula tex={"p_{(t, i)}"} />
           は、それぞれ基準時と今月の各品目の単価です。個々の単価は例に示されていませんが、価格比
-          <math
-            ><mfrac
-              ><msub><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mi>i</mi></mrow></msub
-              ><msub><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-              ></mfrac
-            ></math
-          > は米が0.80、牛肉が1.20、カレールウが1.15です。
+          <MathFormula tex={String.raw`\frac{p_{t,i}}{p_{0,i}}`} /> は米が0.80、牛肉が1.20、カレールウが1.15です。
         </li>
         <li>
-          <math
-            ><msub><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-            ></math
-          > は各品目の基準時の購入数量です。具体的な数量は例に示されていませんが、今月の費用を計算するときにも同じ数量を使います。
+          <MathFormula tex={"q_{(0, i)}"} /> は各品目の基準時の購入数量です。具体的な数量は例に示されていませんが、今月の費用を計算するときにも同じ数量を使います。
         </li>
         <li>
-          <math
-            ><msub><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mi>i</mi></mrow></msub
-            ></math
-          > は基準時の支出額（単価×購入数量）です。米、牛肉、カレールウの順に600円、300円、100円で、比にすると6対3対1です。
+          <MathFormula tex={"w_{(0, i)}"} /> は基準時の支出額（単価×購入数量）です。米、牛肉、カレールウの順に600円、300円、100円で、比にすると6対3対1です。
         </li>
       </ul>
       <p>
         まず、一般式の左側をカレーの例に当てはめます。基準時の購入数量を固定すると、今月の費用は、品目ごとに基準時の支出額に今月の価格比を掛けて求められます。たとえば米（品目1）は、基準時に600円分買った量を今月も買うと、単価が20％下がって基準時の0.80倍になっているため、費用も600円の0.80倍になります。米、牛肉、カレールウの順に、金額は次のとおりです（単位は円）。
       </p>
-      <math display="block">
-        <mtable>
-          <mtr
-            ><mtd
-              ><msub><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>1</mn></mrow></msub
-              ><msub><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>1</mn></mrow></msub
-              ></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>0.80</mn><mo>×</mo><mn>600</mn></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>480</mn></mtd></mtr
-          >
-          <mtr
-            ><mtd
-              ><msub><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>2</mn></mrow></msub
-              ><msub><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>2</mn></mrow></msub
-              ></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>1.20</mn><mo>×</mo><mn>300</mn></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>360</mn></mtd></mtr
-          >
-          <mtr
-            ><mtd
-              ><msub><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>3</mn></mrow></msub
-              ><msub><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>3</mn></mrow></msub
-              ></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>1.15</mn><mo>×</mo><mn>100</mn></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>115</mn></mtd></mtr
-          >
-        </mtable>
-      </math>
+      <MathFormula
+        display
+        tex={String.raw`
+          \begin{aligned}
+            p_{t,1}q_{0,1} &= 0.80 \times 600 = 480 \\
+            p_{t,2}q_{0,2} &= 1.20 \times 300 = 360 \\
+            p_{t,3}q_{0,3} &= 1.15 \times 100 = 115
+          \end{aligned}
+        `}
+      />
       <p>
         総和を3品目分に展開して金額を代入します。式の末尾の100と分母を約分すると、分母は6＋3＋1になります。
       </p>
-      <math display="block">
-        <mtable>
-          <mtr
-            ><mtd><msub><mi>I</mi><mi>t</mi></msub></mtd><mtd><mo>=</mo></mtd
-            ><mtd
-              ><mfrac
-                ><mrow
-                  ><msub
-                    ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>1</mn></mrow></msub
-                  ><msub
-                    ><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>1</mn></mrow></msub
-                  ><mo>+</mo><msub
-                    ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>2</mn></mrow></msub
-                  ><msub
-                    ><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>2</mn></mrow></msub
-                  ><mo>+</mo><msub
-                    ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>3</mn></mrow></msub
-                  ><msub
-                    ><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>3</mn></mrow></msub
-                  ></mrow
-                ><mrow
-                  ><msub
-                    ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>1</mn></mrow></msub
-                  ><msub
-                    ><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>1</mn></mrow></msub
-                  ><mo>+</mo><msub
-                    ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>2</mn></mrow></msub
-                  ><msub
-                    ><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>2</mn></mrow></msub
-                  ><mo>+</mo><msub
-                    ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>3</mn></mrow></msub
-                  ><msub
-                    ><mi>q</mi><mrow><mn>0</mn><mo>,</mo><mn>3</mn></mrow></msub
-                  ></mrow
-                ></mfrac
-              ><mo>×</mo><mn>100</mn></mtd
-            ></mtr
-          >
-          <mtr
-            ><mtd></mtd><mtd><mo>=</mo></mtd><mtd
-              ><mfrac
-                ><mrow
-                  ><mn>480</mn><mo>+</mo><mn>360</mn><mo>+</mo><mn>115</mn
-                  ></mrow
-                ><mrow
-                  ><mn>600</mn><mo>+</mo><mn>300</mn><mo>+</mo><mn>100</mn
-                  ></mrow
-                ></mfrac
-              ><mo>×</mo><mn>100</mn></mtd
-            ></mtr
-          >
-          <mtr
-            ><mtd></mtd><mtd><mo>=</mo></mtd><mtd
-              ><mfrac
-                ><mrow
-                  ><mn>480</mn><mo>+</mo><mn>360</mn><mo>+</mo><mn>115</mn
-                  ></mrow
-                ><mrow><mn>6</mn><mo>+</mo><mn>3</mn><mo>+</mo><mn>1</mn></mrow
-                ></mfrac
-              ></mtd
-            ></mtr
-          >
-          <mtr
-            ><mtd></mtd><mtd><mo>=</mo></mtd><mtd
-              ><mfrac><mn>955</mn><mn>10</mn></mfrac></mtd
-            ></mtr
-          >
-          <mtr><mtd></mtd><mtd><mo>=</mo></mtd><mtd><mn>95.5</mn></mtd></mtr>
-        </mtable>
-      </math>
+      <MathFormula
+        display
+        tex={String.raw`
+          \begin{aligned}
+            I_t &= \frac{p_{t,1}q_{0,1} + p_{t,2}q_{0,2} + p_{t,3}q_{0,3}}{p_{0,1}q_{0,1} + p_{0,2}q_{0,2} + p_{0,3}q_{0,3}} \times 100 \\
+                &= \frac{480 + 360 + 115}{600 + 300 + 100} \times 100 \\
+                &= \frac{480 + 360 + 115}{6 + 3 + 1} \\
+                &= \frac{955}{10} \\
+                &= 95.5
+          \end{aligned}
+        `}
+      />
       <p>
         一般式の右側で使う「価格比」は、各品目の今月の単価を基準時の単価で割った値です。品目別の指数は基準時を100としているので、指数を100で割ると価格比になります。たとえば、米の指数80は、今月の単価が基準時の0.80倍であることを示しています。米、牛肉、カレールウの順に、価格比は次のとおりです。
       </p>
-      <math display="block">
-        <mtable>
-          <mtr
-            ><mtd
-              ><mfrac
-                ><msub
-                  ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>1</mn></mrow></msub
-                ><msub
-                  ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>1</mn></mrow></msub
-                ></mfrac
-              ></mtd
-            ><mtd><mo>=</mo></mtd><mtd
-              ><mfrac><mn>80</mn><mn>100</mn></mfrac></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>0.80</mn></mtd></mtr
-          >
-          <mtr
-            ><mtd
-              ><mfrac
-                ><msub
-                  ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>2</mn></mrow></msub
-                ><msub
-                  ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>2</mn></mrow></msub
-                ></mfrac
-              ></mtd
-            ><mtd><mo>=</mo></mtd><mtd
-              ><mfrac><mn>120</mn><mn>100</mn></mfrac></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>1.20</mn></mtd></mtr
-          >
-          <mtr
-            ><mtd
-              ><mfrac
-                ><msub
-                  ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>3</mn></mrow></msub
-                ><msub
-                  ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>3</mn></mrow></msub
-                ></mfrac
-              ></mtd
-            ><mtd><mo>=</mo></mtd><mtd
-              ><mfrac><mn>115</mn><mn>100</mn></mfrac></mtd
-            ><mtd><mo>=</mo></mtd><mtd><mn>1.15</mn></mtd></mtr
-          >
-        </mtable>
-      </math>
+      <MathFormula
+        display
+        tex={String.raw`
+          \begin{aligned}
+            \frac{p_{t,1}}{p_{0,1}} &= \frac{80}{100} = 0.80 \\
+            \frac{p_{t,2}}{p_{0,2}} &= \frac{120}{100} = 1.20 \\
+            \frac{p_{t,3}}{p_{0,3}} &= \frac{115}{100} = 1.15
+          \end{aligned}
+        `}
+      />
       <p>
         この価格比と基準時の支出額を右側の式に代入します。式の末尾の100と分母を約分すると、分母は6＋3＋1になります。分子の各項は、価格比を100倍して品目別指数にし、支出額を100で割って6、3、1にしても積は同じです。こうすると、先ほどの分数の式になります。さらに分子と分母を100で割ると、支出のウエイトは6、3、1になり、先ほどの分数の式に戻ります。
       </p>
-      <math display="block">
-        <mtable>
-          <mtr
-            ><mtd><msub><mi>I</mi><mi>t</mi></msub></mtd><mtd><mo>=</mo></mtd
-            ><mtd
-              ><mfrac
-                ><mrow
-                  ><mfrac
-                    ><msub
-                      ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>1</mn></mrow
-                      ></msub
-                    ><msub
-                      ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>1</mn></mrow
-                      ></msub
-                    ></mfrac
-                  ><msub
-                    ><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mn>1</mn></mrow></msub
-                  ><mo>+</mo><mfrac
-                    ><msub
-                      ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>2</mn></mrow
-                      ></msub
-                    ><msub
-                      ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>2</mn></mrow
-                      ></msub
-                    ></mfrac
-                  ><msub
-                    ><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mn>2</mn></mrow></msub
-                  ><mo>+</mo><mfrac
-                    ><msub
-                      ><mi>p</mi><mrow><mi>t</mi><mo>,</mo><mn>3</mn></mrow
-                      ></msub
-                    ><msub
-                      ><mi>p</mi><mrow><mn>0</mn><mo>,</mo><mn>3</mn></mrow
-                      ></msub
-                    ></mfrac
-                  ><msub
-                    ><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mn>3</mn></mrow></msub
-                  ></mrow
-                ><mrow
-                  ><msub
-                    ><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mn>1</mn></mrow></msub
-                  ><mo>+</mo><msub
-                    ><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mn>2</mn></mrow></msub
-                  ><mo>+</mo><msub
-                    ><mi>w</mi><mrow><mn>0</mn><mo>,</mo><mn>3</mn></mrow></msub
-                  ></mrow
-                ></mfrac
-              ><mo>×</mo><mn>100</mn></mtd
-            ></mtr
-          >
-          <mtr
-            ><mtd></mtd><mtd><mo>=</mo></mtd><mtd
-              ><mfrac
-                ><mrow
-                  ><mn>0.80</mn><mo>×</mo><mn>600</mn><mo>+</mo><mn>1.20</mn><mo
-                    >×</mo
-                  ><mn>300</mn><mo>+</mo><mn>1.15</mn><mo>×</mo><mn>100</mn
-                  ></mrow
-                ><mrow
-                  ><mn>600</mn><mo>+</mo><mn>300</mn><mo>+</mo><mn>100</mn
-                  ></mrow
-                ></mfrac
-              ><mo>×</mo><mn>100</mn></mtd
-            ></mtr
-          >
-          <mtr
-            ><mtd></mtd><mtd><mo>=</mo></mtd><mtd
-              ><mfrac
-                ><mrow
-                  ><mn>80</mn><mo>×</mo><mn>6</mn><mo>+</mo><mn>120</mn><mo
-                    >×</mo
-                  ><mn>3</mn><mo>+</mo><mn>115</mn><mo>×</mo><mn>1</mn></mrow
-                ><mrow><mn>6</mn><mo>+</mo><mn>3</mn><mo>+</mo><mn>1</mn></mrow
-                ></mfrac
-              ></mtd
-            ></mtr
-          >
-          <mtr
-            ><mtd></mtd><mtd><mo>=</mo></mtd><mtd
-              ><mfrac
-                ><mrow
-                  ><mn>480</mn><mo>+</mo><mn>360</mn><mo>+</mo><mn>115</mn
-                  ></mrow
-                ><mn>10</mn></mfrac
-              ></mtd
-            ></mtr
-          >
-          <mtr
-            ><mtd></mtd><mtd><mo>=</mo></mtd><mtd
-              ><mfrac><mn>955</mn><mn>10</mn></mfrac></mtd
-            ></mtr
-          >
-          <mtr><mtd></mtd><mtd><mo>=</mo></mtd><mtd><mn>95.5</mn></mtd></mtr>
-        </mtable>
-      </math>
+      <MathFormula
+        display
+        tex={String.raw`
+          \begin{aligned}
+            I_t &= \frac{\frac{p_{t,1}}{p_{0,1}}w_{0,1} + \frac{p_{t,2}}{p_{0,2}}w_{0,2} + \frac{p_{t,3}}{p_{0,3}}w_{0,3}}{w_{0,1} + w_{0,2} + w_{0,3}} \times 100 \\
+                &= \frac{0.80 \times 600 + 1.20 \times 300 + 1.15 \times 100}{600 + 300 + 100} \times 100 \\
+                &= \frac{80 \times 6 + 120 \times 3 + 115 \times 1}{6 + 3 + 1} \\
+                &= \frac{480 + 360 + 115}{10} \\
+                &= \frac{955}{10} \\
+                &= 95.5
+          \end{aligned}
+        `}
+      />
     </section>
     <section>
       <ArticleHeading id="基準時価格" title="基準時価格" />
@@ -752,14 +474,6 @@
     border-inline-start: var(--border-default);
   }
 
-  math {
-    overflow-x: auto;
-  }
-
-  math[display="block"] {
-    font-size: 1.5em;
-  }
-
   .simulation {
     min-inline-size: 0;
     margin-inline: 0;
@@ -769,10 +483,6 @@
 
   .contribution-chart :global(.chart-canvas) {
     height: 9rem;
-  }
-
-  .simulation-formula {
-    margin-block: 0.5rem;
   }
 
   .ingredient + .ingredient {
