@@ -11,12 +11,12 @@
   import CpiArticleChart from "./CpiArticleChart.svelte";
 
   const charts = {
-    "0001": { itemCodes: ["0001"] },
+    "0001": { itemCodes: ["0001"], startMonth: "" },
     "0002": { itemCodes: ["0002"] },
     "1461": { itemCodes: ["1461"] },
     "1761": { itemCodes: ["1761"] },
     "1914": { itemCodes: ["1914"] },
-    "3000": { itemCodes: ["3000"] },
+    "3000": { itemCodes: ["3000"], startMonth: "" },
     "3500": { itemCodes: ["3500"] },
     appliances: { itemCodes: ["4003", "4021", "4042"] },
     "4063": { itemCodes: ["4063"] },
@@ -32,7 +32,11 @@
   } satisfies Record<string, ChartDefinition>;
   const areaCode = "00000";
   const defaultReferenceMonth = "2000-01";
-  type ChartDefinition = { itemCodes: string[]; referenceMonth?: string };
+  type ChartDefinition = {
+    itemCodes: string[];
+    referenceMonth?: string;
+    startMonth?: string;
+  };
   type ChartKey = keyof typeof charts;
   type LookupEntry = { code: string; name: string };
 
@@ -48,7 +52,7 @@
     chartKey: ChartKey,
     lookups: ReturnType<typeof fetchLookups>,
   ) {
-    const chart = charts[chartKey];
+    const chart: ChartDefinition = charts[chartKey];
     const { items, regions }: { items: LookupEntry[]; regions: LookupEntry[] } =
       await lookups;
     const region = regions.find((region) => region.code === areaCode);
@@ -80,7 +84,7 @@
       series,
       "normalized",
       getReferenceMonth(chart),
-      chartKey === "0001" || chartKey === "3000" ? "" : "2000-01",
+      chart.startMonth ?? "2000-01",
     ).chartData;
   }
 
@@ -189,7 +193,7 @@
           title="地域別のカカオ豆生産量"
           src="https://ourworldindata.org/grapher/cocoa-beans-production-by-region?time=2000..latest&amp;tab=chart"
           loading="lazy"
-          style="width: 100%; height: 600px; border: 0px none;"
+          style="width: 100%; height: 400px; border: 0px none;"
           allow="web-share; clipboard-write"
         ></iframe>
         <figcaption>地域別のカカオ豆生産量 Our World in Data</figcaption>
