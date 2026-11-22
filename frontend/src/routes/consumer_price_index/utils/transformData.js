@@ -5,9 +5,15 @@
  * @param {CpiSeries[]} series
  * @param {"index"|"normalized"} view
  * @param {string} [selectedMonth] Empty string selects the latest common month.
+ * @param {string} [initialStartMonth] First visible month in YYYY-MM format.
  * @returns {{ chartData: EChartsOption | null, referenceMonth: string | null, availableMonths: string[] }}
  */
-export function transformData(series, view, selectedMonth = "") {
+export function transformData(
+  series,
+  view,
+  selectedMonth = "",
+  initialStartMonth = "",
+) {
   const dates = [
     ...new Set(
       series.flatMap((item) => item.timeValuePairs.map(([date]) => date)),
@@ -36,6 +42,8 @@ export function transformData(series, view, selectedMonth = "") {
     ? valuesBySeries.map((values) => values.get(referenceMonth))
     : [];
   const labels = dates.map((date) => date.replace("-", "年") + "月");
+  const startIndex = dates.findIndex((date) => date >= initialStartMonth);
+  const initialZoom = startIndex > 0 ? { startValue: startIndex } : {};
   const chartSeries = series.map((item, index) => ({
     name: `${item.itemName}【${item.areaName}】`,
     type: /** @type {"line"} */ ("line"),
@@ -81,8 +89,7 @@ export function transformData(series, view, selectedMonth = "") {
           xAxisIndex: 0,
           show: true,
           realtime: true,
-          start: 0,
-          end: 100,
+          ...(startIndex > 0 ? initialZoom : { start: 0, end: 100 }),
           height: 20,
           bottom: 8,
           showDetail: false,
@@ -91,6 +98,7 @@ export function transformData(series, view, selectedMonth = "") {
         {
           type: "inside",
           xAxisIndex: 0,
+          ...initialZoom,
           zoomOnMouseWheel: true,
           moveOnMouseMove: true,
           moveOnMouseWheel: false,

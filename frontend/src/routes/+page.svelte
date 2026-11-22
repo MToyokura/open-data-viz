@@ -79,6 +79,9 @@
         <a class="card" href={`${VITE_ROOT_PATH}/articles/commodity_prices`}
           >モノの価格の推移を見る</a
         >
+        <a class="card" href={`${VITE_ROOT_PATH}/articles/consumer_price_index`}
+          >消費者物価指数の推移を見る</a
+        >
       </div>
     </section>
 
