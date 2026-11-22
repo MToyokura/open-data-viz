@@ -127,8 +127,23 @@
     return `${percentFormat.format(change)}％`;
   }
 
+  function getBaseAmount(weight: number) {
+    return (baseTotal * weight) / totalWeight;
+  }
+
+  function getCurrentAmount(weight: number, priceChange: number) {
+    return (getBaseAmount(weight) * (100 + priceChange)) / 100;
+  }
+
+  const currentAmountSum = $derived(
+    ingredients
+      .map(({ weight, priceChange }) =>
+        amountFormat.format(getCurrentAmount(weight, priceChange)),
+      )
+      .join(" + "),
+  );
   const totalFormula = $derived(
-    String.raw`\frac{${amountFormat.format(currentTotal)}}{${amountFormat.format(baseTotal)}} \times 100 ${Number(displayedIndex) === weightedIndex ? "=" : "\\approx"} ${displayedIndex}`,
+    String.raw`\frac{${currentAmountSum}}{${amountFormat.format(baseTotal)}} \times 100 ${Number(displayedIndex) === weightedIndex ? "=" : "\\approx"} ${displayedIndex}`,
   );
   const contributionFormula = $derived(
     ingredients
@@ -288,7 +303,6 @@
           このシミュレーションでは、ウエイトの合計を{totalWeight}に固定しています。1品目のウエイトを変えると、残り2品目のウエイトも自動で調整されます。
         </p>
         {#each ingredients as ingredient (ingredient.name)}
-          {@const baseAmount = (baseTotal * ingredient.weight) / totalWeight}
           <div class="ingredient">
             <strong
               >{ingredient.name}（指数 {100 + ingredient.priceChange}）</strong
@@ -322,8 +336,8 @@
               <span>{ingredient.weight}</span>
             </label>
             <div>
-              基準時 {formatAmount(baseAmount)} → 今月 {formatAmount(
-                (baseAmount * (100 + ingredient.priceChange)) / 100,
+              基準時 {formatAmount(getBaseAmount(ingredient.weight))} → 今月 {formatAmount(
+                getCurrentAmount(ingredient.weight, ingredient.priceChange),
               )}
             </div>
           </div>
