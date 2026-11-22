@@ -134,6 +134,24 @@
         title="消費者物価指数の推移を見る"
         level="h1"
       />
+      <dl class="article-dates">
+        <div>
+          <dt>作成日時</dt>
+          <dd>
+            <time datetime="2026-11-22T12:06:00+09:00"
+              >2026年11月22日 12:06</time
+            >
+          </dd>
+        </div>
+        <div>
+          <dt>更新日時</dt>
+          <dd>
+            <time datetime="2026-11-22T12:06:00+09:00"
+              >2026年11月22日 12:06</time
+            >
+          </dd>
+        </div>
+      </dl>
     </header>
 
     <p>
