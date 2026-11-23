@@ -1,6 +1,5 @@
 <script>
   import WorkspaceHeader from "#lib/WorkspaceHeader.svelte";
-  import "./articles.css";
 
   let { children } = $props();
 </script>

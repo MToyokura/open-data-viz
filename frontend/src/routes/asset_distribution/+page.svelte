@@ -530,13 +530,11 @@
                 <div class="mode-switch" role="group" aria-label="表示モード">
                   <button
                     type="button"
-                    class:active={mode === "add"}
                     aria-pressed={mode === "add"}
                     onclick={() => setMode("add")}>系列を追加</button
                   >
                   <button
                     type="button"
-                    class:active={mode === "compare"}
                     aria-pressed={mode === "compare"}
                     onclick={() => setMode("compare")}>属性を比較</button
                   >

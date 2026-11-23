@@ -67,9 +67,9 @@
     max-width: 42rem;
     margin: var(--space-8) auto;
     padding: var(--space-6);
+    border-radius: var(--radius-hero);
     border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-muted-color);
+    color: var(--heading-color);
   }
 
   h1 {
@@ -90,7 +90,7 @@
     display: inline-block;
     margin-top: var(--space-2);
     padding: var(--space-2) var(--space-4);
-    border: var(--border-default);
+    border: 1px solid var(--accent-color);
     border-radius: var(--radius-md);
     background: var(--surface-color);
     color: var(--text-color);

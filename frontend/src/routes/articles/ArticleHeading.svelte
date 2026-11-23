@@ -19,26 +19,3 @@
     </a>
   {/if}
 </svelte:element>
-
-<style>
-  .article-heading {
-    scroll-margin-top: 8em;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .anchor-symbol {
-    visibility: hidden;
-    margin-inline-start: 0.25em;
-    color: var(--text-muted-color);
-    font-size: 0.8em;
-  }
-
-  .article-heading:hover .anchor-symbol,
-  a:focus-visible .anchor-symbol {
-    visibility: visible;
-  }
-</style>
