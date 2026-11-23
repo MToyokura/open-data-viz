@@ -4,7 +4,7 @@
   const categories = [
     {
       id: "prices",
-      title: "物価と買い物",
+      title: "物価関連",
       projects: [
         {
           title: "消費者物価指数",
@@ -18,15 +18,15 @@
     },
     {
       id: "food",
-      title: "食と農業",
+      title: "農林水産",
       projects: [
-        {
-          title: "海面漁業魚種別漁獲量",
-          href: `${VITE_ROOT_PATH}/marine_fishery_catch`,
-        },
         {
           title: "野菜の産地リレー",
           href: `${VITE_ROOT_PATH}/vegetable_production_relay`,
+        },
+        {
+          title: "海面漁業魚種別漁獲量",
+          href: `${VITE_ROOT_PATH}/marine_fishery_catch`,
         },
       ],
     },
@@ -60,29 +60,43 @@
     <p>ゆっくりですが内容を充実させていきたいと思っています。</p>
 
     <section aria-labelledby="projects-title">
-      <h2 id="projects-title">データ可視化</h2>
+      <h2 id="projects-title">テーマ一覧</h2>
       {#each categories as category (category.id)}
-        <section aria-labelledby={category.id}>
+        <section class="category" aria-labelledby={category.id}>
           <h3 id={category.id}>{category.title}</h3>
-          <div class="card-grid">
-            {#each category.projects as project (project.href)}
-              <a class="card" href={project.href}>{project.title}</a>
-            {/each}
+          <div class="category-content">
+            {#if category.id === "prices"}
+              <h4>データを見る</h4>
+            {/if}
+            <div class="card-grid">
+              {#each category.projects as project (project.href)}
+                <a class="card" href={project.href}>{project.title}</a>
+              {/each}
+            </div>
+            {#if category.id === "prices"}
+              <h4>関連記事</h4>
+              <ul class="article-links">
+                <li>
+                  <a href={`${VITE_ROOT_PATH}/articles/consumer_price_index`}
+                    >消費者物価指数の推移を見る</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href={`${VITE_ROOT_PATH}/articles/understanding_consumer_price_index`}
+                    >消費者物価指数を理解する</a
+                  >
+                </li>
+                <li>
+                  <a href={`${VITE_ROOT_PATH}/articles/commodity_prices`}
+                    >モノの価格の推移を見る</a
+                  >
+                </li>
+              </ul>
+            {/if}
           </div>
         </section>
       {/each}
-    </section>
-
-    <section aria-labelledby="articles-title">
-      <h2 id="articles-title">記事</h2>
-      <div class="card-grid">
-        <a class="card" href={`${VITE_ROOT_PATH}/articles/commodity_prices`}
-          >モノの価格の推移を見る</a
-        >
-        <a class="card" href={`${VITE_ROOT_PATH}/articles/consumer_price_index`}
-          >消費者物価指数の推移を見る</a
-        >
-      </div>
     </section>
 
     <div>
@@ -113,10 +127,23 @@
     font-size: 2rem;
   }
 
+  .category,
+  .category-content {
+    margin-inline-start: clamp(0.5rem, 2vw, 1.5rem);
+  }
+
   .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
     gap: 1rem;
+  }
+
+  .article-links {
+    padding-inline-start: 1.25rem;
+  }
+
+  .article-links li + li {
+    margin-block-start: 0.5rem;
   }
 
   .card {
@@ -127,5 +154,6 @@
     color: inherit;
     text-decoration: none;
     text-align: center;
+    text-wrap: balance;
   }
 </style>

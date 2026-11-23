@@ -3,7 +3,7 @@
     id,
     title,
     level = "h2",
-  }: { id: string; title: string; level?: "h1" | "h2" } = $props();
+  }: { id: string; title: string; level?: "h1" | "h2" | "h3" } = $props();
 </script>
 
 <svelte:element
