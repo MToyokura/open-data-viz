@@ -177,6 +177,24 @@
   <article class="article-content">
     <header class="article-header">
       <ArticleHeading id="article-title" {title} level="h1" />
+      <dl class="article-dates">
+        <div>
+          <dt>作成日時</dt>
+          <dd>
+            <time datetime="2026-11-23T10:10:00+09:00"
+              >2026年11月23日 10:10</time
+            >
+          </dd>
+        </div>
+        <div>
+          <dt>更新日時</dt>
+          <dd>
+            <time datetime="2026-11-23T10:10:00+09:00"
+              >2026年11月23日 10:10</time
+            >
+          </dd>
+        </div>
+      </dl>
     </header>
     <p>
       このあたりを AI
