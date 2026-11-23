@@ -1,11 +1,6 @@
 use std::collections::HashMap;
-use std::error::Error;
 
-use super::{
-    decoder::decode_response,
-    get::{EstatClient, GetRequestBuilder},
-    get_meta_info::ExplanationFlag,
-};
+use super::{EstatClient, EstatError, decoder::decode_response, get_meta_info::ExplanationFlag};
 
 #[allow(dead_code)]
 pub enum MetaGetFlg {
@@ -699,11 +694,15 @@ impl<'a> GetStatsDataParamsBuilder<'a> {
 
 fn construct_query_params_stats_data(
     params: &GetStatsDataParams<'_>,
-) -> Result<HashMap<String, String>, &'static str> {
+) -> Result<HashMap<String, String>, EstatError> {
     let (id_key, id) = match (params.data_set_id, params.stats_data_id) {
         (Some(id), None) => ("dataSetId", id),
         (None, Some(id)) => ("statsDataId", id),
-        _ => return Err("getStatsData requires exactly one of dataSetId or statsDataId"),
+        _ => {
+            return Err(EstatError::InvalidRequest(
+                "getStatsData requires exactly one of dataSetId or statsDataId",
+            ));
+        }
     };
     let mut query_params = HashMap::from([
         ("appId".to_string(), params.app_id.to_string()),
@@ -1022,20 +1021,10 @@ mod tests {
 }
 
 impl EstatClient {
-    pub(crate) fn get_stats_data(
-        &self,
-        params: GetStatsDataParams,
-    ) -> Result<String, Box<dyn Error>> {
+    pub(crate) fn get_stats_data(&self, params: GetStatsDataParams) -> Result<String, EstatError> {
         let query_params = construct_query_params_stats_data(&params)?;
 
         let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData";
-        let request = GetRequestBuilder {
-            url,
-            params: Some(&query_params),
-        };
-
-        let decoded_json_string = decode_response(&self.get(&request)?, "GET_STATS_DATA")?;
-
-        Ok(decoded_json_string)
+        decode_response(&self.get(url, &query_params)?, "GET_STATS_DATA")
     }
 }

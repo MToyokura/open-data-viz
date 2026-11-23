@@ -84,7 +84,7 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
             .lang("J")
             .build(),
         )
-        .map_err(|error| safe_api_error("metadata request", error.as_ref()))?;
+        .map_err(|error| format!("metadata request failed: {error}"))?;
     let mut metadata: Value = serde_json::from_str(&meta_response)?;
     redact_app_id(&mut metadata);
     fs::write(
@@ -108,7 +108,9 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
                     .meta_get_flg("N")
                     .build(),
             )
-            .map_err(|error| safe_api_error("data request", error.as_ref()))?;
+            .map_err(|error| {
+                format!("data request at position {start_position} failed: {error}")
+            })?;
         let mut page: Value = serde_json::from_str(&data_response)?;
         let statistical_data = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];
         let result = &statistical_data["RESULT_INF"];
@@ -1597,21 +1599,6 @@ fn parse_u64(value: &Value) -> Option<u64> {
     value
         .as_u64()
         .or_else(|| value.as_str().and_then(|text| text.parse().ok()))
-}
-
-fn safe_api_error(endpoint: &str, error: &(dyn Error + 'static)) -> Box<dyn Error> {
-    let reason = if let Some(error) = error.downcast_ref::<reqwest::Error>() {
-        if error.is_timeout() {
-            "timed out"
-        } else if error.is_connect() {
-            "could not connect"
-        } else {
-            "request failed"
-        }
-    } else {
-        "request failed"
-    };
-    format!("e-Stat {endpoint} {reason}").into()
 }
 
 fn redact_app_id(value: &mut Value) {

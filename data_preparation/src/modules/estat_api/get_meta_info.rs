@@ -1,10 +1,6 @@
 use std::collections::HashMap;
-use std::error::Error;
 
-use super::{
-    decoder::decode_response,
-    get::{EstatClient, GetRequestBuilder},
-};
+use super::{EstatClient, EstatError, decoder::decode_response};
 
 #[allow(dead_code)]
 pub enum ExplanationFlag {
@@ -94,21 +90,11 @@ fn construct_query_params<'a>(params: &GetMetaInfoParams<'a>) -> HashMap<String,
 }
 
 impl EstatClient {
-    pub(crate) fn get_meta_info(
-        &self,
-        params: GetMetaInfoParams,
-    ) -> Result<String, Box<dyn Error>> {
+    pub(crate) fn get_meta_info(&self, params: GetMetaInfoParams) -> Result<String, EstatError> {
         let query_params = construct_query_params(&params);
 
         let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getMetaInfo";
-        let request = GetRequestBuilder {
-            url,
-            params: Some(&query_params),
-        };
-
-        let decoded_json_string = decode_response(&self.get(&request)?, "GET_META_INFO")?;
-
-        Ok(decoded_json_string)
+        decode_response(&self.get(url, &query_params)?, "GET_META_INFO")
     }
 }
 

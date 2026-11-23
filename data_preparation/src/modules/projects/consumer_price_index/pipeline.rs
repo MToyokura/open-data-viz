@@ -89,23 +89,6 @@ fn redact_app_id(value: &mut Value) {
     }
 }
 
-fn safe_api_error(endpoint: &str, error: &(dyn Error + 'static)) -> String {
-    if let Some(error) = error.downcast_ref::<reqwest::Error>() {
-        let reason = if error.is_timeout() {
-            "timed out"
-        } else if error.is_connect() {
-            "could not connect"
-        } else {
-            "HTTP request failed"
-        };
-        return format!("e-Stat {endpoint} {reason}");
-    }
-    if error.downcast_ref::<serde_json::Error>().is_some() {
-        return format!("e-Stat {endpoint} returned invalid JSON");
-    }
-    format!("e-Stat {endpoint} failed")
-}
-
 fn remove_dir_if_exists(path: &Path) -> Result<(), Box<dyn Error>> {
     if path.exists() {
         fs::remove_dir_all(path)?;
@@ -182,7 +165,7 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
                 .lang("J")
                 .build(),
             )
-            .map_err(|error| safe_api_error("metadata request", error.as_ref()))?,
+            .map_err(|error| format!("metadata request failed: {error}"))?,
     )?;
     redact_app_id(&mut metadata);
     fs::write(
@@ -207,12 +190,7 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
                     .meta_get_flg("N")
                     .build(),
             )
-            .map_err(|error| {
-                format!(
-                    "{} at position {start}",
-                    safe_api_error("data request", error.as_ref())
-                )
-            })?;
+            .map_err(|error| format!("data request at position {start} failed: {error}"))?;
         let mut page: Value = serde_json::from_str(&response)?;
         let stats = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];
         let info = &stats["RESULT_INF"];

@@ -36,7 +36,7 @@ pub fn run_inspection(app_id: &str) -> Result<(), Box<dyn Error>> {
                 .lang("J")
                 .build(),
             )
-            .map_err(|error| safe_error("metadata request", error.as_ref(), app_id))?;
+            .map_err(|error| format!("metadata request for table {table_id} failed: {error}"))?;
         let mut meta_json: Value = serde_json::from_str(&meta)?;
         redact_app_id(&mut meta_json);
         fs::write(
@@ -53,7 +53,7 @@ pub fn run_inspection(app_id: &str) -> Result<(), Box<dyn Error>> {
                     .meta_get_flg("N")
                     .build(),
             )
-            .map_err(|error| safe_error("sample request", error.as_ref(), app_id))?;
+            .map_err(|error| format!("sample request for table {table_id} failed: {error}"))?;
         let mut data_json: Value = serde_json::from_str(&data)?;
         redact_app_id(&mut data_json);
         let statistical_data = &data_json["GET_STATS_DATA"]["STATISTICAL_DATA"];
@@ -85,11 +85,6 @@ pub fn run_inspection(app_id: &str) -> Result<(), Box<dyn Error>> {
     )?;
     println!("Saved e-Stat inspection samples to {OUTPUT}");
     Ok(())
-}
-
-fn safe_error(stage: &str, error: &dyn Error, app_id: &str) -> Box<dyn Error> {
-    let message = error.to_string().replace(app_id, "[redacted]");
-    format!("{stage} failed: {message}").into()
 }
 
 fn redact_app_id(value: &mut Value) {
