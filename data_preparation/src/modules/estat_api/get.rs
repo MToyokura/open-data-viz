@@ -1,5 +1,5 @@
-use reqwest::{Error as RequestError, Url};
 use reqwest::blocking;
+use reqwest::{Error as RequestError, Url};
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -20,6 +20,8 @@ pub(crate) fn get(request: &GetRequestBuilder) -> Result<String, Box<dyn Error>>
     let response_text = client
         .get(url)
         .send()
+        .map_err(RequestError::without_url)?
+        .error_for_status()
         .map_err(RequestError::without_url)?
         .text()
         .map_err(RequestError::without_url)?;

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 use super::{
-    decoder::decode_escaped_json_string,
+    decoder::decode_response,
     get::{GetRequestBuilder, get},
 };
 
@@ -114,7 +114,7 @@ pub fn get_meta_info(params: GetMetaInfoParams) -> Result<String, Box<dyn Error>
         params: Some(&query_params),
     };
 
-    let decoded_json_string = decode_escaped_json_string(&get(&request)?)?;
+    let decoded_json_string = decode_response(&get(&request)?, "GET_META_INFO")?;
 
     Ok(decoded_json_string)
 }

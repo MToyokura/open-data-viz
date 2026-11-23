@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 use super::{
-    decoder::decode_escaped_json_string,
+    decoder::decode_response,
     get::{GetRequestBuilder, get},
 };
 
@@ -308,12 +308,12 @@ pub fn get_stats_list(params: GetStatsListParams) -> Result<String, Box<dyn Erro
     let query_params = construct_query_params(&params);
 
     let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsList";
-    let mut request = GetRequestBuilder {
+    let request = GetRequestBuilder {
         url,
         params: Some(&query_params),
     };
 
-    let decoded_json_string = decode_escaped_json_string(&get(&mut request)?)?;
+    let decoded_json_string = decode_response(&get(&request)?, "GET_STATS_LIST")?;
 
     Ok(decoded_json_string)
 }
