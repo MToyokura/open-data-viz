@@ -2,11 +2,12 @@ mod modules;
 
 use modules::estat_api::app_id::retrieve_estat_app_id;
 use modules::prefectures::update_prefectures;
-use modules::projects::commodity_prices::process_commodity_prices::process_commodity_prices;
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    if modules::projects::marine_fishery_catch::run(&args) { return; }
+    if modules::projects::marine_fishery_catch::run(&args) {
+        return;
+    }
     if modules::projects::asset_distribution::run(&args) {
         return;
     }
@@ -43,6 +44,13 @@ fn main() {
             }
         }
         Some("commodity-prices") => {
+            if args.get(1).map(String::as_str) == Some("--transform-only") {
+                if let Err(error) = modules::projects::commodity_prices::pipeline::transform() {
+                    eprintln!("Commodity prices replay failed: {error}");
+                    std::process::exit(1);
+                }
+                return;
+            }
             let estat_app_id = match retrieve_estat_app_id() {
                 Ok(app_id) => {
                     println!("ESTAT_APP_ID found");
@@ -54,7 +62,12 @@ fn main() {
                 }
             };
 
-            process_commodity_prices(&estat_app_id).unwrap();
+            if let Err(error) =
+                modules::projects::commodity_prices::pipeline::acquire(&estat_app_id)
+            {
+                eprintln!("Commodity prices acquisition failed: {error}");
+                std::process::exit(1);
+            }
         }
         None => {
             print_usage();

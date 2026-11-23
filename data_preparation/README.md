@@ -28,13 +28,19 @@ ESTAT_APP_ID="取得したアプリケーションID"
 
 ## 小売物価統計データ
 
-コマンドは `prepare.sh` 経由で実行します。`run`, `build`, `--help` など Cargo の引数をそのまま渡せます。
+e-Stat 表 `0003421913` からメタデータと全商品の観測値を取得し、検証済み capture とブラウザー用データを生成します。初回取得・更新には e-Stat API のアプリケーション ID が必要です。コマンドは `prepare.sh` 経由で実行します。
 
 ```sh
 ./scripts/prepare.sh run -- commodity-prices
 ```
 
-メタデータ、API の生データ、加工後のデータは `output/commodity_prices/` 以下に保存されます。取得済みファイルの再利用条件は各処理で確認されます。
+取得済みの検証済み応答からオフラインで再生成する場合:
+
+```sh
+./scripts/prepare.sh run -- commodity-prices --transform-only
+```
+
+capture は `output/commodity_prices/raw_data/` と `meta_data/acquisition.json` に保存され、各応答ページの件数・チェックサムが記録されます。変換だけの再実行には capture が必要ですが、API ID やネットワーク接続は不要です。生成物は `output/commodity_prices/v2/` に保存されます。`v2/meta_data/` には商品・地域 lookup、`v2/transformed_data/` には地域ごとに商品 lookup 順の連続10商品をまとめた JSON チャンクが含まれます。生成・検証は staging 上で行われ、失敗時は直前の有効 bundle が保持されます。allowlist のローカル確認は `./data_preparation/scripts/publish.sh --only commodity_prices --dry-run`、公開と手動ロールバック手順は[配信データの公開手順](PUBLISHING.md)を参照してください。
 
 ## 年齢階級・雇用形態・教育・性別別の雇用者数
 
