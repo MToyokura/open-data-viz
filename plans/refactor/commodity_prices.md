@@ -34,3 +34,15 @@ A prototype on the existing local output grouped 77,686 series files into 8,343 
 5. Verify both routes in production, including series selection and article charts. Record the published prefix and verification result. If verification fails, redeploy the previous frontend.
 
 Update the [data preparation README](../../data_preparation/README.md) with both command modes and the capture layout as part of implementation. See the [pipeline inventory](pipeline_by_project.md#commodity-prices) for the current behavior.
+
+## Commit plan
+
+| Commit | Scope and verification |
+| --- | --- |
+| `refactor(commodity-prices): capture and verify e-Stat inputs` | Separate acquisition from transformation. Add pagination checks and the capture record while keeping the current browser files. Verify complete, empty, and incomplete response handling with fixtures. |
+| `feat(commodity-prices): replay captures and promote staged output` | Add `--transform-only`, deterministic regeneration, and staged promotion. Verify that replay works without credentials, removes stale series, and preserves the active bundle if validation or promotion fails. |
+| `feat(commodity-prices): generate and validate versioned chunks` | Generate the chunked bundle in a separate versioned output directory and retain the current output for existing consumers. Record the object counts and gzip sizes for the candidate layout. Verify that each original series maps to exactly one chunk with the same values. |
+| `feat(commodity-prices): load series from shared chunks` | Update the workspace and article to use the versioned bundle and share chunk requests. Cover missing series, retries, and both routes in Playwright. Measure cold and repeated requests against the generated bundle before finalizing the chunk size. |
+| `build(publish): support versioned commodity price bundles` | Add project-scoped publishing for the new bundle, verify the allowlist, and document generation, verification, and rollback. Check the packaged files before uploading. |
+
+Land the commits in order. Upload and verify the versioned bundle before deploying the frontend commit that selects it. Record production verification for both routes and retain the previous bundle for rollback.
