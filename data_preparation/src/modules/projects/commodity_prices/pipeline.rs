@@ -13,6 +13,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+const TABLE_ID: &str = "0003421913";
 const ROOT: &str = "output/commodity_prices";
 const CHUNK: usize = 10;
 fn sha(bytes: &[u8]) -> String {
@@ -102,8 +103,8 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
         return Err("No verified Commodity prices capture. Run a full refresh first.".into());
     }
     let record: Value = serde_json::from_slice(&fs::read(&record_path)?)?;
-    if record["tableId"] != "0003421913" {
-        return Err("Capture table ID does not match 0003421913".into());
+    if record["tableId"] != TABLE_ID {
+        return Err(format!("Capture table ID does not match {TABLE_ID}").into());
     }
     let metadata_path = raw.join("get_commodity_meta_info.json");
     let metadata_bytes = fs::read(&metadata_path)?;
@@ -248,7 +249,7 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     let metadata = client.get_meta_info(
         GetMetaInfoParamsBuilder::new(MandatoryParams {
             app_id,
-            stats_data_id: "0003421913",
+            stats_data_id: TABLE_ID,
         })
         .build(),
     )?;
@@ -269,7 +270,7 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
         loop {
             let response = client.get_stats_data(GetStatsDataParams::new(
                 app_id,
-                StatsDataId::Table("0003421913"),
+                StatsDataId::Table(TABLE_ID),
                 StatsDataOptions {
                     cd_cat02: Some(code),
                     start_position: Some(start),
@@ -279,7 +280,6 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
             ))?;
             let mut page: Value = serde_json::from_str(&response)?;
             redact(&mut page);
-            let stats = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];
             let (vals, total, next) = validate_response_page(&page, code, start)?;
             if total_seen.is_some_and(|n| n != total) {
                 return Err(format!("TOTAL_NUMBER changed while paging item {code}").into());
@@ -305,7 +305,7 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     let acquired = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs();
-    let acquisition = json!({"tableId":"0003421913","acquiredAtUnix":acquired,"files":{"metadata":{"path":"get_commodity_meta_info.json","sha256":sha(&metadata_bytes)}},"items":entries});
+    let acquisition = json!({"tableId":TABLE_ID,"acquiredAtUnix":acquired,"files":{"metadata":{"path":"get_commodity_meta_info.json","sha256":sha(&metadata_bytes)}},"items":entries});
     fs::write(
         meta_dir.join("acquisition.json"),
         serde_json::to_vec_pretty(&acquisition)?,
