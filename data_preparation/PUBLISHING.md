@@ -7,7 +7,7 @@
 | データ | 公開ファイル |
 | --- | --- |
 | 純資産分布 | `asset_distribution/manifest.json`、`asset_distribution/items/*.json` |
-| 小売物価 | `commodity_prices/meta_data/{cat02_lookup,area_lookup}.json`、`commodity_prices/transformed_data/` 内の JSON |
+| 小売物価（v2） | `commodity_prices/v2/meta_data/{cat02_lookup,area_lookup}.json`、`commodity_prices/v2/transformed_data/` 内の JSON |
 | 雇用者数 | `workers_by_age_employment_type_education_sex/meta_data/options.json`、`transformed_data/` 内の JSON |
 | 消費者物価指数 | `consumer_price_index/transformed_data/` 内の JSON |
 | 野菜の産地リレー | `vegetable_production_relay/products.json`、`*.summary.json`、`veg-*/details/` 内の JSON |
@@ -36,6 +36,12 @@ GCS_BUCKET=gs://YOUR_BUCKET
 ./data_preparation/scripts/publish.sh --only consumer_price_index
 ```
 
+小売物価 v2 は既存の `commodity_prices/` prefix 内の `v2/` に公開され、旧レイアウトと共存できます。アップロードせず allowlist と gzip サイズを確認するには、生成済み bundle に対して次を実行します。raw 入力と `meta_data/acquisition.json` は収集対象に含まれません。
+
+```sh
+./data_preparation/scripts/publish.sh --only commodity_prices --dry-run
+```
+
 複数のデータを指定する場合はプロジェクト名をカンマ区切りで指定します。
 
 ```sh
@@ -50,7 +56,7 @@ GCS_BUCKET=gs://YOUR_BUCKET
 
 指定しなかったプロジェクトの出力はアップロード対象に含まれません。プロジェクト名はスクリプトの `--help` で確認できます。
 
-スクリプトは公開対象だけを一時ディレクトリへ集め、JSON / GeoJSON を gzip 圧縮して元と同じ URL・ファイル名でアップロードします。各オブジェクトには適切な Content-Type、`Content-Encoding: gzip`、共通の短い Cache-Control を設定します。アップロードは対象ファイルごとに行われ、途中で失敗した場合はエラー終了します。一部のファイルだけ更新されることがあるため、原因を修正して同じコマンドを再実行してください。
+スクリプトは公開対象だけを一時ディレクトリへ集め、JSON / GeoJSON を gzip 圧縮して元と同じ URL・ファイル名でアップロードします。`--dry-run` は同じ allowlist と gzip 設定を使ってファイル一覧と圧縮サイズを表示し、アップロードを行いません。各オブジェクトには適切な Content-Type、`Content-Encoding: gzip`、共通の短い Cache-Control を設定します。アップロードは対象ファイルごとに行われ、途中で失敗した場合はエラー終了します。一部のファイルだけ更新されることがあるため、原因を修正して同じコマンドを再実行してください。
 
 ## 公開後の確認
 
