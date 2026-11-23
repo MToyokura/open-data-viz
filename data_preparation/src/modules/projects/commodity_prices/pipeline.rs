@@ -142,79 +142,89 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
         .map(|(i, (c, _))| (c.clone(), i))
         .collect();
     let area_names: BTreeMap<String, String> = areas.iter().cloned().collect();
-    let mut grouped: BTreeMap<(String, usize, String), Vec<Value>> = BTreeMap::new();
-    let mut observations = HashSet::new();
     let entries = record["items"]
         .as_array()
         .ok_or("Capture record has no item pages")?;
     if entries.len() != items.len() {
         return Err("Capture record item count does not match metadata".into());
     }
+    let mut entries_by_chunk = vec![BTreeMap::new(); items.len().div_ceil(CHUNK)];
     for entry in entries {
         let code = entry["code"].as_str().ok_or("Capture item missing code")?;
         let idx = *item_index
             .get(code)
             .ok_or("Capture record contains unknown item")?;
-        let pages = entry["pages"]
-            .as_array()
-            .ok_or("Capture item missing pages")?;
-        let mut seen = 0usize;
-        for page in pages {
-            let rel = page["path"].as_str().ok_or("Capture page missing path")?;
-            let path = raw.join(rel);
-            let bytes = fs::read(&path)?;
-            verify_page(page, &bytes)?;
-            let data: Value = serde_json::from_slice(&bytes)?;
-            let vals = classes(&data["GET_STATS_DATA"]["STATISTICAL_DATA"]["DATA_INF"]["VALUE"]);
-            if page["rowCount"].as_u64() != Some(vals.len() as u64) {
-                return Err(format!("Row count mismatch in {rel}").into());
-            }
-            seen += vals.len();
-            for v in vals {
-                let item = v["@cat02"].as_str().ok_or("Observation missing @cat02")?;
-                if item != code {
-                    return Err(
-                        format!("Observation item {item} differs from requested {code}").into(),
-                    );
-                }
-                let area = v["@area"].as_str().ok_or("Observation missing @area")?;
-                let time = v["@time"].as_str().ok_or("Observation missing @time")?;
-                if !observations.insert((code.to_owned(), area.to_owned(), time.to_owned())) {
-                    return Err(format!(
-                        "Duplicate observation for item {code}, area {area}, time {time}"
-                    )
-                    .into());
-                }
-                area_names
-                    .get(area)
-                    .ok_or("Observation area is absent from metadata")?;
-                grouped
-                    .entry((area.to_owned(), idx / CHUNK, code.to_owned()))
-                    .or_default()
-                    .push(json!({"time":time,"value":v["$"]}));
-            }
-        }
-        if entry["rowCount"].as_u64() != Some(seen as u64) {
-            return Err(format!("Capture total row count mismatch for {code}").into());
+        if entries_by_chunk[idx / CHUNK].insert(code, entry).is_some() {
+            return Err(format!("Duplicate capture item {code}").into());
         }
     }
-    let mut chunks: BTreeMap<(String, usize), Vec<Value>> = BTreeMap::new();
-    for ((area, group, code), pairs) in grouped {
-        let idx = *item_index.get(&code).ok_or("Unknown item while grouping")?;
-        let series = json!({"cat02_code":code,"cat02_name":items[idx].1,"area_code":area,"area_name":area_names[&area],"time_value_pairs":pairs});
-        chunks.entry((area, group)).or_default().push(series);
-    }
-    for ((area, group), series) in chunks {
+    for (group, entries) in entries_by_chunk.into_iter().enumerate() {
+        let mut chunks: BTreeMap<String, Vec<Value>> = BTreeMap::new();
+        for (code, entry) in entries {
+            let idx = item_index[code];
+            let mut grouped: BTreeMap<String, Vec<Value>> = BTreeMap::new();
+            let mut observations = HashSet::new();
+            let pages = entry["pages"]
+                .as_array()
+                .ok_or("Capture item missing pages")?;
+            let mut seen = 0usize;
+            for page in pages {
+                let rel = page["path"].as_str().ok_or("Capture page missing path")?;
+                let path = raw.join(rel);
+                let bytes = fs::read(&path)?;
+                verify_page(page, &bytes)?;
+                let data: Value = serde_json::from_slice(&bytes)?;
+                let vals =
+                    classes(&data["GET_STATS_DATA"]["STATISTICAL_DATA"]["DATA_INF"]["VALUE"]);
+                if page["rowCount"].as_u64() != Some(vals.len() as u64) {
+                    return Err(format!("Row count mismatch in {rel}").into());
+                }
+                seen += vals.len();
+                for v in vals {
+                    let item = v["@cat02"].as_str().ok_or("Observation missing @cat02")?;
+                    if item != code {
+                        return Err(format!(
+                            "Observation item {item} differs from requested {code}"
+                        )
+                        .into());
+                    }
+                    let area = v["@area"].as_str().ok_or("Observation missing @area")?;
+                    let time = v["@time"].as_str().ok_or("Observation missing @time")?;
+                    if !observations.insert((area.to_owned(), time.to_owned())) {
+                        return Err(format!(
+                            "Duplicate observation for item {code}, area {area}, time {time}"
+                        )
+                        .into());
+                    }
+                    area_names
+                        .get(area)
+                        .ok_or("Observation area is absent from metadata")?;
+                    grouped
+                        .entry(area.to_owned())
+                        .or_default()
+                        .push(json!({"time":time,"value":v["$"]}));
+                }
+            }
+            if entry["rowCount"].as_u64() != Some(seen as u64) {
+                return Err(format!("Capture total row count mismatch for {code}").into());
+            }
+            for (area, pairs) in grouped {
+                let series = json!({"cat02_code":code,"cat02_name":items[idx].1,"area_code":area,"area_name":area_names[&area],"time_value_pairs":pairs});
+                chunks.entry(area).or_default().push(series);
+            }
+        }
         let first = group * CHUNK;
         let last = (first + CHUNK).min(items.len()) - 1;
-        let name = format!(
-            "area_{area}_items_{}_{}.json",
-            items[first].0, items[last].0
-        );
-        fs::write(
-            bundle.join("transformed_data").join(name),
-            serde_json::to_vec(&series)?,
-        )?;
+        for (area, series) in chunks {
+            let name = format!(
+                "area_{area}_items_{}_{}.json",
+                items[first].0, items[last].0
+            );
+            fs::write(
+                bundle.join("transformed_data").join(name),
+                serde_json::to_vec(&series)?,
+            )?;
+        }
     }
     let active = root.join("v2");
     let backup = root.join(".previous_v2");
