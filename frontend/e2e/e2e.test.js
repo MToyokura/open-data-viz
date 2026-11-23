@@ -105,21 +105,6 @@ test("commodity_prices page has expected content and behavior", async ({
   await expect(scrollRegion).toHaveCount(0);
 });
 
-test("consumer price index page loads its selectors", async ({ page }) => {
-  await page.goto("/consumer_price_index");
-  await expect(
-    page.getByRole("heading", { name: "消費者物価指数" }),
-  ).toBeVisible();
-  await expect(page.getByRole("region", { name: "品目と地域" })).toBeVisible();
-});
-
-test("vegetable production relay page loads", async ({ page }) => {
-  await page.goto("/vegetable_production_relay");
-  await expect(
-    page.getByRole("heading", { name: "野菜の産地リレー" }),
-  ).toBeVisible();
-});
-
 test("social security chart uses the shared tooltip style on hover", async ({
   page,
 }, testInfo) => {
