@@ -18,7 +18,7 @@ use sha2::{Digest, Sha256};
 use crate::modules::estat_api::{
     EstatClient,
     get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams},
+    get_stats_data::{GetStatsDataParams, StatsDataId, StatsDataOptions},
 };
 
 const STATS_DATA_ID: &str = "0004056120";
@@ -100,14 +100,16 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
             thread::sleep(Duration::from_secs(2));
         }
         let data_response = client
-            .get_stats_data(
-                GetStatsDataParamsBuilder::new(DataParams { app_id })
-                    .stats_data_id(STATS_DATA_ID)
-                    .start_position(start_position)
-                    .limit(PAGE_SIZE)
-                    .meta_get_flg("N")
-                    .build(),
-            )
+            .get_stats_data(GetStatsDataParams::new(
+                app_id,
+                StatsDataId::Table(STATS_DATA_ID),
+                StatsDataOptions {
+                    start_position: Some(start_position),
+                    limit: Some(PAGE_SIZE),
+                    meta_get_flg: Some("N"),
+                    ..Default::default()
+                },
+            ))
             .map_err(|error| {
                 format!("data request at position {start_position} failed: {error}")
             })?;

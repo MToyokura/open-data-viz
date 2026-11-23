@@ -13,7 +13,7 @@ use crate::modules::{
     estat_api::{
         EstatClient,
         get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaMandatoryParams},
-        get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataMandatoryParams},
+        get_stats_data::{GetStatsDataParams, StatsDataId, StatsDataOptions},
     },
     projects::workers_by_age_employment_type_education_sex::{
         OUTPUT_DIR_META, OUTPUT_DIR_RAW, OUTPUT_DIR_TRANSFORMED, STATS_DATA_ID,
@@ -165,13 +165,15 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
             thread::sleep(Duration::from_secs(2));
         }
         let response = client
-            .get_stats_data(
-                GetStatsDataParamsBuilder::new(DataMandatoryParams { app_id })
-                    .stats_data_id(STATS_DATA_ID)
-                    .start_position(start_position)
-                    .limit(PAGE_SIZE)
-                    .build(),
-            )
+            .get_stats_data(GetStatsDataParams::new(
+                app_id,
+                StatsDataId::Table(STATS_DATA_ID),
+                StatsDataOptions {
+                    start_position: Some(start_position),
+                    limit: Some(PAGE_SIZE),
+                    ..Default::default()
+                },
+            ))
             .map_err(|error| {
                 format!("data request at position {start_position} failed: {error}")
             })?;

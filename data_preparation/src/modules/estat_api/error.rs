@@ -4,7 +4,6 @@ use std::{error::Error, fmt};
 pub(crate) enum EstatError {
     Http(reqwest::Error),
     Json(serde_json::Error),
-    InvalidRequest(&'static str),
     ApiStatus { endpoint: &'static str, status: i64 },
     MissingStatus { endpoint: &'static str },
 }
@@ -14,7 +13,6 @@ impl fmt::Display for EstatError {
         match self {
             Self::Http(error) => write!(formatter, "e-Stat HTTP error: {error}"),
             Self::Json(error) => write!(formatter, "e-Stat JSON error: {error}"),
-            Self::InvalidRequest(message) => formatter.write_str(message),
             Self::ApiStatus { endpoint, status } => {
                 write!(
                     formatter,

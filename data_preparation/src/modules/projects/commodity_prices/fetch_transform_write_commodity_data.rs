@@ -3,7 +3,7 @@ use std::{error::Error, path::PathBuf};
 use crate::modules::{
     estat_api::{
         EstatClient,
-        get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams},
+        get_stats_data::{GetStatsDataParams, StatsDataId, StatsDataOptions},
     },
     io::file_writer::{self, WriteArgs},
     projects::commodity_prices::{OUTPUT_DIR_RAW, OUTPUT_DIR_TRANSFORMED},
@@ -191,14 +191,14 @@ fn fetch_commodity_stats_data(
     std::thread::sleep(std::time::Duration::from_secs(2));
 
     // Fetch the data
-    let stats_data = client.get_stats_data(
-        GetStatsDataParamsBuilder::new(MandatoryParams {
-            app_id: params.app_id,
-        })
-        .stats_data_id(COMMODITY_STATS_DATA_ID)
-        .cd_cat02(&params.cat02_entry.cat02_code)
-        .build(),
-    )?;
+    let stats_data = client.get_stats_data(GetStatsDataParams::new(
+        params.app_id,
+        StatsDataId::Table(COMMODITY_STATS_DATA_ID),
+        StatsDataOptions {
+            cd_cat02: Some(&params.cat02_entry.cat02_code),
+            ..Default::default()
+        },
+    ))?;
 
     Ok(stats_data)
 }

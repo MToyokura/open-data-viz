@@ -13,7 +13,7 @@ use serde_json::Value;
 use crate::modules::estat_api::{
     EstatClient,
     get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams},
+    get_stats_data::{GetStatsDataParams, StatsDataId, StatsDataOptions},
 };
 
 use super::{
@@ -180,16 +180,18 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
             thread::sleep(Duration::from_secs(2));
         }
         let response = client
-            .get_stats_data(
-                GetStatsDataParamsBuilder::new(DataParams { app_id })
-                    .stats_data_id(STATS_DATA_ID)
-                    .cd_tab("1")
-                    .lv_time("4")
-                    .start_position(start)
-                    .limit(PAGE_SIZE)
-                    .meta_get_flg("N")
-                    .build(),
-            )
+            .get_stats_data(GetStatsDataParams::new(
+                app_id,
+                StatsDataId::Table(STATS_DATA_ID),
+                StatsDataOptions {
+                    cd_tab: Some("1"),
+                    lv_time: Some("4"),
+                    start_position: Some(start),
+                    limit: Some(PAGE_SIZE),
+                    meta_get_flg: Some("N"),
+                    ..Default::default()
+                },
+            ))
             .map_err(|error| format!("data request at position {start} failed: {error}"))?;
         let mut page: Value = serde_json::from_str(&response)?;
         let stats = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];

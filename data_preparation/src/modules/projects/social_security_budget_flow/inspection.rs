@@ -10,7 +10,7 @@ use serde_json::Value;
 use crate::modules::estat_api::{
     EstatClient,
     get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams},
+    get_stats_data::{GetStatsDataParams, StatsDataId, StatsDataOptions},
 };
 
 use super::{EXPENDITURE_TABLE_ID, INCOME_TABLE_ID};
@@ -45,14 +45,16 @@ pub fn run_inspection(app_id: &str) -> Result<(), Box<dyn Error>> {
         )?;
 
         let data = client
-            .get_stats_data(
-                GetStatsDataParamsBuilder::new(DataParams { app_id })
-                    .stats_data_id(table_id)
-                    .start_position(1)
-                    .limit(100)
-                    .meta_get_flg("N")
-                    .build(),
-            )
+            .get_stats_data(GetStatsDataParams::new(
+                app_id,
+                StatsDataId::Table(table_id),
+                StatsDataOptions {
+                    start_position: Some(1),
+                    limit: Some(100),
+                    meta_get_flg: Some("N"),
+                    ..Default::default()
+                },
+            ))
             .map_err(|error| format!("sample request for table {table_id} failed: {error}"))?;
         let mut data_json: Value = serde_json::from_str(&data)?;
         redact_app_id(&mut data_json);

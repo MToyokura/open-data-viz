@@ -1,10 +1,14 @@
+use serde::Serialize;
 use std::collections::HashMap;
 
 use super::{EstatClient, EstatError, decoder::decode_response};
 
 #[allow(dead_code)]
+#[derive(Serialize)]
 pub enum ExplanationFlag {
+    #[serde(rename = "Y")]
     Include,
+    #[serde(rename = "N")]
     Exclude,
 }
 

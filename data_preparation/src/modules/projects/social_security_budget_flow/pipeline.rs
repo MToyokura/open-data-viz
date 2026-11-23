@@ -9,7 +9,7 @@ use super::{EXPENDITURE_TABLE_ID, INCOME_TABLE_ID, OUTPUT_DIR};
 use crate::modules::estat_api::{
     EstatClient,
     get_meta_info::{ExplanationFlag, GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams},
+    get_stats_data::{GetStatsDataParams, StatsDataId, StatsDataOptions},
 };
 use serde_json::{Value, json};
 
@@ -172,15 +172,17 @@ fn acquire(
         .explanation_get_flg(ExplanationFlag::Include)
         .build(),
     )?;
-    let data = client.get_stats_data(
-        GetStatsDataParamsBuilder::new(DataParams { app_id })
-            .stats_data_id(id)
-            .start_position(1)
-            .limit(5000)
-            .meta_get_flg("N")
-            .explanation_get_flg(ExplanationFlag::Include)
-            .build(),
-    )?;
+    let data = client.get_stats_data(GetStatsDataParams::new(
+        app_id,
+        StatsDataId::Table(id),
+        StatsDataOptions {
+            start_position: Some(1),
+            limit: Some(5000),
+            meta_get_flg: Some("N"),
+            explanation_get_flg: Some(ExplanationFlag::Include),
+            ..Default::default()
+        },
+    ))?;
     let mut m: Value = serde_json::from_str(&meta)?;
     let mut d: Value = serde_json::from_str(&data)?;
     redact(&mut m);
