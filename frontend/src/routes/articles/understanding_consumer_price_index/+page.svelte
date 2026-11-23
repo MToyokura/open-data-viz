@@ -14,7 +14,7 @@
   const weightedExample = String.raw`\frac{80 \times 6 + 120 \times 3 + 115 \times 1}{6 + 3 + 1} = 95.5`;
 
   const title = "消費者物価指数を理解する";
-  const chartLabel = "全国の生鮮食品及びエネルギーを除く総合";
+  const chartLabel = "全国の生鮮食品及びエネルギーを除く総合（原指数）";
   let chartRequest = $state<ReturnType<typeof loadChart>>();
 
   async function loadChart() {
@@ -32,8 +32,13 @@
       itemIndex,
       itemCount: items.length,
     });
-    if (!series?.timeValuePairs.some(([, value]) => value !== null))
+    if (
+      !series?.timeValuePairs?.some(
+        ([, value]) => typeof value === "number" && Number.isFinite(value),
+      )
+    ) {
       return null;
+    }
 
     return transformData(
       [{ ...series, itemName: items[itemIndex].name, areaName: "全国" }],
@@ -58,13 +63,13 @@
     ) / totalWeight,
   );
 
-  const contributionChartLabel = "全体の指数に占める各品目の寄与";
-  const contributionChart = $derived<EChartsOption>({
+  const weightedIndexChartLabel = "各品目の加重指数と全体の指数";
+  const weightedIndexChart = $derived<EChartsOption>({
     animation: false,
     aria: { enabled: true },
     tooltip: { trigger: "axis" },
     legend: { bottom: 8, selectedMode: false },
-    grid: { left: 24, right: 24, top: 16, bottom: 64 },
+    grid: { left: 24, right: 24, top: 16, bottom: 80 },
     xAxis: {
       type: "value",
       min: 0,
@@ -86,7 +91,12 @@
   let lastAdjustedIngredient: string | undefined;
   let firstRemainingShare = 0.5;
 
-  function setWeight(name: string, weight: number) {
+  function setWeight(name: string, requestedWeight: number) {
+    if (!Number.isFinite(requestedWeight)) return;
+    const weight = Math.max(
+      0,
+      Math.min(totalWeight, Math.round(requestedWeight)),
+    );
     const selected = ingredients.find((ingredient) => ingredient.name === name);
     const [first, second] = ingredients.filter(
       (ingredient) => ingredient.name !== name,
@@ -135,17 +145,21 @@
     return (getBaseAmount(weight) * (100 + priceChange)) / 100;
   }
 
+  function formatFormulaAmount(amount: number) {
+    return String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, "{,}");
+  }
+
   const currentAmountSum = $derived(
     ingredients
       .map(({ weight, priceChange }) =>
-        amountFormat.format(getCurrentAmount(weight, priceChange)),
+        formatFormulaAmount(getCurrentAmount(weight, priceChange)),
       )
       .join(" + "),
   );
   const totalFormula = $derived(
-    String.raw`\frac{${currentAmountSum}}{${amountFormat.format(baseTotal)}} \times 100 ${Number(displayedIndex) === weightedIndex ? "=" : "\\approx"} ${displayedIndex}`,
+    String.raw`\frac{${currentAmountSum}}{${formatFormulaAmount(baseTotal)}} \times 100 = ${displayedIndex}`,
   );
-  const contributionFormula = $derived(
+  const weightedIndexFormula = $derived(
     ingredients
       .map(
         ({ weight, priceChange }) =>
@@ -186,7 +200,7 @@
       </li>
     </ul>
     <p>
-      一方で全体の概説のような資料を読むのもまた学びにつながるし私の学びにもなるのでその軌跡としてここに記します。
+      一方で全体の概説のような資料を読むのもまた学びにつながりますし、私の学びにもなるので書いていきます。
     </p>
     <section>
       <ArticleHeading id="cpi-definition" title="消費者物価指数とは" />
@@ -195,9 +209,9 @@
           消費者物価指数は、全国の世帯が購入する財及びサービスの価格変動を総合的に測定し、物価の変動を時系列的に測定するものである。すなわち、消費者物価指数は、家計の消費構造を一定のものに固定し、これに要する費用が物価の変動によってどう変化するかを指数値で示したものである。
         </p>
       </blockquote>
-      <p>2025年（令和7年）基準 消費者物価指数の解説 p1 より。</p>
+      <p>総務省統計局『2025年基準 消費者物価指数の解説』p.1</p>
       <p>
-        指数は品目ごとのものと、まとめたものがあります。ニュースでよく見る「生鮮食品及びエネルギーを除く総合」は後者のまとめたものです。
+        消費者物価指数には、個々の品目の価格指数と、複数の品目をまとめた指数があります。ニュースでよく見る「生鮮食品及びエネルギーを除く総合」は後者に当たります。
       </p>
       <figure class="article-chart">
         {#if chartRequest}
@@ -221,9 +235,6 @@
         {/if}
         <figcaption>{chartLabel}（2025年＝100）</figcaption>
       </figure>
-      <p>
-        これが日本全体の「生鮮食品及びエネルギーを除く総合」の2025年基準消費者物価指数のグラフです。
-      </p>
     </section>
     <section>
       <ArticleHeading id="base-year" title="「2025年基準」とは" />
@@ -241,11 +252,11 @@
           なお、基準年は、西暦年の末尾が0と5の年を基準時として、5年ごとに改定（基準改定）しています。その際、併せて指数に採用する品目などの見直しも行っています。
         </p>
       </blockquote>
-      <p>消費者物価指数に関するQ&A（回答）の A-3 より。</p>
+      <p>総務省統計局「消費者物価指数に関するQ&A（回答）」A-3</p>
       <p>
-        「2025年基準」とはざっくり言うと、2025年の1年間での指数を「100」とします、ということです。2025年の1年間の価格は、原則として基準年（2025年）の1月～12月の各月の比較時価格を単純平均して算出されます。（2025年基準
-        消費者物価指数の解説 p22 より）
+        「2025年基準」とは2025年の年平均指数を100とします、ということです。。各品目・市町村の基準時価格は、原則として2025年1月から12月までの比較時価格を単純平均して求めます。
       </p>
+      <p>総務省統計局『2025年基準 消費者物価指数の解説』p.22</p>
     </section>
     <section>
       <ArticleHeading id="weights" title="「ウエイト」とは" />
@@ -257,7 +268,7 @@
       <ArticleHeading id="calculation" title="実際に指数を計算してみる" />
       <p>
         「消費者物価指数のしくみと見方」の p14
-        にあるカレーの例をそのまま使います。カレー全体が「消費支出」にあたり、各具材が具体的な品目にあたります。
+        にあるカレーの例をそのまま使います。カレーを例に、米、牛肉、カレールウの3品目への支出の合計を、家計の消費支出全体に見立てます。それぞれの具材が指数品目に対応します。
       </p>
       <blockquote>
         <p>
@@ -276,6 +287,7 @@
           となります。単純に計算した場合に比べてウエイトの大きさが反映され、4.5％の下落になりました。各品目の全体に占める支出額の割合を加味する、つまり、ウエイトを付けて平均する計算方法を「加重平均」といいます。
         </p>
       </blockquote>
+      <p>総務省統計局『消費者物価指数のしくみと見方』pp.14–15</p>
       <p>
         引用の「米6、牛肉3、カレールウ1」は、基準時の支出額の比であり、これがウエイトです。たとえば、基準時に米に600円、牛肉に300円、カレールウに100円を支出したとします。今月も同じ量を買うと、上の価格変化を反映した支出額は、米480円、牛肉360円、カレールウ115円です。合計は955円なので、基準時の1,000円を100とした指数は次のようになります。
       </p>
@@ -331,6 +343,7 @@
                 max={totalWeight}
                 step="1"
                 aria-label={`${ingredient.name}の基準時ウエイト`}
+                aria-valuetext={`合計${totalWeight}のうち${ingredient.weight}`}
                 bind:value={
                   () => ingredient.weight,
                   (weight) => setWeight(ingredient.name, weight)
@@ -348,22 +361,21 @@
         <p>
           <output>
             合計 {formatAmount(baseTotal)} → {formatAmount(currentTotal)}
-            <MathFormula display tex={totalFormula} />
             加重平均 {displayedIndex}（基準時比 {formatChange(
               weightedIndex - 100,
             )}）
           </output>
         </p>
-        <p>
-          各品目の指数に基準時の支出割合を掛け、その結果を足すと全体の指数になります。
-        </p>
-        <MathFormula display tex={contributionFormula} />
-        <figure class="article-chart contribution-chart">
+        <MathFormula display tex={totalFormula} />
+        <MathFormula display tex={weightedIndexFormula} />
+        <figure class="article-chart weighted-index-chart">
           <CpiArticleChart
-            chartData={contributionChart}
-            label={contributionChartLabel}
+            chartData={weightedIndexChart}
+            label={weightedIndexChartLabel}
           />
-          <figcaption>棒の各区間は、式の各項に対応します。</figcaption>
+          <figcaption>
+            棒の各区間は、品目別指数に基準時の支出割合を掛けた値です。各区間の値を合計すると、全体の指数になります。
+          </figcaption>
         </figure>
       </fieldset>
     </section>
@@ -386,7 +398,7 @@
       />
       <p>
         一般式の左側では、基準時と同じ量を買うのにかかる費用を、今月と基準時の価格で比べています。一般式の右側は、各品目の価格比を基準時の支出額で加重平均する形です。ウエイト
-        <MathFormula tex={"w_{(0, i)} = p_{(0, i)}q_{(0, i)}"} /> を代入すると、2つの形が一致します。
+        <MathFormula tex={"w_{0,i} = p_{0,i}q_{0,i}"} /> を代入すると、2つの形が一致します。
       </p>
       <ul>
         <li>
@@ -403,17 +415,17 @@
           は品目数で、この例では3です。<MathFormula tex={String.raw`\sum`} /> は3品目分を足し合わせることを表します。
         </li>
         <li>
-          <MathFormula tex={"p_{(0, i)}"} />
+          <MathFormula tex={"p_{0,i}"} />
           と
-          <MathFormula tex={"p_{(t, i)}"} />
+          <MathFormula tex={"p_{t,i}"} />
           は、それぞれ基準時と今月の各品目の単価です。個々の単価は例に示されていませんが、価格比
           <MathFormula tex={String.raw`\frac{p_{t,i}}{p_{0,i}}`} /> は米が0.80、牛肉が1.20、カレールウが1.15です。
         </li>
         <li>
-          <MathFormula tex={"q_{(0, i)}"} /> は各品目の基準時の購入数量です。具体的な数量は例に示されていませんが、今月の費用を計算するときにも同じ数量を使います。
+          <MathFormula tex={"q_{0,i}"} /> は各品目の基準時の購入数量です。具体的な数量は例に示されていませんが、今月の費用を計算するときにも同じ数量を使います。
         </li>
         <li>
-          <MathFormula tex={"w_{(0, i)}"} /> は基準時の支出額（単価×購入数量）です。米、牛肉、カレールウの順に600円、300円、100円で、比にすると6対3対1です。
+          <MathFormula tex={"w_{0,i}"} /> は基準時の支出額（単価×購入数量）です。米、牛肉、カレールウの順に600円、300円、100円で、比にすると6対3対1です。
         </li>
       </ul>
       <p>
@@ -429,16 +441,14 @@
           \end{aligned}
         `}
       />
-      <p>
-        総和を3品目分に展開して金額を代入します。式の末尾の100と分母を約分すると、分母は6＋3＋1になります。
-      </p>
+      <p>総和を3品目分に展開して金額を代入します。</p>
       <MathFormula
         display
         tex={String.raw`
           \begin{aligned}
             I_t &= \frac{p_{t,1}q_{0,1} + p_{t,2}q_{0,2} + p_{t,3}q_{0,3}}{p_{0,1}q_{0,1} + p_{0,2}q_{0,2} + p_{0,3}q_{0,3}} \times 100 \\
                 &= \frac{480 + 360 + 115}{600 + 300 + 100} \times 100 \\
-                &= \frac{480 + 360 + 115}{6 + 3 + 1} \\
+                &= \frac{480 + 360 + 115}{1{,}000 / 100} \\
                 &= \frac{955}{10} \\
                 &= 95.5
           \end{aligned}
@@ -457,9 +467,7 @@
           \end{aligned}
         `}
       />
-      <p>
-        この価格比と基準時の支出額を右側の式に代入します。式の末尾の100と分母を約分すると、分母は6＋3＋1になります。分子の各項は、価格比を100倍して品目別指数にし、支出額を100で割って6、3、1にしても積は同じです。こうすると、先ほどの分数の式になります。さらに分子と分母を100で割ると、支出のウエイトは6、3、1になり、先ほどの分数の式に戻ります。
-      </p>
+      <p>この価格比と基準時の支出額を、一般式の右側に代入します。</p>
       <MathFormula
         display
         tex={String.raw`
@@ -477,7 +485,7 @@
     <section>
       <ArticleHeading id="weight-calculation" title="ウエイトの作成" />
       <p>
-        上記のカレーの例では、米、牛肉、カレールウの基準時の支出額の比を6対3対1とし、その割合を使って品目別の指数を加重平均しました。実際の消費者物価指数でも基準年の支出をもとにウエイトを作るという考え方は同じですが、家計調査の支出額をそのまま使うわけではなく、品目の区分や地域ごとの消費の違いなどを考慮して調整が行われます。例えば「基本分類ウエイト」と呼ばれるものには「家計調査市町村別ウエイト」、「指数市町村別ウエイト」、「生鮮食品の月別ウエイト」の3種類あります。
+        上記のカレーの例では、米、牛肉、カレールウの基準時の支出額の比を6対3対1とし、その割合を使って品目別の指数を加重平均しました。実際の消費者物価指数でも基準年の支出をもとにウエイトを作るという考え方は同じですが、家計調査の支出額をそのまま使うわけではなく、品目の区分や地域ごとの消費の違いなどを考慮して調整が行われます。統計局の解説では、基本分類ウエイトの作成について、家計調査市町村別ウエイト、指数市町村別ウエイト、生鮮食品の月別ウエイトの作成手順を説明しています。
       </p>
       <ul>
         <li>
@@ -490,7 +498,7 @@
         </li>
         <li>
           <strong>生鮮食品の月別ウエイト</strong><br />
-          生鮮魚介・生鮮野菜・生鮮果物の購入量が季節によって大きく変わるため、品目ごとに設定します。通常の品目では年間を通じて同じウエイトを使いますが、これらの生鮮食品には月ごとに異なるウエイトを使います。2025年基準では、2024年と2025年の購入数量をもとに、あらかじめ月別のウエイトを作成しています。
+          生鮮魚介・生鮮野菜・生鮮果物は、季節によって購入される品目や数量が大きく変わりるため、個々の品目のウエイトを月ごとに設定されています。ただし、「生鮮野菜」などの分類全体のウエイト（類ウエイト）は、年間を通じて固定されています。例えば、生鮮野菜全体のウエイトは変わらないが、その内訳であるキャベツやトマトなどのウエイトは月ごとに変わる、という具合です。2025年基準では、2024年と2025年の購入数量をもとに、あらかじめ月別のウエイトを作成しています。
         </li>
       </ul>
       <p>
@@ -514,7 +522,9 @@
       <p>
         もう一つの方法が季節調整です。季節調整では、指数に含まれる季節変動を推定し、その影響を取り除きます。季節調整済指数を使うと、前月との比較によって直近の物価変動を捉えることができます。
       </p>
-      <p>総務省統計局は、次の8系列について季節調整済指数を作成しています。</p>
+      <p>
+        総務省統計局は、全国について8系列、東京都区部について5系列の季節調整済指数を作成しています。
+      </p>
       <ul>
         <li>
           <strong>基本分類指数（全国・東京都区部）</strong
@@ -593,10 +603,10 @@
         </table>
         <figcaption>
           ドーナツ（外食）の価格選定と指数算出方法<br />
-          出典：総務省統計局「<a
+          総務省統計局『<a
             href="https://www.stat.go.jp/data/cpi/2025/kaisetsu/pdf/0.pdf#page=52"
-            >2025年基準 消費者物価指数の解説（PDF）</a
-          >」p. 44
+            >2025年基準 消費者物価指数の解説</a
+          >』p.44
         </figcaption>
       </figure>
       <p>
@@ -701,10 +711,10 @@
         </table>
         <figcaption>
           民営家賃の価格選定と指数算出方法<br />
-          出典：総務省統計局「<a
+          総務省統計局『<a
             href="https://www.stat.go.jp/data/cpi/2025/kaisetsu/pdf/0.pdf#page=53"
-            >2025年基準 消費者物価指数の解説（PDF）</a
-          >」p. 45
+            >2025年基準 消費者物価指数の解説</a
+          >』p.45
         </figcaption>
       </figure>
       <p>
@@ -829,8 +839,8 @@
     border-radius: var(--radius-md);
   }
 
-  .contribution-chart :global(.chart-canvas) {
-    height: 9rem;
+  .weighted-index-chart :global(.chart-canvas) {
+    height: 11rem;
   }
 
   .ingredient + .ingredient {
