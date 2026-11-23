@@ -714,21 +714,19 @@ impl<'a> GetStatsDataParamsBuilder<'a> {
     }
 }
 
-fn construct_query_params_stats_data<'a>(
-    params: &GetStatsDataParams<'a>,
-) -> HashMap<String, String> {
-    let mut query_params = HashMap::new();
+fn construct_query_params_stats_data(
+    params: &GetStatsDataParams<'_>,
+) -> Result<HashMap<String, String>, &'static str> {
+    let (id_key, id) = match (params.data_set_id, params.stats_data_id) {
+        (Some(id), None) => ("dataSetId", id),
+        (None, Some(id)) => ("statsDataId", id),
+        _ => return Err("getStatsData requires exactly one of dataSetId or statsDataId"),
+    };
+    let mut query_params = HashMap::from([
+        ("appId".to_string(), params.app_id.to_string()),
+        (id_key.to_string(), id.to_string()),
+    ]);
 
-    // Mandatory parameters
-    query_params.insert("appId".to_string(), params.app_id.to_string());
-
-    // Optional parameters
-    if let Some(data_set_id) = params.data_set_id {
-        query_params.insert("dataSetId".to_string(), data_set_id.to_string());
-    }
-    if let Some(stats_data_id) = params.stats_data_id {
-        query_params.insert("statsDataId".to_string(), stats_data_id.to_string());
-    }
     if let Some(lv_tab) = params.lv_tab {
         query_params.insert("lvTab".to_string(), lv_tab.to_string());
     }
@@ -982,7 +980,7 @@ fn construct_query_params_stats_data<'a>(
         );
     }
 
-    query_params
+    Ok(query_params)
 }
 
 #[cfg(test)]
@@ -990,22 +988,42 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mandatory_params_only() {
-        let params = GetStatsDataParamsBuilder::new(MandatoryParams { app_id: "test_app" }).build();
-        let query_params = construct_query_params_stats_data(&params);
+    fn accepts_either_identifier_on_its_own() {
+        let builder = || GetStatsDataParamsBuilder::new(MandatoryParams { app_id: "test_app" });
+        for (params, key) in [
+            (builder().stats_data_id("0003000").build(), "statsDataId"),
+            (builder().data_set_id("0003000").build(), "dataSetId"),
+        ] {
+            let query_params = construct_query_params_stats_data(&params).unwrap();
+            assert_eq!(query_params.len(), 2);
+            assert_eq!(query_params["appId"], "test_app");
+            assert_eq!(query_params[key], "0003000");
+        }
+    }
 
-        assert_eq!(query_params.len(), 1);
-        assert_eq!(query_params.get("appId"), Some(&"test_app".to_string()));
+    #[test]
+    fn rejects_missing_or_conflicting_identifiers() {
+        let builder = || GetStatsDataParamsBuilder::new(MandatoryParams { app_id: "test_app" });
+        for params in [
+            builder().build(),
+            builder()
+                .stats_data_id("0003000")
+                .data_set_id("set")
+                .build(),
+        ] {
+            assert!(construct_query_params_stats_data(&params).is_err());
+        }
     }
 
     #[test]
     fn test_explanation_get_flg_as_str() {
         let params = GetStatsDataParamsBuilder::new(MandatoryParams { app_id: "test_app" })
+            .stats_data_id("0003000")
             .explanation_get_flg(ExplanationFlag::Exclude)
             .build();
-        let query_params = construct_query_params_stats_data(&params);
+        let query_params = construct_query_params_stats_data(&params).unwrap();
 
-        assert_eq!(query_params.len(), 2);
+        assert_eq!(query_params.len(), 3);
         assert_eq!(
             query_params.get("explanationGetFlg"),
             Some(&"N".to_string())
@@ -1018,7 +1036,7 @@ mod tests {
             .stats_data_id("0003000")
             .cd_cat02("001")
             .build();
-        let query_params = construct_query_params_stats_data(&params);
+        let query_params = construct_query_params_stats_data(&params).unwrap();
 
         assert_eq!(query_params.len(), 3);
         assert_eq!(
@@ -1030,7 +1048,7 @@ mod tests {
 }
 
 pub fn get_stats_data(params: GetStatsDataParams) -> Result<String, Box<dyn Error>> {
-    let query_params = construct_query_params_stats_data(&params);
+    let query_params = construct_query_params_stats_data(&params)?;
 
     let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData";
     let request = GetRequestBuilder {
