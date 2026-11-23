@@ -364,13 +364,11 @@
               >
                 <button
                   type="button"
-                  class={{ active: markerShape === "circle" }}
                   aria-pressed={markerShape === "circle"}
                   onclick={() => (markerShape = "circle")}>円</button
                 >
                 <button
                   type="button"
-                  class={{ active: markerShape === "square" }}
                   aria-pressed={markerShape === "square"}
                   onclick={() => (markerShape = "square")}>四角形</button
                 >
@@ -666,11 +664,6 @@
   .shape-control button {
     min-height: var(--control-height);
     padding-inline: var(--space-3);
-  }
-  .shape-control button.active {
-    border-color: var(--focus-color);
-    background: var(--surface-muted-color);
-    font-weight: 600;
   }
   .scale-control > .scale-smaller {
     grid-area: smaller;

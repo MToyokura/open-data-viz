@@ -1,6 +1,5 @@
 <script>
   import LicenseLink from "#lib/LicenseLink.svelte";
-  import homeIcon from "#lib/assets/icons/home.svg";
   import { page } from "$app/state";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
 
@@ -37,9 +36,9 @@
 </svelte:head>
 
 {#if !isWorkspace && !isArticlePage && !isHome}
-  <nav class="site-nav">
-    <a href={`${VITE_ROOT_PATH}/`} aria-label="ホームに戻る">
-      <img src={homeIcon} alt="" />
+  <nav class="page-heading">
+    <a class="wordmark" href={`${VITE_ROOT_PATH}/`} aria-label="ホームに戻る">
+      Open Data Viz
     </a>
   </nav>
 {/if}
@@ -48,26 +47,8 @@
   {@render children()}
 </div>
 
-{#if !isWorkspace && !isArticlePage}
+{#if !isWorkspace && !isArticlePage && !isHome}
   <footer class="site-footer">
     <LicenseLink variant="footer" />
   </footer>
 {/if}
-
-<style>
-  .site-nav {
-    padding: var(--space-3) var(--page-content-padding);
-  }
-
-  .site-nav img {
-    display: block;
-    width: 24px;
-    height: 24px;
-  }
-
-  .site-footer {
-    display: flex;
-    justify-content: end;
-    margin: var(--space-8) var(--space-4) var(--space-4);
-  }
-</style>

@@ -4,7 +4,7 @@
 </script>
 
 <section
-  class="reference ui-panel ui-panel--subtle"
+  class="reference ui-panel"
   style:margin-top={marginTop}
 >
   {#if title}<h2>{title}</h2>{/if}

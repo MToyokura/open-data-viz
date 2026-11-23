@@ -1,4 +1,6 @@
-<script>
+<script lang="ts">
+  import LicenseLink from "#lib/LicenseLink.svelte";
+  import githubIcon from "#lib/assets/icons/GitHub_Invertocat_Black.svg";
   import { VITE_ROOT_PATH } from "#lib/paths.js";
 
   const categories = [
@@ -49,111 +51,106 @@
       ],
     },
   ];
+
+  const articles = [
+    {
+      title: "消費者物価指数の推移を見る",
+      href: `${VITE_ROOT_PATH}/articles/consumer_price_index`,
+    },
+    {
+      title: "消費者物価指数を理解する",
+      href: `${VITE_ROOT_PATH}/articles/understanding_consumer_price_index`,
+    },
+    {
+      title: "モノの価格の推移を見る",
+      href: `${VITE_ROOT_PATH}/articles/commodity_prices`,
+    },
+  ];
 </script>
 
-<div class="page-shell">
-  <main class="page-content">
-    <h1>Open Data Viz</h1>
-    <p>
-      データの加工から可視化までのすべての工程を公開して、自由に利用できるようにすることをコンセプトに趣味で始めたプロジェクトです。
-    </p>
-    <p>ゆっくりですが内容を充実させていきたいと思っています。</p>
+{#snippet linkList(links: { title: string; href: string }[])}
+  <ul role="list">
+    {#each links as link (link.href)}
+      <li>
+        <a class="row" href={link.href}>
+          <strong>{link.title}</strong>
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      </li>
+    {/each}
+  </ul>
+{/snippet}
 
-    <section aria-labelledby="projects-title">
-      <h2 id="projects-title">テーマ一覧</h2>
-      {#each categories as category (category.id)}
-        <section class="category" aria-labelledby={category.id}>
-          <h3 id={category.id}>{category.title}</h3>
-          <div class="category-content">
-            {#if category.id === "prices"}
-              <h4>データを見る</h4>
-            {/if}
-            <div class="card-grid">
-              {#each category.projects as project (project.href)}
-                <a class="card" href={project.href}>{project.title}</a>
-              {/each}
-            </div>
-            {#if category.id === "prices"}
-              <h4>関連記事</h4>
-              <ul class="article-links">
-                <li>
-                  <a href={`${VITE_ROOT_PATH}/articles/consumer_price_index`}
-                    >消費者物価指数の推移を見る</a
-                  >
-                </li>
-                <li>
-                  <a
-                    href={`${VITE_ROOT_PATH}/articles/understanding_consumer_price_index`}
-                    >消費者物価指数を理解する</a
-                  >
-                </li>
-                <li>
-                  <a href={`${VITE_ROOT_PATH}/articles/commodity_prices`}
-                    >モノの価格の推移を見る</a
-                  >
-                </li>
-              </ul>
-            {/if}
-          </div>
-        </section>
-      {/each}
-    </section>
+<div class="home" lang="ja">
+  <header class="mast wrap">
+    <a class="wordmark" href={`${VITE_ROOT_PATH}/`}>Open Data Viz</a>
+  </header>
 
-    <div>
-      <h2>GitHub リポジトリ</h2>
-      <ul>
-        <li>
-          <a href="https://github.com/MToyokura/open-data-viz"
-            >MToyokura/open-data-viz</a
-          >
-        </li>
-      </ul>
-    </div>
-
-    <section aria-labelledby="license-title">
-      <h2 id="license-title">ライセンス</h2>
-      <p>
-        本サイトは <a
+  <main>
+    <section class="hero wrap">
+      <h1>Open Data Viz</h1>
+      <p class="intro">
+        データの加工から可視化までのすべての工程を公開して、<br
+          class="intro-break"
+        />自由に利用できるようにすることをコンセプトに趣味で始めたプロジェクトです。
+      </p>
+      <p class="intro">
+        ゆっくりですが内容を充実させていきたいと思っています。
+      </p>
+      <p class="intro">
+        本サイトのコンテンツは特記がない限り
+        <a
           href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja"
-          >CC0 1.0</a
-        > で公開しています。
+          target="_blank"
+          rel="noreferrer">CC0</a
+        >
+        で公開（著作権を最大限の範囲で放棄）<br
+          class="intro-break"
+        />していますのでご自由にお使いください。
       </p>
     </section>
+
+    <div class="wrap directory">
+      <section class="projects" id="projects" aria-labelledby="projects-title">
+        <h2 id="projects-title">テーマ一覧</h2>
+        {#each categories as category (category.id)}
+          <section class="group" aria-labelledby={category.id}>
+            <h3 id={category.id}>{category.title}</h3>
+            {@render linkList(category.projects)}
+          </section>
+        {/each}
+      </section>
+
+      <section
+        class="link-section"
+        id="articles"
+        aria-labelledby="reading-title"
+      >
+        <h2 id="reading-title">物価の関連記事</h2>
+        {@render linkList(articles)}
+      </section>
+
+      <section class="link-section" aria-labelledby="source-title">
+        <h2 id="source-title">ソースコード</h2>
+        <a
+          class="row github-link"
+          href="https://github.com/MToyokura/open-data-viz"
+        >
+          <strong>
+            <span
+              class="github-icon"
+              style:--github-icon={`url("${githubIcon}")`}
+              aria-hidden="true"
+            ></span>
+            GitHub リポジトリ
+          </strong>
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      </section>
+    </div>
   </main>
+
+  <footer class="site-footer">
+    <LicenseLink variant="footer" />
+  </footer>
 </div>
-
-<style>
-  h1 {
-    font-size: 2rem;
-  }
-
-  .category,
-  .category-content {
-    margin-inline-start: clamp(0.5rem, 2vw, 1.5rem);
-  }
-
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
-    gap: 1rem;
-  }
-
-  .article-links {
-    padding-inline-start: 1.25rem;
-  }
-
-  .article-links li + li {
-    margin-block-start: 0.5rem;
-  }
-
-  .card {
-    display: block;
-    padding: 1rem;
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    color: inherit;
-    text-decoration: none;
-    text-align: center;
-    text-wrap: balance;
-  }
-</style>

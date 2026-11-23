@@ -155,10 +155,10 @@ test("social security chart uses the shared tooltip style on hover", async ({
     };
   });
   expect(tooltipStyle.background).toBe("rgb(255, 255, 255)");
-  expect(tooltipStyle.border).toBe("rgb(214, 214, 214)");
+  expect(tooltipStyle.border).toBe("rgb(201, 213, 233)");
   expect(tooltipStyle.fontSize).toBe("14px");
   expect(tooltipStyle.shadow).not.toBe("none");
   expect(tooltipStyle.expectedBackground).toBe("#fff");
-  expect(tooltipStyle.expectedBorder).toBe("#d6d6d6");
+  expect(tooltipStyle.expectedBorder).toBe("#c9d5e9");
   expect(tooltipStyle.expectedFontSize).toBe("0.875rem");
 });

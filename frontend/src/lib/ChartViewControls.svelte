@@ -13,26 +13,3 @@
     >画面幅に収める</button
   >
 </div>
-
-<style>
-  .chart-view-controls {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: var(--space-4);
-  }
-
-  button {
-    padding: var(--space-1) var(--space-3);
-    border: var(--border-default);
-    border-radius: var(--radius-md);
-    background: var(--surface-color);
-    font-size: 0.875rem;
-    cursor: pointer;
-  }
-
-  button[aria-pressed="true"] {
-    border-color: var(--focus-color);
-    background: var(--surface-muted-color);
-    font-weight: 600;
-  }
-</style>
