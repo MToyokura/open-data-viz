@@ -6,7 +6,7 @@ Improve maintainability and consistency across data preparation, frontend worksp
 
 ### Remaining migration work
 
-See the [current pipeline inventory](pipeline_by_project.md) for project commands, generated outputs, and browser consumers.
+See the [current pipeline inventory](pipeline_by_project.md) for project commands, generated outputs, and browser consumers. Start with the [Commodity prices migration](commodity_prices.md).
 
 1. Define the migration scope and review each project's CLI, output layout, and promotion behavior against the [CPI pipeline](../../data_preparation/README.md). Check that the conventions also fit a dataset with different access patterns, such as vegetable relay with its summary and on-demand detail files.
 2. Document the shared layout for acquisition records, raw inputs, and browser assets, including how browser assets are served and published. Align CLI behavior and the boundaries between acquisition, transformation, validation, and writing where those stages apply.
