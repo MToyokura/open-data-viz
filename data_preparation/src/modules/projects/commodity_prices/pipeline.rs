@@ -115,6 +115,12 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
     if items.is_empty() || areas.is_empty() {
         return Err("Capture metadata has no item or area classifications".into());
     }
+    let workers = match std::env::var("COMMODITY_PRICES_WORKERS") {
+        Ok(value) => value.parse::<std::num::NonZeroUsize>()?.get(),
+        Err(std::env::VarError::NotPresent) => 2,
+        Err(error) => return Err(error.into()),
+    };
+    let workers = workers.min(items.len().div_ceil(CHUNK));
     let staging = root.join(".staging");
     let bundle = staging.join("bundle");
     remove(&staging)?;
@@ -158,9 +164,10 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
             return Err(format!("Duplicate capture item {code}").into());
         }
     }
-    for (group, entries) in entries_by_chunk.into_iter().enumerate() {
+    let write_chunk = |group: usize| -> Result<(), Box<dyn Error>> {
+        let entries = &entries_by_chunk[group];
         let mut chunks: BTreeMap<String, Vec<Value>> = BTreeMap::new();
-        for (code, entry) in entries {
+        for (&code, entry) in entries {
             let idx = item_index[code];
             let mut grouped: BTreeMap<String, Vec<Value>> = BTreeMap::new();
             let mut observations = HashSet::new();
@@ -225,7 +232,29 @@ pub fn transform() -> Result<(), Box<dyn Error>> {
                 serde_json::to_vec(&series)?,
             )?;
         }
-    }
+        Ok(())
+    };
+    std::thread::scope(|scope| -> Result<(), Box<dyn Error>> {
+        let handles: Vec<_> = (0..workers)
+            .map(|worker| {
+                let write_chunk = &write_chunk;
+                let groups = entries_by_chunk.len();
+                scope.spawn(move || {
+                    for group in (worker..groups).step_by(workers) {
+                        write_chunk(group).map_err(|error| {
+                            format!("Commodity prices chunk {}: {error}", group + 1)
+                        })?;
+                    }
+                    Ok::<(), String>(())
+                })
+            })
+            .collect();
+        let results: Vec<_> = handles.into_iter().map(|handle| handle.join()).collect();
+        for result in results {
+            result.map_err(|_| "Commodity prices transform worker panicked")??;
+        }
+        Ok(())
+    })?;
     let active = root.join("v2");
     let backup = root.join(".previous_v2");
     remove(&backup)?;
