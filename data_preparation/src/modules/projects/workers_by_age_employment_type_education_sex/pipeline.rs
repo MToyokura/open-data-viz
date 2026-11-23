@@ -11,12 +11,9 @@ use serde_json::Value;
 
 use crate::modules::{
     estat_api::{
-        get_meta_info::{
-            GetMetaInfoParamsBuilder, MandatoryParams as MetaMandatoryParams, get_meta_info,
-        },
-        get_stats_data::{
-            GetStatsDataParamsBuilder, MandatoryParams as DataMandatoryParams, get_stats_data,
-        },
+        EstatClient,
+        get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaMandatoryParams},
+        get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataMandatoryParams},
     },
     projects::workers_by_age_employment_type_education_sex::{
         OUTPUT_DIR_META, OUTPUT_DIR_RAW, OUTPUT_DIR_TRANSFORMED, STATS_DATA_ID,
@@ -146,6 +143,7 @@ fn safe_api_error(endpoint: &str, error: &(dyn Error + 'static)) -> String {
 /// Each acquisition replaces the prior capture. A failed request may leave an
 /// incomplete capture, which must be fetched again before transforming.
 pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
+    let client = EstatClient::new()?;
     let raw_dir = PathBuf::from(OUTPUT_DIR_RAW);
     let meta_dir = PathBuf::from(OUTPUT_DIR_META);
     if raw_dir.exists() {
@@ -158,15 +156,16 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(&meta_dir)?;
     let acquired_at = current_utc_timestamp()?;
 
-    let metadata = get_meta_info(
-        GetMetaInfoParamsBuilder::new(MetaMandatoryParams {
-            app_id,
-            stats_data_id: STATS_DATA_ID,
-        })
-        .lang("J")
-        .build(),
-    )
-    .map_err(|error| safe_api_error("metadata request", error.as_ref()))?;
+    let metadata = client
+        .get_meta_info(
+            GetMetaInfoParamsBuilder::new(MetaMandatoryParams {
+                app_id,
+                stats_data_id: STATS_DATA_ID,
+            })
+            .lang("J")
+            .build(),
+        )
+        .map_err(|error| safe_api_error("metadata request", error.as_ref()))?;
     let mut metadata: Value = serde_json::from_str(&metadata)?;
     redact_app_id(&mut metadata);
     fs::write(
@@ -184,19 +183,20 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
         if start_position > 1 {
             thread::sleep(Duration::from_secs(2));
         }
-        let response = get_stats_data(
-            GetStatsDataParamsBuilder::new(DataMandatoryParams { app_id })
-                .stats_data_id(STATS_DATA_ID)
-                .start_position(start_position)
-                .limit(PAGE_SIZE)
-                .build(),
-        )
-        .map_err(|error| {
-            format!(
-                "{} at position {start_position}",
-                safe_api_error("data request", error.as_ref())
+        let response = client
+            .get_stats_data(
+                GetStatsDataParamsBuilder::new(DataMandatoryParams { app_id })
+                    .stats_data_id(STATS_DATA_ID)
+                    .start_position(start_position)
+                    .limit(PAGE_SIZE)
+                    .build(),
             )
-        })?;
+            .map_err(|error| {
+                format!(
+                    "{} at position {start_position}",
+                    safe_api_error("data request", error.as_ref())
+                )
+            })?;
         let mut parsed: Value = serde_json::from_str(&response)?;
         let statistical_data = &parsed["GET_STATS_DATA"]["STATISTICAL_DATA"];
         let page_info = &statistical_data["RESULT_INF"];

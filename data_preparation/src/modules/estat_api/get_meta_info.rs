@@ -3,7 +3,7 @@ use std::error::Error;
 
 use super::{
     decoder::decode_response,
-    get::{GetRequestBuilder, get},
+    get::{EstatClient, GetRequestBuilder},
 };
 
 #[allow(dead_code)]
@@ -93,18 +93,23 @@ fn construct_query_params<'a>(params: &GetMetaInfoParams<'a>) -> HashMap<String,
     query_params
 }
 
-pub fn get_meta_info(params: GetMetaInfoParams) -> Result<String, Box<dyn Error>> {
-    let query_params = construct_query_params(&params);
+impl EstatClient {
+    pub(crate) fn get_meta_info(
+        &self,
+        params: GetMetaInfoParams,
+    ) -> Result<String, Box<dyn Error>> {
+        let query_params = construct_query_params(&params);
 
-    let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getMetaInfo";
-    let request = GetRequestBuilder {
-        url,
-        params: Some(&query_params),
-    };
+        let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getMetaInfo";
+        let request = GetRequestBuilder {
+            url,
+            params: Some(&query_params),
+        };
 
-    let decoded_json_string = decode_response(&get(&request)?, "GET_META_INFO")?;
+        let decoded_json_string = decode_response(&self.get(&request)?, "GET_META_INFO")?;
 
-    Ok(decoded_json_string)
+        Ok(decoded_json_string)
+    }
 }
 
 #[cfg(test)]

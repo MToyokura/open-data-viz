@@ -1,7 +1,10 @@
 use std::{error::Error, path::PathBuf};
 
 use crate::modules::{
-    estat_api::get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams, get_stats_data},
+    estat_api::{
+        EstatClient,
+        get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams},
+    },
     io::file_writer::{self, WriteArgs},
     projects::commodity_prices::{OUTPUT_DIR_RAW, OUTPUT_DIR_TRANSFORMED},
 };
@@ -168,6 +171,7 @@ fn transform_data(
 }
 
 fn fetch_commodity_stats_data(
+    client: &EstatClient,
     params: &GetCommodityStatsDataParams,
 ) -> Result<String, Box<dyn Error>> {
     // Check if the file already exists
@@ -187,7 +191,7 @@ fn fetch_commodity_stats_data(
     std::thread::sleep(std::time::Duration::from_secs(2));
 
     // Fetch the data
-    let stats_data = get_stats_data(
+    let stats_data = client.get_stats_data(
         GetStatsDataParamsBuilder::new(MandatoryParams {
             app_id: params.app_id,
         })
@@ -201,9 +205,10 @@ fn fetch_commodity_stats_data(
 
 /// Fetches, transforms, and writes a single commodity prices data to files.
 pub fn fetch_transform_write_commodity_data(
+    client: &EstatClient,
     params: GetCommodityStatsDataParams,
 ) -> Result<(), Box<dyn Error>> {
-    let stats_data = fetch_commodity_stats_data(&params)?;
+    let stats_data = fetch_commodity_stats_data(client, &params)?;
 
     // Write the raw JSON string to a file
     let file_name = format!(

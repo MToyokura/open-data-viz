@@ -16,8 +16,9 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use crate::modules::estat_api::{
-    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams, get_meta_info},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams, get_stats_data},
+    EstatClient,
+    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
+    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams},
 };
 
 const STATS_DATA_ID: &str = "0004056120";
@@ -66,6 +67,7 @@ pub fn run(args: &[String]) -> bool {
 }
 
 fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
+    let client = EstatClient::new()?;
     let target = PathBuf::from(OUTPUT_DIR);
     if target.exists() {
         fs::remove_dir_all(&target)?;
@@ -73,15 +75,16 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(target.join("meta_data"))?;
     fs::create_dir_all(target.join("raw_data"))?;
 
-    let meta_response = get_meta_info(
-        GetMetaInfoParamsBuilder::new(MetaParams {
-            app_id,
-            stats_data_id: STATS_DATA_ID,
-        })
-        .lang("J")
-        .build(),
-    )
-    .map_err(|error| safe_api_error("metadata request", error.as_ref()))?;
+    let meta_response = client
+        .get_meta_info(
+            GetMetaInfoParamsBuilder::new(MetaParams {
+                app_id,
+                stats_data_id: STATS_DATA_ID,
+            })
+            .lang("J")
+            .build(),
+        )
+        .map_err(|error| safe_api_error("metadata request", error.as_ref()))?;
     let mut metadata: Value = serde_json::from_str(&meta_response)?;
     redact_app_id(&mut metadata);
     fs::write(
@@ -96,15 +99,16 @@ fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
         if start_position > 1 {
             thread::sleep(Duration::from_secs(2));
         }
-        let data_response = get_stats_data(
-            GetStatsDataParamsBuilder::new(DataParams { app_id })
-                .stats_data_id(STATS_DATA_ID)
-                .start_position(start_position)
-                .limit(PAGE_SIZE)
-                .meta_get_flg("N")
-                .build(),
-        )
-        .map_err(|error| safe_api_error("data request", error.as_ref()))?;
+        let data_response = client
+            .get_stats_data(
+                GetStatsDataParamsBuilder::new(DataParams { app_id })
+                    .stats_data_id(STATS_DATA_ID)
+                    .start_position(start_position)
+                    .limit(PAGE_SIZE)
+                    .meta_get_flg("N")
+                    .build(),
+            )
+            .map_err(|error| safe_api_error("data request", error.as_ref()))?;
         let mut page: Value = serde_json::from_str(&data_response)?;
         let statistical_data = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];
         let result = &statistical_data["RESULT_INF"];

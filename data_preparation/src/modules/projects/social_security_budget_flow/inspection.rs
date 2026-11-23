@@ -8,8 +8,9 @@ use std::{
 use serde_json::Value;
 
 use crate::modules::estat_api::{
-    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams, get_meta_info},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams, get_stats_data},
+    EstatClient,
+    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
+    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams},
 };
 
 use super::{EXPENDITURE_TABLE_ID, INCOME_TABLE_ID};
@@ -17,6 +18,7 @@ use super::{EXPENDITURE_TABLE_ID, INCOME_TABLE_ID};
 const OUTPUT: &str = "data_preparation/inspections/social_security_budget_flow";
 
 pub fn run_inspection(app_id: &str) -> Result<(), Box<dyn Error>> {
+    let client = EstatClient::new()?;
     fs::create_dir_all(OUTPUT)?;
     let captured_at = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     let mut manifest = serde_json::json!({
@@ -25,15 +27,16 @@ pub fn run_inspection(app_id: &str) -> Result<(), Box<dyn Error>> {
         "tables": []
     });
     for table_id in [INCOME_TABLE_ID, EXPENDITURE_TABLE_ID] {
-        let meta = get_meta_info(
-            GetMetaInfoParamsBuilder::new(MetaParams {
-                app_id,
-                stats_data_id: table_id,
-            })
-            .lang("J")
-            .build(),
-        )
-        .map_err(|error| safe_error("metadata request", error.as_ref(), app_id))?;
+        let meta = client
+            .get_meta_info(
+                GetMetaInfoParamsBuilder::new(MetaParams {
+                    app_id,
+                    stats_data_id: table_id,
+                })
+                .lang("J")
+                .build(),
+            )
+            .map_err(|error| safe_error("metadata request", error.as_ref(), app_id))?;
         let mut meta_json: Value = serde_json::from_str(&meta)?;
         redact_app_id(&mut meta_json);
         fs::write(
@@ -41,15 +44,16 @@ pub fn run_inspection(app_id: &str) -> Result<(), Box<dyn Error>> {
             serde_json::to_vec_pretty(&meta_json)?,
         )?;
 
-        let data = get_stats_data(
-            GetStatsDataParamsBuilder::new(DataParams { app_id })
-                .stats_data_id(table_id)
-                .start_position(1)
-                .limit(100)
-                .meta_get_flg("N")
-                .build(),
-        )
-        .map_err(|error| safe_error("sample request", error.as_ref(), app_id))?;
+        let data = client
+            .get_stats_data(
+                GetStatsDataParamsBuilder::new(DataParams { app_id })
+                    .stats_data_id(table_id)
+                    .start_position(1)
+                    .limit(100)
+                    .meta_get_flg("N")
+                    .build(),
+            )
+            .map_err(|error| safe_error("sample request", error.as_ref(), app_id))?;
         let mut data_json: Value = serde_json::from_str(&data)?;
         redact_app_id(&mut data_json);
         let statistical_data = &data_json["GET_STATS_DATA"]["STATISTICAL_DATA"];

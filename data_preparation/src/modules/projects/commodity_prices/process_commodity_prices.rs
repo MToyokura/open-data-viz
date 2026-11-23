@@ -1,3 +1,4 @@
+use crate::modules::estat_api::EstatClient;
 use crate::modules::projects::commodity_prices::{
     fetch_transform_write_commodity_data::{
         GetCommodityStatsDataParams, fetch_transform_write_commodity_data,
@@ -7,8 +8,9 @@ use crate::modules::projects::commodity_prices::{
 
 /// Fetches, transforms, and writes all commodity prices data to files.
 pub fn process_commodity_prices(app_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let client = EstatClient::new()?;
     let commodity_meta_data: CommodityMetaData =
-        match fetch_write_transform_commodity_metadata(app_id) {
+        match fetch_write_transform_commodity_metadata(&client, app_id) {
             Ok(data) => data,
             Err(e) => {
                 eprintln!("Error fetching commodity meta data: {}", e);
@@ -24,7 +26,7 @@ pub fn process_commodity_prices(app_id: &str) -> Result<(), Box<dyn std::error::
             area_lookup: &commodity_meta_data.area_lookup,
         };
 
-        fetch_transform_write_commodity_data(params)?;
+        fetch_transform_write_commodity_data(&client, params)?;
         println!(
             "  Successfully fetched and transformed data for {}",
             &cat02_entry.cat02_code

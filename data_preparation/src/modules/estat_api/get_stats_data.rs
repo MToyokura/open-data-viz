@@ -3,7 +3,7 @@ use std::error::Error;
 
 use super::{
     decoder::decode_response,
-    get::{GetRequestBuilder, get},
+    get::{EstatClient, GetRequestBuilder},
     get_meta_info::ExplanationFlag,
 };
 
@@ -1021,16 +1021,21 @@ mod tests {
     }
 }
 
-pub fn get_stats_data(params: GetStatsDataParams) -> Result<String, Box<dyn Error>> {
-    let query_params = construct_query_params_stats_data(&params)?;
+impl EstatClient {
+    pub(crate) fn get_stats_data(
+        &self,
+        params: GetStatsDataParams,
+    ) -> Result<String, Box<dyn Error>> {
+        let query_params = construct_query_params_stats_data(&params)?;
 
-    let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData";
-    let request = GetRequestBuilder {
-        url,
-        params: Some(&query_params),
-    };
+        let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData";
+        let request = GetRequestBuilder {
+            url,
+            params: Some(&query_params),
+        };
 
-    let decoded_json_string = decode_response(&get(&request)?, "GET_STATS_DATA")?;
+        let decoded_json_string = decode_response(&self.get(&request)?, "GET_STATS_DATA")?;
 
-    Ok(decoded_json_string)
+        Ok(decoded_json_string)
+    }
 }

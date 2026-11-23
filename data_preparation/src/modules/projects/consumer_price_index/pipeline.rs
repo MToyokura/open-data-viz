@@ -11,8 +11,9 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::modules::estat_api::{
-    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams, get_meta_info},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams, get_stats_data},
+    EstatClient,
+    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
+    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams},
 };
 
 use super::{
@@ -159,6 +160,7 @@ fn rollback_directories(promoted: &[(PathBuf, PathBuf, bool)]) -> Result<(), Box
 
 /// Fetch metadata and all monthly index observations, retaining each raw page.
 pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
+    let client = EstatClient::new()?;
     if app_id.is_empty() {
         return Err("e-Stat application ID is required".into());
     }
@@ -171,15 +173,16 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(&raw_dir)?;
     fs::create_dir_all(&meta_dir)?;
     let mut metadata: Value = serde_json::from_str(
-        &get_meta_info(
-            GetMetaInfoParamsBuilder::new(MetaParams {
-                app_id,
-                stats_data_id: STATS_DATA_ID,
-            })
-            .lang("J")
-            .build(),
-        )
-        .map_err(|error| safe_api_error("metadata request", error.as_ref()))?,
+        &client
+            .get_meta_info(
+                GetMetaInfoParamsBuilder::new(MetaParams {
+                    app_id,
+                    stats_data_id: STATS_DATA_ID,
+                })
+                .lang("J")
+                .build(),
+            )
+            .map_err(|error| safe_api_error("metadata request", error.as_ref()))?,
     )?;
     redact_app_id(&mut metadata);
     fs::write(
@@ -193,22 +196,23 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
         if start > 1 {
             thread::sleep(Duration::from_secs(2));
         }
-        let response = get_stats_data(
-            GetStatsDataParamsBuilder::new(DataParams { app_id })
-                .stats_data_id(STATS_DATA_ID)
-                .cd_tab("1")
-                .lv_time("4")
-                .start_position(start)
-                .limit(PAGE_SIZE)
-                .meta_get_flg("N")
-                .build(),
-        )
-        .map_err(|error| {
-            format!(
-                "{} at position {start}",
-                safe_api_error("data request", error.as_ref())
+        let response = client
+            .get_stats_data(
+                GetStatsDataParamsBuilder::new(DataParams { app_id })
+                    .stats_data_id(STATS_DATA_ID)
+                    .cd_tab("1")
+                    .lv_time("4")
+                    .start_position(start)
+                    .limit(PAGE_SIZE)
+                    .meta_get_flg("N")
+                    .build(),
             )
-        })?;
+            .map_err(|error| {
+                format!(
+                    "{} at position {start}",
+                    safe_api_error("data request", error.as_ref())
+                )
+            })?;
         let mut page: Value = serde_json::from_str(&response)?;
         let stats = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];
         let info = &stats["RESULT_INF"];

@@ -7,19 +7,20 @@ use std::{
 
 use super::{EXPENDITURE_TABLE_ID, INCOME_TABLE_ID, OUTPUT_DIR};
 use crate::modules::estat_api::{
-    get_meta_info::{
-        ExplanationFlag, GetMetaInfoParamsBuilder, MandatoryParams as MetaParams, get_meta_info,
-    },
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams, get_stats_data},
+    EstatClient,
+    get_meta_info::{ExplanationFlag, GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
+    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams},
 };
 use serde_json::{Value, json};
 
 pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
+    let client = EstatClient::new()?;
     let out = Path::new(OUTPUT_DIR);
     fs::create_dir_all(out.join("raw_data"))?;
-    let (income, income_values, income_reported_total) = acquire(app_id, INCOME_TABLE_ID, out)?;
+    let (income, income_values, income_reported_total) =
+        acquire(&client, app_id, INCOME_TABLE_ID, out)?;
     let (expenditure, expenditure_values, expenditure_reported_total) =
-        acquire(app_id, EXPENDITURE_TABLE_ID, out)?;
+        acquire(&client, app_id, EXPENDITURE_TABLE_ID, out)?;
     let (programs, income_classes) = parts(&income)?;
     let (expenditure_programs, expenditure_classes) = parts(&expenditure)?;
     validate_program_classes(&programs, &expenditure_programs)?;
@@ -156,8 +157,13 @@ pub fn run(app_id: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn acquire(app_id: &str, id: &str, out: &Path) -> Result<(Value, Vec<Value>, u64), Box<dyn Error>> {
-    let meta = get_meta_info(
+fn acquire(
+    client: &EstatClient,
+    app_id: &str,
+    id: &str,
+    out: &Path,
+) -> Result<(Value, Vec<Value>, u64), Box<dyn Error>> {
+    let meta = client.get_meta_info(
         GetMetaInfoParamsBuilder::new(MetaParams {
             app_id,
             stats_data_id: id,
@@ -166,7 +172,7 @@ fn acquire(app_id: &str, id: &str, out: &Path) -> Result<(Value, Vec<Value>, u64
         .explanation_get_flg(ExplanationFlag::Include)
         .build(),
     )?;
-    let data = get_stats_data(
+    let data = client.get_stats_data(
         GetStatsDataParamsBuilder::new(DataParams { app_id })
             .stats_data_id(id)
             .start_position(1)

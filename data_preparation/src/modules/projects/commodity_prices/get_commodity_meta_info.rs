@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::modules::{
-    estat_api::get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams, get_meta_info},
+    estat_api::{
+        EstatClient,
+        get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams},
+    },
     io::file_writer::{self, WriteArgs},
     projects::commodity_prices::{COMMODITY_STATS_DATA_ID, OUTPUT_DIR_META},
 };
@@ -110,7 +113,10 @@ pub struct CommodityMetaData {
 }
 
 /// Fetches and saves the meta info data. Returns the raw JSON string.
-pub fn fetch_write_commodity_meta_info(app_id: &str) -> Result<String, Box<dyn Error>> {
+pub fn fetch_write_commodity_meta_info(
+    client: &EstatClient,
+    app_id: &str,
+) -> Result<String, Box<dyn Error>> {
     let meta_info_file_name = "get_commodity_meta_info.json";
     let meta_info_file_path = PathBuf::from(OUTPUT_DIR_META).join(meta_info_file_name);
 
@@ -131,7 +137,7 @@ pub fn fetch_write_commodity_meta_info(app_id: &str) -> Result<String, Box<dyn E
         stats_data_id: COMMODITY_STATS_DATA_ID,
     })
     .build();
-    let get_meta_info_result = get_meta_info(get_meta_info_params)?;
+    let get_meta_info_result = client.get_meta_info(get_meta_info_params)?;
 
     file_writer::write_to_directory(WriteArgs {
         file_name: meta_info_file_name,
@@ -245,9 +251,10 @@ pub fn generate_commodity_meta_data(
 }
 
 pub fn fetch_write_transform_commodity_metadata(
+    client: &EstatClient,
     app_id: &str,
 ) -> Result<CommodityMetaData, Box<dyn Error>> {
-    let json_string = fetch_write_commodity_meta_info(app_id)?;
+    let json_string = fetch_write_commodity_meta_info(client, app_id)?;
     let commodity_meta_data = generate_commodity_meta_data(&json_string)?;
     println!("Successfully generated commodity meta data.");
     Ok(commodity_meta_data)
