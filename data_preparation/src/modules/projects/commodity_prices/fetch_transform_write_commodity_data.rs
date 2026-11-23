@@ -1,4 +1,7 @@
-use std::{error::Error, path::PathBuf};
+use std::{
+    error::Error,
+    path::{Path, PathBuf},
+};
 
 use crate::modules::{
     estat_api::{
@@ -217,7 +220,7 @@ pub fn fetch_transform_write_commodity_data(
     );
     let args = WriteArgs {
         file_name: &file_name,
-        directory: PathBuf::from(OUTPUT_DIR_RAW),
+        directory: Path::new(OUTPUT_DIR_RAW),
         extension: "json",
         content: &stats_data,
     };
@@ -309,7 +312,7 @@ pub fn fetch_transform_write_commodity_data(
         // Write the transformed JSON string to a file
         let args = WriteArgs {
             file_name: &transformed_commodity_prices_file_name,
-            directory: PathBuf::from(OUTPUT_DIR_TRANSFORMED),
+            directory: Path::new(OUTPUT_DIR_TRANSFORMED),
             extension: "json",
             content: &area_json_string,
         };

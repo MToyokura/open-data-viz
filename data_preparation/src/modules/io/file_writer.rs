@@ -1,9 +1,9 @@
 use std::fs;
 use std::io::{self, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub struct WriteArgs<'a> {
-    pub directory: PathBuf,
+    pub directory: &'a Path,
     pub file_name: &'a str,
     pub extension: &'a str,
     pub content: &'a str,
@@ -26,7 +26,7 @@ pub fn write_to_directory(args: WriteArgs) -> io::Result<()> {
     }
 
     // Ensure the directory exists
-    fs::create_dir_all(&args.directory)?;
+    fs::create_dir_all(args.directory)?;
 
     // Construct the full file path with the given extension
     let file_path = args
@@ -40,7 +40,7 @@ pub fn write_to_directory(args: WriteArgs) -> io::Result<()> {
         use std::os::unix::fs::PermissionsExt;
         builder.permissions(fs::Permissions::from_mode(0o666));
     }
-    let mut temporary_file = builder.tempfile_in(&args.directory)?;
+    let mut temporary_file = builder.tempfile_in(args.directory)?;
     temporary_file.write_all(args.content.as_bytes())?;
     temporary_file.persist(file_path)?;
 
@@ -71,7 +71,7 @@ mod tests {
 
         for (file_name, extension) in cases {
             let error = write_to_directory(WriteArgs {
-                directory: output.clone(),
+                directory: &output,
                 file_name,
                 extension,
                 content: "{}",
@@ -90,7 +90,7 @@ mod tests {
         fs::write(&destination, "old contents")?;
 
         write_to_directory(WriteArgs {
-            directory: directory.path().into(),
+            directory: directory.path(),
             file_name: "data.json",
             extension: "json",
             content: "{}",
@@ -108,7 +108,7 @@ mod tests {
         fs::create_dir(&destination)?;
 
         let result = write_to_directory(WriteArgs {
-            directory: directory.path().into(),
+            directory: directory.path(),
             file_name: "data",
             extension: "json",
             content: "{}",

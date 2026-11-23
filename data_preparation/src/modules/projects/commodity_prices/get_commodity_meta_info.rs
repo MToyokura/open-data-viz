@@ -1,4 +1,7 @@
-use std::{error::Error, path::PathBuf};
+use std::{
+    error::Error,
+    path::{Path, PathBuf},
+};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -141,7 +144,7 @@ pub fn fetch_write_commodity_meta_info(
 
     file_writer::write_to_directory(WriteArgs {
         file_name: meta_info_file_name,
-        directory: PathBuf::from(OUTPUT_DIR_META),
+        directory: Path::new(OUTPUT_DIR_META),
         extension: "json",
         content: &get_meta_info_result,
     })?;
@@ -168,7 +171,7 @@ fn write_return_sorted_cat02_lookup(
 
     file_writer::write_to_directory(WriteArgs {
         file_name: "cat02_lookup.json",
-        directory: PathBuf::from(OUTPUT_DIR_META),
+        directory: Path::new(OUTPUT_DIR_META),
         extension: "json",
         content: &serde_json::to_string_pretty(&sorted_cat02_entries)?,
     })?;
@@ -193,7 +196,7 @@ fn write_return_sorted_area_lookup(
 
     file_writer::write_to_directory(WriteArgs {
         file_name: "area_lookup.json",
-        directory: PathBuf::from(OUTPUT_DIR_META),
+        directory: Path::new(OUTPUT_DIR_META),
         extension: "json",
         content: &serde_json::to_string_pretty(&sorted_area_entries)?,
     })?;
