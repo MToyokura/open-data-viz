@@ -25,13 +25,14 @@ A prototype on the existing local output grouped 77,686 series files into 8,343 
 - Cache in-flight and successful chunk requests by URL so multiple series in one chunk share a fetch. Allow failed requests to retry and preserve the current missing-series behavior.
 - Cover shared requests, absent series, retry after failure, and rendering in both routes with browser fixtures. Measure loading with the generated data as well.
 
-## 4. Verify and release
+## 4. Verify locally and prepare the handoff
 
 1. Run the Rust tests. Replay the same verified capture twice and compare the browser output byte for byte. Check that offline replay works without `ESTAT_APP_ID`, that rebuilding removes stale series, and that a missing or corrupt input causes a failure while the previous browser bundle still serves.
 2. Serve the regenerated output locally. In `/commodity_prices`, load the item and area selectors and select series that fetch data on demand. In `/articles/commodity_prices`, verify the price charts against the regenerated assets. Run the browser baseline as well.
-3. Confirm that the publish allowlist contains both lookups and the complete chunk tree and excludes the capture and acquisition metadata. Retain a validated copy of the currently published output for rollback.
-4. Publish the new bundle to a versioned Commodity prices prefix in the existing GCS bucket. Update the project-scoped publisher and loader as needed to keep other datasets on their existing paths. Keep the previous prefix available and verify a release build against the new bundle before deploying the loader.
-5. Verify both routes in production, including series selection and article charts. Record the published prefix and verification result. If verification fails, redeploy the previous frontend.
+3. Verify locally that the publish allowlist contains both lookups and the complete chunk tree and excludes the capture and acquisition metadata.
+4. Hand off the local path to the generated bundle, the regeneration and preview commands, the object counts and gzip measurements, and the verification results. Stop after the local handoff. The maintainer will inspect the bundle and handle any GCS upload and frontend deployment manually.
+
+For a later manual release, use a versioned Commodity prices prefix in the existing GCS bucket. Keep the previous prefix available, upload the complete bundle, and verify a release build against it before deploying the frontend. Check both routes in production and record the published prefix and verification result. Redeploy the previous frontend if verification fails.
 
 Update the [data preparation README](../../data_preparation/README.md) with both command modes and the capture layout as part of implementation. See the [pipeline inventory](pipeline_by_project.md#commodity-prices) for the current behavior.
 
@@ -45,4 +46,4 @@ Update the [data preparation README](../../data_preparation/README.md) with both
 | `feat(commodity-prices): load series from shared chunks` | Update the workspace and article to use the versioned bundle and share chunk requests. Cover missing series, retries, and both routes in Playwright. Measure cold and repeated requests against the generated bundle before finalizing the chunk size. |
 | `build(publish): support versioned commodity price bundles` | Add project-scoped publishing for the new bundle, verify the allowlist, and document generation, verification, and rollback. Check the packaged files before uploading. |
 
-Land the commits in order. Upload and verify the versioned bundle before deploying the frontend commit that selects it. Record production verification for both routes and retain the previous bundle for rollback.
+Prepare the commits in order. The implementation ends with the local handoff. Production verification follows the maintainer’s manual release.
