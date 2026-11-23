@@ -2,7 +2,7 @@ use super::EstatError;
 use serde_json::{Value, from_str, to_string_pretty};
 
 /// Validates the e-Stat result and formats the JSON for saving as a raw input.
-pub(crate) fn decode_response(json: &str, root: &'static str) -> Result<String, EstatError> {
+pub(super) fn decode_response(json: &str, root: &'static str) -> Result<String, EstatError> {
     let value: Value = from_str(json)?;
     match value[root]["RESULT"]["STATUS"].as_i64() {
         // Status 1 is a successful request with no matching data.

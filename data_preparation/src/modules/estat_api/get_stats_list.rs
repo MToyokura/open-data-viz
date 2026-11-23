@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use super::{EstatClient, EstatError, decoder::decode_response};
 
-#[allow(dead_code)]
 pub enum ExplanationFlag {
     Include,
     Exclude,
@@ -17,13 +16,11 @@ impl ExplanationFlag {
     }
 }
 
-#[allow(dead_code)]
 pub enum StatsNameListFlag {
     Include,
     Exclude,
 }
 
-#[allow(dead_code)]
 impl StatsNameListFlag {
     pub fn as_str(&self) -> &str {
         match self {
@@ -33,14 +30,12 @@ impl StatsNameListFlag {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy)]
 pub enum SearchKind {
     Statistics = 1,
     RegionMesh = 2,
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy)]
 pub enum CollectArea {
     National = 1,
@@ -178,7 +173,7 @@ impl<'a> GetStatsListParamsBuilder<'a> {
     }
 }
 
-fn construct_query_params<'a>(params: &GetStatsListParams<'a>) -> HashMap<String, String> {
+fn construct_query_params(params: &GetStatsListParams<'_>) -> HashMap<String, String> {
     let mut query_params = HashMap::new();
 
     // Mandatory parameters
@@ -237,6 +232,15 @@ fn construct_query_params<'a>(params: &GetStatsListParams<'a>) -> HashMap<String
     query_params
 }
 
+impl EstatClient {
+    pub(crate) fn get_stats_list(&self, params: GetStatsListParams) -> Result<String, EstatError> {
+        let query_params = construct_query_params(&params);
+
+        let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsList";
+        decode_response(&self.get(url, &query_params)?, "GET_STATS_LIST")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -284,15 +288,5 @@ mod tests {
             query_params.get("searchWord"),
             Some(&"population".to_string())
         );
-    }
-}
-
-impl EstatClient {
-    #[allow(dead_code)]
-    pub(crate) fn get_stats_list(&self, params: GetStatsListParams) -> Result<String, EstatError> {
-        let query_params = construct_query_params(&params);
-
-        let url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsList";
-        decode_response(&self.get(url, &query_params)?, "GET_STATS_LIST")
     }
 }

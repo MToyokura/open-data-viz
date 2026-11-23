@@ -5,7 +5,7 @@ use super::{EstatClient, EstatError, decoder::decode_response};
 
 #[allow(dead_code)]
 #[derive(Serialize)]
-pub enum ExplanationFlag {
+pub(crate) enum ExplanationFlag {
     #[serde(rename = "Y")]
     Include,
     #[serde(rename = "N")]
@@ -13,7 +13,7 @@ pub enum ExplanationFlag {
 }
 
 impl ExplanationFlag {
-    pub fn as_str(&self) -> &str {
+    pub(crate) fn as_str(&self) -> &str {
         match self {
             ExplanationFlag::Include => "Y",
             ExplanationFlag::Exclude => "N",
@@ -21,18 +21,18 @@ impl ExplanationFlag {
     }
 }
 
-pub struct MandatoryParams<'a> {
+pub(crate) struct MandatoryParams<'a> {
     pub app_id: &'a str,
     pub stats_data_id: &'a str,
 }
-pub struct GetMetaInfoParams<'a> {
+pub(crate) struct GetMetaInfoParams<'a> {
     pub app_id: &'a str,
     pub stats_data_id: &'a str,
     pub lang: Option<&'a str>,                        // "J" or "E"
     pub explanation_get_flg: Option<ExplanationFlag>, // "Y" or "N"
 }
 
-pub struct GetMetaInfoParamsBuilder<'a> {
+pub(crate) struct GetMetaInfoParamsBuilder<'a> {
     app_id: &'a str,
     stats_data_id: &'a str,
     lang: Option<&'a str>,
@@ -41,7 +41,7 @@ pub struct GetMetaInfoParamsBuilder<'a> {
 
 impl<'a> GetMetaInfoParamsBuilder<'a> {
     // Constructor with mandatory parameters
-    pub fn new(params: MandatoryParams<'a>) -> Self {
+    pub(crate) fn new(params: MandatoryParams<'a>) -> Self {
         Self {
             app_id: params.app_id,
             stats_data_id: params.stats_data_id,
@@ -51,18 +51,18 @@ impl<'a> GetMetaInfoParamsBuilder<'a> {
     }
 
     // Fluent methods for optional parameters
-    pub fn lang(mut self, lang: &'a str) -> Self {
+    pub(crate) fn lang(mut self, lang: &'a str) -> Self {
         self.lang = Some(lang);
         self
     }
 
-    pub fn explanation_get_flg(mut self, flag: ExplanationFlag) -> Self {
+    pub(crate) fn explanation_get_flg(mut self, flag: ExplanationFlag) -> Self {
         self.explanation_get_flg = Some(flag);
         self
     }
 
     // Build method to create the final GetMetaInfoParams struct
-    pub fn build(self) -> GetMetaInfoParams<'a> {
+    pub(crate) fn build(self) -> GetMetaInfoParams<'a> {
         GetMetaInfoParams {
             app_id: self.app_id,
             stats_data_id: self.stats_data_id,
@@ -72,7 +72,7 @@ impl<'a> GetMetaInfoParamsBuilder<'a> {
     }
 }
 
-fn construct_query_params<'a>(params: &GetMetaInfoParams<'a>) -> HashMap<String, String> {
+fn construct_query_params(params: &GetMetaInfoParams<'_>) -> HashMap<String, String> {
     let mut query_params = HashMap::new();
 
     // Mandatory parameters
@@ -104,10 +104,8 @@ impl EstatClient {
 
 #[cfg(test)]
 mod tests {
-    // Import everything from the parent module
     use super::*;
 
-    // A helper function to create a basic, mandatory-only params struct
     fn create_base_params() -> GetMetaInfoParams<'static> {
         GetMetaInfoParamsBuilder::new(MandatoryParams {
             app_id: "test_app",
@@ -176,6 +174,6 @@ mod tests {
         assert_eq!(query_params.get("lang"), Some(&"J".to_string()));
 
         // Assert the excluded optional values are missing
-        assert!(query_params.get("explanationGetFlg").is_none());
+        assert!(!query_params.contains_key("explanationGetFlg"));
     }
 }
