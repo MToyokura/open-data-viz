@@ -18,9 +18,10 @@ Run `npm run serve` from the repository root to serve `data_preparation/output/`
 
 ## Commodity prices
 
-- **Command and inputs.** `commodity-prices` uses e-Stat table `0003421913`. It reuses `meta_data/get_commodity_meta_info.json` and per-item `raw_data/get_commodity_prices_stats_data_<item>.json` when present, and fetches missing inputs. The command still requires `ESTAT_APP_ID` and exposes no `--transform-only` mode.
-- **Generation and validation.** The pipeline derives item and area lookups from metadata and splits each item's observations into per-area series. It rewrites the lookups and skips transformed series files that already exist. The shared writer replaces individual files atomically, with no project-level staging.
-- **Browser and publishing.** The workspace loads `meta_data/{cat02_lookup,area_lookup}.json` and fetches `transformed_data/commodity_prices_<item>_<area>.json` on selection. The commodity prices article also loads series files for its charts. The allowlist includes both lookups and the transformed series tree.
+- **Command and inputs.** `commodity-prices` fetches e-Stat table `0003421913` using `ESTAT_APP_ID`. It saves source metadata and per-item response pages in `raw_data/`, with row counts and checksums in `meta_data/acquisition.json`. `--transform-only` rebuilds the browser bundle from that capture offline.
+- **Generation and validation.** The transform checks file checksums and row counts and rejects duplicate observations. It processes groups of up to ten consecutive items with two workers by default. Set `COMMODITY_PRICES_WORKERS=1` for sequential processing. It builds the bundle in `.staging/` and promotes it to `v2/` after all groups finish.
+- **Browser and publishing.** The workspace and commodity prices article use `v2/meta_data/{cat02_lookup,area_lookup}.json` and load `v2/transformed_data/area_<area>_items_<first>_<last>.json` chunks on demand. The publish allowlist includes the two lookups and the chunk tree. The GCS sync uses checksums to skip matching files and retains legacy objects, so both layouts can coexist.
+- **Release status.** The `commodity_prices/v2/` bundle was published to GCS and checked locally in the browser. Production verification of the frontend using `v2/` is still pending.
 
 [Pipeline](../../data_preparation/src/modules/projects/commodity_prices/) · [Series loader](../../frontend/src/routes/commodity_prices/utils/fetchCommodityPrices.js)
 
