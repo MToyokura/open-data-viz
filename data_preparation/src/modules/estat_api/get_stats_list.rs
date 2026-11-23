@@ -71,7 +71,6 @@ pub struct GetStatsListParams<'a> {
     pub start_position: Option<u32>,                  // Starting position (for pagination)
     pub limit: Option<u32>,                           // Number of records to fetch
     pub updated_date: Option<&'a str>, // "yyyy", "yyyymmdd", or range "yyyymmdd-yyyyymmdd"
-    pub callback: Option<&'a str>,     // JSONP callback function
 }
 
 pub struct GetStatsListParamsBuilder<'a> {
@@ -89,7 +88,6 @@ pub struct GetStatsListParamsBuilder<'a> {
     start_position: Option<u32>,
     limit: Option<u32>,
     updated_date: Option<&'a str>,
-    callback: Option<&'a str>,
 }
 
 impl<'a> GetStatsListParamsBuilder<'a> {
@@ -109,7 +107,6 @@ impl<'a> GetStatsListParamsBuilder<'a> {
             start_position: None,
             limit: None,
             updated_date: None,
-            callback: None,
         }
     }
 
@@ -165,11 +162,6 @@ impl<'a> GetStatsListParamsBuilder<'a> {
         self.updated_date = Some(v);
         self
     }
-    pub fn callback(mut self, v: &'a str) -> Self {
-        self.callback = Some(v);
-        self
-    }
-
     pub fn build(self) -> GetStatsListParams<'a> {
         GetStatsListParams {
             app_id: self.app_id,
@@ -186,7 +178,6 @@ impl<'a> GetStatsListParamsBuilder<'a> {
             start_position: self.start_position,
             limit: self.limit,
             updated_date: self.updated_date,
-            callback: self.callback,
         }
     }
 }
@@ -245,9 +236,6 @@ fn construct_query_params<'a>(params: &GetStatsListParams<'a>) -> HashMap<String
     }
     if let Some(updated_date) = params.updated_date {
         query_params.insert("updatedDate".to_string(), updated_date.to_string());
-    }
-    if let Some(callback) = params.callback {
-        query_params.insert("callback".to_string(), callback.to_string());
     }
 
     query_params

@@ -110,8 +110,6 @@ pub struct GetStatsDataParams<'a> {
     pub explanation_get_flg: Option<ExplanationFlag>,
     pub annotation_get_flg: Option<&'a str>,
     pub replace_sp_char: Option<u32>,
-    pub callback: Option<&'a str>,
-    pub section_header_flg: Option<u32>,
 }
 
 pub struct GetStatsDataParamsBuilder<'a> {
@@ -197,8 +195,6 @@ pub struct GetStatsDataParamsBuilder<'a> {
     explanation_get_flg: Option<ExplanationFlag>,
     annotation_get_flg: Option<&'a str>,
     replace_sp_char: Option<u32>,
-    callback: Option<&'a str>,
-    section_header_flg: Option<u32>,
 }
 
 impl<'a> GetStatsDataParamsBuilder<'a> {
@@ -286,8 +282,6 @@ impl<'a> GetStatsDataParamsBuilder<'a> {
             explanation_get_flg: None,
             annotation_get_flg: None,
             replace_sp_char: None,
-            callback: None,
-            section_header_flg: None,
         }
     }
 
@@ -615,15 +609,6 @@ impl<'a> GetStatsDataParamsBuilder<'a> {
         self.replace_sp_char = Some(v);
         self
     }
-    pub fn callback(mut self, v: &'a str) -> Self {
-        self.callback = Some(v);
-        self
-    }
-    pub fn section_header_flg(mut self, v: u32) -> Self {
-        self.section_header_flg = Some(v);
-        self
-    }
-
     pub fn build(self) -> GetStatsDataParams<'a> {
         GetStatsDataParams {
             app_id: self.app_id,
@@ -708,8 +693,6 @@ impl<'a> GetStatsDataParamsBuilder<'a> {
             explanation_get_flg: self.explanation_get_flg,
             annotation_get_flg: self.annotation_get_flg,
             replace_sp_char: self.replace_sp_char,
-            callback: self.callback,
-            section_header_flg: self.section_header_flg,
         }
     }
 }
@@ -969,15 +952,6 @@ fn construct_query_params_stats_data(
     }
     if let Some(replace_sp_char) = params.replace_sp_char {
         query_params.insert("replaceSpChar".to_string(), replace_sp_char.to_string());
-    }
-    if let Some(callback) = params.callback {
-        query_params.insert("callback".to_string(), callback.to_string());
-    }
-    if let Some(section_header_flg) = params.section_header_flg {
-        query_params.insert(
-            "sectionHeaderFlg".to_string(),
-            section_header_flg.to_string(),
-        );
     }
 
     Ok(query_params)
