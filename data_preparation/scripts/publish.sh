@@ -6,7 +6,7 @@ cd "$ROOT"
 
 usage() {
   cat <<'USAGE'
-Usage: ./data_preparation/scripts/publish.sh [--only PROJECT[,PROJECT...]]
+Usage: ./data_preparation/scripts/publish.sh [--only PROJECT[,PROJECT...]] [--dry-run]
 
 Projects:
   asset_distribution
@@ -19,6 +19,7 @@ Projects:
   marine_fishery_catch
 
 Without --only, all projects are published.
+--dry-run collects and gzip-compresses the allowlisted files locally, then lists them without uploading.
 USAGE
 }
 
@@ -34,6 +35,7 @@ PROJECTS=(
 )
 declare -A SELECTED_PROJECTS=()
 ONLY_PROJECTS_SET=0
+DRY_RUN=0
 
 while (($#)); do
   case "$1" in
@@ -64,6 +66,10 @@ while (($#)); do
       done
       shift 2
       ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
     --help|-h)
       usage
       exit 0
@@ -86,13 +92,15 @@ if [[ -f .env ]]; then
   source .env
   set +a
 fi
-: "${GCS_BUCKET:?Set GCS_BUCKET to a gs:// bucket or prefix in .env or the environment}"
-case "$GCS_BUCKET" in
-  gs://*) ;;
-  *) echo "GCS_BUCKET must start with gs://" >&2; exit 1 ;;
-esac
-GCS_BUCKET="${GCS_BUCKET%/}"
-command -v gcloud >/dev/null || { echo "gcloud is required" >&2; exit 1; }
+if (( ! DRY_RUN )); then
+  : "${GCS_BUCKET:?Set GCS_BUCKET to a gs:// bucket or prefix in .env or the environment}"
+  case "$GCS_BUCKET" in
+    gs://*) ;;
+    *) echo "GCS_BUCKET must start with gs://" >&2; exit 1 ;;
+  esac
+  GCS_BUCKET="${GCS_BUCKET%/}"
+  command -v gcloud >/dev/null || { echo "gcloud is required" >&2; exit 1; }
+fi
 command -v gzip >/dev/null || { echo "gzip is required" >&2; exit 1; }
 
 OUTPUT="$ROOT/data_preparation/output"
@@ -124,9 +132,9 @@ if should_publish asset_distribution; then
   copy_json_tree "$OUTPUT/asset_distribution/items" asset_distribution/items
 fi
 if should_publish commodity_prices; then
-  copy_file "$OUTPUT/commodity_prices/meta_data/cat02_lookup.json" commodity_prices/meta_data/cat02_lookup.json
-  copy_file "$OUTPUT/commodity_prices/meta_data/area_lookup.json" commodity_prices/meta_data/area_lookup.json
-  copy_json_tree "$OUTPUT/commodity_prices/transformed_data" commodity_prices/transformed_data
+  copy_file "$OUTPUT/commodity_prices/v2/meta_data/cat02_lookup.json" commodity_prices/v2/meta_data/cat02_lookup.json
+  copy_file "$OUTPUT/commodity_prices/v2/meta_data/area_lookup.json" commodity_prices/v2/meta_data/area_lookup.json
+  copy_json_tree "$OUTPUT/commodity_prices/v2/transformed_data" commodity_prices/v2/transformed_data
 fi
 if should_publish workers_by_age_employment_type_education_sex; then
   copy_file "$OUTPUT/workers_by_age_employment_type_education_sex/meta_data/options.json" workers_by_age_employment_type_education_sex/meta_data/options.json
@@ -164,11 +172,20 @@ fi
 
 mapfile -d '' files < <(find "$PUBLISH_DIR" -type f \( -name '*.json' -o -name '*.geojson' \) -print0)
 (( ${#files[@]} > 0 )) || { echo "No publishable files were collected" >&2; exit 1; }
-printf 'Publishing %d files to %s:\n' "${#files[@]}" "$GCS_BUCKET"
+if (( DRY_RUN )); then
+  printf 'Dry run: collected %d files (no upload):\n' "${#files[@]}"
+else
+  printf 'Publishing %d files to %s:\n' "${#files[@]}" "$GCS_BUCKET"
+fi
 for file in "${files[@]}"; do
   gzip -n -6 -c "$file" > "$file.gz"
   mv "$file.gz" "$file"
+  printf '%s (%s gzip bytes)\n' "${file#"$PUBLISH_DIR"/}" "$(wc -c < "$file")"
 done
+
+if (( DRY_RUN )); then
+  exit 0
+fi
 
 mapfile -d '' json_files < <(find "$PUBLISH_DIR" -type f -name '*.json' -print0)
 mapfile -d '' geojson_files < <(find "$PUBLISH_DIR" -type f -name '*.geojson' -print0)

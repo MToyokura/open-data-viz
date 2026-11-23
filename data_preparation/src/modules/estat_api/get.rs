@@ -1,23 +1,22 @@
-use reqwest::Url;
 use reqwest::blocking;
-use std::collections::HashMap;
-use std::error::Error;
+use serde::Serialize;
 
-pub(crate) struct GetRequestBuilder<'a> {
-    pub url: &'a str,
-    pub params: Option<&'a HashMap<String, String>>,
-}
+use super::EstatError;
 
-pub(crate) fn get(request: &GetRequestBuilder) -> Result<String, Box<dyn Error>> {
-    let client = blocking::Client::new();
+pub(crate) struct EstatClient(blocking::Client);
 
-    // Parse URL and attach query parameters if provided
-    let url = match request.params {
-        Some(params) => Url::parse_with_params(request.url, params.iter())?,
-        None => Url::parse(request.url)?, // No params, just parse the base URL
-    };
+impl EstatClient {
+    pub(crate) fn new() -> Result<Self, EstatError> {
+        Ok(Self(blocking::Client::builder().build()?))
+    }
 
-    let response_text = client.get(url).send()?.text()?;
-
-    Ok(response_text)
+    pub(super) fn get(&self, url: &str, query: &impl Serialize) -> Result<String, EstatError> {
+        Ok(self
+            .0
+            .get(url)
+            .query(query)
+            .send()?
+            .error_for_status()?
+            .text()?)
+    }
 }

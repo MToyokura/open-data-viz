@@ -1,39 +1,54 @@
+use super::EstatError;
 use serde_json::{Value, from_str, to_string_pretty};
-use std::error::Error;
 
-/// Function to decode escaped characters in a JSON string
-///
-/// The JSON returned from e-stat API contains escaped characters.
-/// This function decodes those characters to make the JSON human-readable.
-pub fn decode_escaped_json_string(json_string: &str) -> Result<String, Box<dyn Error>> {
-    let value: Value = from_str(json_string)?;
-    let decoded_json_string = to_string_pretty(&value)?;
-    Ok(decoded_json_string)
+/// Validates the e-Stat result and formats the JSON for saving as a raw input.
+pub(super) fn decode_response(json: &str, root: &'static str) -> Result<String, EstatError> {
+    let value: Value = from_str(json)?;
+    match value[root]["RESULT"]["STATUS"].as_i64() {
+        // Status 1 is a successful request with no matching data.
+        Some(0 | 1) => Ok(to_string_pretty(&value)?),
+        // Avoid logging untrusted response text that could echo query parameters.
+        Some(status) => Err(EstatError::ApiStatus {
+            endpoint: root,
+            status,
+        }),
+        None => Err(EstatError::MissingStatus { endpoint: root }),
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
 
     #[test]
-    fn test_json_data() -> Result<(), Box<dyn Error>> {
-        let input = r#"{"GET_STATS_LIST":{"PARAMETER":{"DATA_FORMAT":"J"},"RESULT":{"DATE":"2025-03-01T12:00:00.000+09:00","ERROR_MSG":"\u8A8D\u8A3C\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002\u30A2\u30D7\u30EA\u30B1\u30FC\u30B7\u30E7\u30F3ID\u3092\u78BA\u8A8D\u3057\u3066\u4E0B\u3055\u3044\u3002","STATUS":100}}}"#;
-        let expected_json = json!({
-            "GET_STATS_LIST": {
-                "PARAMETER": {
-                    "DATA_FORMAT": "J"
-                },
-                "RESULT": {
-                    "DATE": "2025-03-01T12:00:00.000+09:00",
-                    "ERROR_MSG": "認証に失敗しました。アプリケーションIDを確認して下さい。",
-                    "STATUS": 100
-                }
-            }
-        });
-        let expected = to_string_pretty(&expected_json)?;
-        let result = decode_escaped_json_string(input)?;
-        assert_eq!(result, expected);
-        Ok(())
+    fn formats_successful_responses_and_preserves_no_data() {
+        for status in [0, 1] {
+            let json = format!(
+                r#"{{"GET_STATS_LIST":{{"RESULT":{{"STATUS":{status},"ERROR_MSG":"\u7D71\u8A08"}}}}}}"#
+            );
+            let decoded = decode_response(&json, "GET_STATS_LIST").unwrap();
+            assert!(decoded.contains("統計"));
+            assert_eq!(
+                from_str::<Value>(&decoded).unwrap(),
+                from_str::<Value>(&json).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_api_errors_without_exposing_upstream_messages() {
+        let json = r#"{"GET_STATS_DATA":{"RESULT":{"STATUS":100,"ERROR_MSG":"query details"}}}"#;
+        let error = decode_response(json, "GET_STATS_DATA").unwrap_err();
+        assert!(matches!(error, EstatError::ApiStatus { status: 100, .. }));
+        assert_eq!(
+            error.to_string(),
+            "e-Stat GET_STATS_DATA failed with API status 100"
+        );
+    }
+
+    #[test]
+    fn requires_a_result_status_under_the_expected_root() {
+        let json = r#"{"GET_META_INFO":{"RESULT":{"STATUS":0}}}"#;
+        assert!(decode_response(json, "GET_STATS_DATA").is_err());
     }
 }

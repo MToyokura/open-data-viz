@@ -11,8 +11,9 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::modules::estat_api::{
-    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams, get_meta_info},
-    get_stats_data::{GetStatsDataParamsBuilder, MandatoryParams as DataParams, get_stats_data},
+    EstatClient,
+    get_meta_info::{GetMetaInfoParamsBuilder, MandatoryParams as MetaParams},
+    get_stats_data::{GetStatsDataParams, StatsDataId, StatsDataOptions},
 };
 
 use super::{
@@ -88,23 +89,6 @@ fn redact_app_id(value: &mut Value) {
     }
 }
 
-fn safe_api_error(endpoint: &str, error: &(dyn Error + 'static)) -> String {
-    if let Some(error) = error.downcast_ref::<reqwest::Error>() {
-        let reason = if error.is_timeout() {
-            "timed out"
-        } else if error.is_connect() {
-            "could not connect"
-        } else {
-            "HTTP request failed"
-        };
-        return format!("e-Stat {endpoint} {reason}");
-    }
-    if error.downcast_ref::<serde_json::Error>().is_some() {
-        return format!("e-Stat {endpoint} returned invalid JSON");
-    }
-    format!("e-Stat {endpoint} failed")
-}
-
 fn remove_dir_if_exists(path: &Path) -> Result<(), Box<dyn Error>> {
     if path.exists() {
         fs::remove_dir_all(path)?;
@@ -159,6 +143,7 @@ fn rollback_directories(promoted: &[(PathBuf, PathBuf, bool)]) -> Result<(), Box
 
 /// Fetch metadata and all monthly index observations, retaining each raw page.
 pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
+    let client = EstatClient::new()?;
     if app_id.is_empty() {
         return Err("e-Stat application ID is required".into());
     }
@@ -171,15 +156,16 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(&raw_dir)?;
     fs::create_dir_all(&meta_dir)?;
     let mut metadata: Value = serde_json::from_str(
-        &get_meta_info(
-            GetMetaInfoParamsBuilder::new(MetaParams {
-                app_id,
-                stats_data_id: STATS_DATA_ID,
-            })
-            .lang("J")
-            .build(),
-        )
-        .map_err(|error| safe_api_error("metadata request", error.as_ref()))?,
+        &client
+            .get_meta_info(
+                GetMetaInfoParamsBuilder::new(MetaParams {
+                    app_id,
+                    stats_data_id: STATS_DATA_ID,
+                })
+                .lang("J")
+                .build(),
+            )
+            .map_err(|error| format!("metadata request failed: {error}"))?,
     )?;
     redact_app_id(&mut metadata);
     fs::write(
@@ -193,22 +179,20 @@ pub fn acquire(app_id: &str) -> Result<(), Box<dyn Error>> {
         if start > 1 {
             thread::sleep(Duration::from_secs(2));
         }
-        let response = get_stats_data(
-            GetStatsDataParamsBuilder::new(DataParams { app_id })
-                .stats_data_id(STATS_DATA_ID)
-                .cd_tab("1")
-                .lv_time("4")
-                .start_position(start)
-                .limit(PAGE_SIZE)
-                .meta_get_flg("N")
-                .build(),
-        )
-        .map_err(|error| {
-            format!(
-                "{} at position {start}",
-                safe_api_error("data request", error.as_ref())
-            )
-        })?;
+        let response = client
+            .get_stats_data(GetStatsDataParams::new(
+                app_id,
+                StatsDataId::Table(STATS_DATA_ID),
+                StatsDataOptions {
+                    cd_tab: Some("1"),
+                    lv_time: Some("4"),
+                    start_position: Some(start),
+                    limit: Some(PAGE_SIZE),
+                    meta_get_flg: Some("N"),
+                    ..Default::default()
+                },
+            ))
+            .map_err(|error| format!("data request at position {start} failed: {error}"))?;
         let mut page: Value = serde_json::from_str(&response)?;
         let stats = &page["GET_STATS_DATA"]["STATISTICAL_DATA"];
         let info = &stats["RESULT_INF"];

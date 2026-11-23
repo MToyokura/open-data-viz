@@ -37,30 +37,36 @@ test("commodity_prices page has expected content and behavior", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.route("**/commodity_prices/meta_data/cat02_lookup.json", (route) =>
-    route.fulfill({
-      json: [{ cat02_code: "0001", cat02_name: "食パン" }],
-    }),
-  );
-  await page.route("**/commodity_prices/meta_data/area_lookup.json", (route) =>
-    route.fulfill({
-      json: [{ area_code: "01100", area_name: "札幌市" }],
-    }),
-  );
   await page.route(
-    "**/commodity_prices/transformed_data/commodity_prices_0001_01100.json",
+    "**/commodity_prices/v2/meta_data/cat02_lookup.json",
     (route) =>
       route.fulfill({
-        json: {
-          cat02_code: "0001",
-          cat02_name: "食パン",
-          area_code: "01100",
-          area_name: "札幌市",
-          time_value_pairs: [
-            { time: "2025000101", value: "200" },
-            { time: "2025000201", value: "210" },
-          ],
-        },
+        json: [{ cat02_code: "0001", cat02_name: "食パン" }],
+      }),
+  );
+  await page.route(
+    "**/commodity_prices/v2/meta_data/area_lookup.json",
+    (route) =>
+      route.fulfill({
+        json: [{ area_code: "01100", area_name: "札幌市" }],
+      }),
+  );
+  await page.route(
+    "**/commodity_prices/v2/transformed_data/area_01100_items_0001_0001.json",
+    (route) =>
+      route.fulfill({
+        json: [
+          {
+            cat02_code: "0001",
+            cat02_name: "食パン",
+            area_code: "01100",
+            area_name: "札幌市",
+            time_value_pairs: [
+              { time: "2025000101", value: "200" },
+              { time: "2025000201", value: "210" },
+            ],
+          },
+        ],
       }),
   );
 
