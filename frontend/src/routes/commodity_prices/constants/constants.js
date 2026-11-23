@@ -1,6 +1,6 @@
 import { VITE_STORAGE_BASE_URL } from "#lib/paths.js";
 
-const COMMODITY_PRICES_DATA_PATH = `${VITE_STORAGE_BASE_URL}/commodity_prices`;
+const COMMODITY_PRICES_DATA_PATH = `${VITE_STORAGE_BASE_URL}/commodity_prices/v2`;
 
 export const COMMODITY_PRICES_TRANSFORMED_DATA_PATH = `${COMMODITY_PRICES_DATA_PATH}/transformed_data`;
 export const CAT02_LOOKUP_DATA_PATH = `${COMMODITY_PRICES_DATA_PATH}/meta_data/cat02_lookup.json`;

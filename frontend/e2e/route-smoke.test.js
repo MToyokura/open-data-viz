@@ -192,25 +192,29 @@ test("commodity prices article renders its price and catch charts", async ({
   page,
 }) => {
   await page.route(
-    /\/commodity_prices\/transformed_data\/commodity_prices_(\d+)_(\d+)\.json$/,
-    (route) => {
-      const [, itemCode, areaCode] = route
-        .request()
-        .url()
-        .match(/commodity_prices_(\d+)_(\d+)\.json$/);
-      return route.fulfill({
-        json: {
-          cat02_code: itemCode,
-          cat02_name: itemCode === "01001" ? "コシヒカリ" : itemCode,
-          area_code: areaCode,
-          area_name: areaCode === "13100" ? "特別区部" : areaCode,
-          time_value_pairs: [
-            { time: "2025000101", value: "200" },
-            { time: "2025000201", value: "210" },
-          ],
-        },
-      });
-    },
+    "**/commodity_prices/v2/meta_data/cat02_lookup.json",
+    (route) =>
+      route.fulfill({
+        json: [{ cat02_code: "01001", cat02_name: "コシヒカリ" }],
+      }),
+  );
+  await page.route(
+    "**/commodity_prices/v2/transformed_data/area_13100_items_01001_01001.json",
+    (route) =>
+      route.fulfill({
+        json: [
+          {
+            cat02_code: "01001",
+            cat02_name: "コシヒカリ",
+            area_code: "13100",
+            area_name: "特別区部",
+            time_value_pairs: [
+              { time: "2025000101", value: "200" },
+              { time: "2025000201", value: "210" },
+            ],
+          },
+        ],
+      }),
   );
   await page.goto("/articles/commodity_prices");
   await expect(
