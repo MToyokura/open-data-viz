@@ -167,14 +167,13 @@
     const hasArea = remaining.some((entry) => entry.areaCode === areaCode);
 
     if (hasItem && hasArea) {
-      excludedPairKeys = [
-        ...excludedPairKeys,
-        `${cat02Code}:${areaCode}`,
-      ];
+      excludedPairKeys = [...excludedPairKeys, `${cat02Code}:${areaCode}`];
       return;
     }
     if (!hasItem) {
-      selectedCat02Codes = selectedCat02Codes.filter((code) => code !== cat02Code);
+      selectedCat02Codes = selectedCat02Codes.filter(
+        (code) => code !== cat02Code,
+      );
     }
     if (!hasArea) {
       selectedAreaCodes = selectedAreaCodes.filter((code) => code !== areaCode);
