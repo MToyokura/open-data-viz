@@ -9,6 +9,18 @@ pub struct WriteArgs<'a> {
     pub content: &'a str,
 }
 
+/// Writes UTF-8 text to a file, creating the output directory if needed.
+///
+/// The extension replaces any existing extension. An empty extension removes it.
+/// The writer atomically replaces the destination with a new file, which receives
+/// the permissions of a newly created file. The write is buffered by the OS and
+/// may be lost after a system crash or power failure.
+///
+/// # Errors
+///
+/// Returns [`io::ErrorKind::InvalidInput`] if the filename is invalid or the
+/// extension contains a path separator, colon, or NUL byte. Filesystem errors
+/// are propagated.
 pub fn write_to_directory(args: WriteArgs) -> io::Result<()> {
     if Path::new(args.file_name).file_name() != Some(args.file_name.as_ref())
         || args.file_name.contains(['/', '\\', ':', '\0'])
