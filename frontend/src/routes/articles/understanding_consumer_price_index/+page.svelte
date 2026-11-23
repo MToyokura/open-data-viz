@@ -243,9 +243,8 @@
       </blockquote>
       <p>消費者物価指数に関するQ&A（回答）の A-3 より。</p>
       <p>
-        「2025年基準」とはざっくり言うと、2025年の1年間での指数を「100」とします、ということです。この1年間の指数がどう算出されるかは<a
-          href="#基準時価格">後に解説</a
-        >します。
+        「2025年基準」とはざっくり言うと、2025年の1年間での指数を「100」とします、ということです。2025年の1年間の価格は、原則として基準年（2025年）の1月～12月の各月の比較時価格を単純平均して算出されます。（2025年基準
+        消費者物価指数の解説 p22 より）
       </p>
     </section>
     <section>
@@ -292,8 +291,12 @@
         を使うので、米のウエイトは6のままです。下記のシミュレーションでウエイトを変えると、基準時の支出比が異なるケースを試すことができます。
       </p>
       <p>基準時からの価格変化とウエイトを変えて、加重平均を見てみましょう。</p>
-      <fieldset class="simulation">
-        <legend>価格とウエイトのシミュレーション</legend>
+      <ArticleHeading
+        id="simulation"
+        title="価格とウエイトのシミュレーション"
+        level="h3"
+      />
+      <fieldset class="simulation" aria-labelledby="simulation">
         <p>
           基準時の合計を{formatAmount(
             baseTotal,
@@ -472,16 +475,347 @@
       />
     </section>
     <section>
-      <ArticleHeading id="基準時価格" title="基準時価格" />
+      <ArticleHeading id="weight-calculation" title="ウエイトの作成" />
       <p>
-        2025年の1年間の価格は、原則として基準年（2025年）の1月～12月の各月の比較時価格を単純平均して算出されます。（2025年基準
-        消費者物価指数の解説 p22 より）
+        上記のカレーの例では、米、牛肉、カレールウの基準時の支出額の比を6対3対1とし、その割合を使って品目別の指数を加重平均しました。実際の消費者物価指数でも基準年の支出をもとにウエイトを作るという考え方は同じですが、家計調査の支出額をそのまま使うわけではなく、品目の区分や地域ごとの消費の違いなどを考慮して調整が行われます。例えば「基本分類ウエイト」と呼ばれるものには「家計調査市町村別ウエイト」、「指数市町村別ウエイト」、「生鮮食品の月別ウエイト」の3種類あります。
       </p>
+      <ul>
+        <li>
+          <strong>家計調査市町村別ウエイト</strong><br />
+          家計調査の市町村別の支出額を、消費者物価指数で使う品目の区分に対応させて作ります。
+        </li>
+        <li>
+          <strong>指数市町村別ウエイト</strong><br />
+          家計調査から作ったウエイトを価格調査の対象となる市町村に対応させ、一部の品目について地域の実態に合わせた補正を行い、その市町村が代表する世帯数を反映して作ります。
+        </li>
+        <li>
+          <strong>生鮮食品の月別ウエイト</strong><br />
+          生鮮魚介・生鮮野菜・生鮮果物の購入量が季節によって大きく変わるため、品目ごとに設定します。通常の品目では年間を通じて同じウエイトを使いますが、これらの生鮮食品には月ごとに異なるウエイトを使います。2025年基準では、2024年と2025年の購入数量をもとに、あらかじめ月別のウエイトを作成しています。
+        </li>
+      </ul>
+      <p>
+        カレーの例で計算したのは品目別の指数を加重平均する部分です。実際には、同じ品目でも市町村によって価格の動きが異なります。全国の品目別指数を求めるとき、市町村ごとに指数を算出する品目は、各調査市町村の品目別ウエイトで加重平均します。一方、後で紹介するドーナツ（外食）のように、同じ品目別指数を全国で使う品目もあります。こうして得た全国の品目別指数を全国の品目別ウエイトを使って加重平均する計算を、品目の小分類、中分類、10大費目へと段階的にまとめ最終的に総合指数を求めます。
+      </p>
+      <p>
+        詳しくは、総務省統計局の<a
+          href="https://www.stat.go.jp/data/cpi/2025/kaisetsu/pdf/0.pdf#page=31"
+          >「2025年基準 消費者物価指数の解説」の「第4 ウエイト（W₀）の作成」</a
+        >をご参照ください。
+      </p>
+    </section>
+    <section>
+      <ArticleHeading id="seasonal-adjustment" title="季節調整" />
+      <p>
+        消費者物価指数には、毎年同じ時期に繰り返される季節的な値動き（季節変動）が含まれています。
+      </p>
+      <p>
+        季節変動の影響を除いて物価の動きを見る方法の一つに、前年同月比があります。同じ月同士を比較することで季節変動の影響を受けにくくなります。ただし、前年同月比には直近の物価の動きだけでなく、1年前の物価の動きも影響するため、注意が必要です。
+      </p>
+      <p>
+        もう一つの方法が季節調整です。季節調整では、指数に含まれる季節変動を推定し、その影響を取り除きます。季節調整済指数を使うと、前月との比較によって直近の物価変動を捉えることができます。
+      </p>
+      <p>総務省統計局は、次の8系列について季節調整済指数を作成しています。</p>
+      <ul>
+        <li>
+          <strong>基本分類指数（全国・東京都区部）</strong
+          >：総合、生鮮食品を除く総合、生鮮食品及びエネルギーを除く総合
+        </li>
+        <li>
+          <strong>財・サービス分類指数（全国・東京都区部）</strong
+          >：財、サービス
+        </li>
+        <li>
+          <strong>ラスパイレス連鎖基準方式による指数（全国のみ）</strong
+          >：総合、生鮮食品を除く総合、生鮮食品及びエネルギーを除く総合
+        </li>
+      </ul>
+      <p>
+        このように、季節調整はすべての品目別指数に行われるわけではありません。
+      </p>
+      <p>
+        詳しくは、総務省統計局の<a
+          href="https://www.stat.go.jp/data/cpi/2025/kaisetsu/pdf/0.pdf#page=48"
+          >「2025年基準 消費者物価指数の解説」の「第7 季節調整」</a
+        >をご参照ください。
+      </p>
+    </section>
+    <section>
+      <ArticleHeading id="model-items" title="モデル品目の計算をやってみる" />
+      <ArticleHeading id="donuts" title="2163 ドーナツ（外食）" level="h3" />
+      <figure class="article-chart">
+        <table class="model-item-table">
+          <caption>2163 ドーナツ（外食）</caption>
+          <thead>
+            <tr
+              ><th scope="col">品目</th><th scope="col">銘柄</th><th scope="col"
+                >単位</th
+              ></tr
+            >
+          </thead>
+          <tbody>
+            <tr
+              ><th scope="row">ドーナツ（外食）</th><td
+                >飲食のできる店におけるドーナツ<br />商品別</td
+              ><td>1個</td></tr
+            >
+            <tr
+              ><td colspan="3"
+                ><strong>価格選定</strong>
+                <ol>
+                  <li>
+                    主にドーナツを販売している外食店について、売上高の大きい代表的な企業を選定する。
+                  </li>
+                  <li>
+                    選定した企業において通年販売される商品のうち、販売数量の多い代表的な商品を複数選定する。
+                  </li>
+                </ol></td
+              ></tr
+            >
+            <tr
+              ><td colspan="3"
+                ><strong>指数算出方法</strong>
+                <p>
+                  商品（<i>a</i>）別の販売数量（<i>q</i
+                  >）を用いて、品目別価格指数を算出する。
+                </p>
+                <MathFormula
+                  display
+                  tex={String.raw`I_t = \frac{\sum_a p_{t,a}q_{0,a}}{\sum_a p_{0,a}q_{0,a}} \times 100`}
+                />
+                <p><i>t</i>：比較時、0：基準時、<i>a</i>：商品</p></td
+              ></tr
+            >
+            <tr
+              ><td colspan="3"><strong>価格指数の適用</strong><br />全国一律</td
+              ></tr
+            >
+          </tbody>
+        </table>
+        <figcaption>
+          ドーナツ（外食）の価格選定と指数算出方法<br />
+          出典：総務省統計局「<a
+            href="https://www.stat.go.jp/data/cpi/2025/kaisetsu/pdf/0.pdf#page=52"
+            >2025年基準 消費者物価指数の解説（PDF）</a
+          >」p. 44
+        </figcaption>
+      </figure>
+      <p>
+        代表的な商品を2つ選んだとします。基準時に商品Aは1個100円で300個、商品Bは1個150円で200個売れました。今月の価格は、商品Aが110円、商品Bが180円です。
+      </p>
+      <p>
+        基準時と同じ個数を買うと、基準時には60,000円、今月は69,000円かかります。
+      </p>
+      <MathFormula
+        display
+        tex={String.raw`\frac{110 \times 300 + 180 \times 200}{100 \times 300 + 150 \times 200} \times 100 = 115`}
+      />
+      <p>
+        基準時を100とした指数は115で、15％の上昇です。この品目の指数は全国一律に適用されます。
+      </p>
+      <ArticleHeading id="private-rent" title="3000 民営家賃" level="h3" />
+      <figure class="article-chart">
+        <table class="model-item-table">
+          <caption>3000 民営家賃</caption>
+          <thead>
+            <tr
+              ><th scope="col">品目</th><th scope="col">銘柄</th><th scope="col"
+                >単位</th
+              ></tr
+            >
+          </thead>
+          <tbody>
+            <tr
+              ><th scope="row">民営家賃</th><td
+                >民営借家の家賃<br />延面積区分別、構造別</td
+              ><td>1か月</td></tr
+            >
+            <tr
+              ><td colspan="3"
+                ><strong>価格選定</strong>
+                <ol>
+                  <li>
+                    調査世帯（各調査市町村内に設けた家賃調査地区に居住する全ての民営借家世帯）の家賃を選定する。
+                  </li>
+                  <li>
+                    調査価格を、延面積及び構造により、以下の4区分に分類する。
+                    <ul>
+                      <li>木造小住宅：延面積30 m²未満、かつ木造</li>
+                      <li>木造中住宅：延面積30 m²以上、かつ木造</li>
+                      <li>非木造小住宅：延面積30 m²未満、かつ非木造</li>
+                      <li>非木造中住宅：延面積30 m²以上、かつ非木造</li>
+                    </ul>
+                  </li>
+                  <li>
+                    小売物価統計調査の家賃調査は、調査市町村別に家賃調査地区が3群に分けられ、毎月1群ずつ各群の民営借家世帯を調査するため、当月調査対象でない民営借家世帯は、直近の調査価格を用いる。
+                  </li>
+                  <li>
+                    転出により当月空き家となった民営借家世帯は、一定の期間は、直近の調査した家賃と延面積を当月分として代入する。
+                  </li>
+                </ol></td
+              ></tr
+            >
+            <tr
+              ><td colspan="3"
+                ><strong>指数算出方法</strong>
+                <ol>
+                  <li>
+                    世帯（<i>b</i>）別の家賃及び延面積（<i>A</i
+                    >）を用いて、区分（<i>a</i>）別の平均価格（3.3
+                    m²当たり）を算出する。
+                    <MathFormula
+                      display
+                      tex={String.raw`P_{t,a} = \frac{\sum_b p_{t,a,b}}{\sum_b A_{t,a,b}} \times 3.3`}
+                    />
+                    <MathFormula
+                      display
+                      tex={String.raw`{}= \frac{\sum_{b_1 \in \text{当月調査群}} p_{t,a,b_1} + \sum_{b_2 \in \text{前月調査群}} p_{t,a,b_2} + \sum_{b_3 \in \text{前々月調査群}} p_{t,a,b_3}}{\sum_{b_1 \in \text{当月調査群}} A_{t,a,b_1} + \sum_{b_2 \in \text{前月調査群}} A_{t,a,b_2} + \sum_{b_3 \in \text{前々月調査群}} A_{t,a,b_3}} \times 3.3`}
+                    />
+                  </li>
+                  <li>
+                    基準時価格で除して、区分別の指数を算出する。
+                    <MathFormula
+                      display
+                      tex={String.raw`I_{t,a} = \frac{P_{t,a}}{P_{0,a}} \times 100`}
+                    />
+                  </li>
+                  <li>
+                    区分別の構成比（<i>w</i
+                    >）を用いて加重平均し、調査市町村別の品目別価格指数を算出する。
+                    <MathFormula
+                      display
+                      tex={String.raw`I_t = \frac{\sum_a I_{t,a}w_{0,a}}{\sum_a w_{0,a}}`}
+                    />
+                  </li>
+                </ol>
+                <p>
+                  <i>t</i>：比較時、0：基準時、<i>a</i>：区分、<i>b</i>：世帯
+                </p></td
+              ></tr
+            >
+            <tr
+              ><td colspan="3"
+                ><strong>価格指数の適用</strong><br />調査市町村別</td
+              ></tr
+            >
+          </tbody>
+        </table>
+        <figcaption>
+          民営家賃の価格選定と指数算出方法<br />
+          出典：総務省統計局「<a
+            href="https://www.stat.go.jp/data/cpi/2025/kaisetsu/pdf/0.pdf#page=53"
+            >2025年基準 消費者物価指数の解説（PDF）</a
+          >」p. 45
+        </figcaption>
+      </figure>
+      <p>
+        民営借家を、構造（木造・非木造）と延面積（30 m²未満・30
+        m²以上）の組み合わせで4区分に分けます。
+        家賃調査地区は市町村ごとに3群に分け、毎月1群ずつ調査します。当月に調査しない世帯には、直近の調査で得た家賃と延面積を使います。
+      </p>
+      <p>
+        ここでは、ある調査市町村について、計算を簡単にするため、木造小住宅と非木造中住宅の2区分で考えます。
+      </p>
+      <ol>
+        <li>
+          <p>
+            区分ごとに、家賃の合計を延面積の合計で割り、3.3
+            m²当たりの家賃を求めます。たとえば木造小住宅の2世帯は20 m²と25
+            m²で、月額家賃が基準時には40,000円と50,000円、今月は44,000円と55,000円だったとします。
+          </p>
+          <MathFormula
+            display
+            tex={String.raw`\begin{aligned}
+              P_0 &= \frac{40{,}000 + 50{,}000}{20 + 25} \times 3.3 = 6{,}600 \\
+              P_t &= \frac{44{,}000 + 55{,}000}{20 + 25} \times 3.3 = 7{,}260
+            \end{aligned}`}
+          />
+        </li>
+        <li>
+          <p>
+            今月の平均価格を基準時の平均価格で割り、100を掛けます。木造小住宅の指数は110です。
+          </p>
+          <MathFormula
+            display
+            tex={String.raw`\frac{7{,}260}{6{,}600} \times 100 = 110`}
+          />
+          <p>
+            非木造中住宅も同じ手順で計算します。2世帯の住宅の延面積を40 m²と60
+            m²とし、月額家賃が基準時には90,000円と130,000円、今月は94,500円と136,500円だったとします。3.3
+            m²当たりの平均家賃は次のとおりです。
+          </p>
+          <MathFormula
+            display
+            tex={String.raw`\begin{aligned}
+              P_0 &= \frac{90{,}000 + 130{,}000}{40 + 60} \times 3.3 = 7{,}260 \\
+              P_t &= \frac{94{,}500 + 136{,}500}{40 + 60} \times 3.3 = 7{,}623
+            \end{aligned}`}
+          />
+          <p>
+            今月の7,623円を基準時の7,260円で割り、100を掛けると、非木造中住宅の指数は105です。
+          </p>
+          <MathFormula
+            display
+            tex={String.raw`\frac{7{,}623}{7{,}260} \times 100 = 105`}
+          />
+        </li>
+        <li>
+          <p>
+            区分ごとの指数を、家計調査の結果などに基づくウエイトで加重平均します（各区分のウエイトを求める具体的な算式は、参照した統計局の資料には示されていません）。
+            この例では、ウエイトを木造小住宅60％、非木造中住宅40％とします。この市町村の民営家賃の指数は108で、基準時から8％の上昇です。
+          </p>
+          <MathFormula
+            display
+            tex={String.raw`110 \times 0.6 + 105 \times 0.4 = 108`}
+          />
+        </li>
+      </ol>
     </section>
   </article>
 </main>
 
 <style>
+  .model-item-table {
+    inline-size: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+
+  .model-item-table caption,
+  .model-item-table th,
+  .model-item-table td {
+    border: var(--border-default);
+    padding: 0.45rem 0.6rem;
+    overflow-wrap: anywhere;
+  }
+
+  .model-item-table caption {
+    border-block-end: 0;
+    font-weight: 600;
+  }
+
+  .model-item-table thead th:first-child {
+    inline-size: 24%;
+  }
+
+  .model-item-table thead th:last-child {
+    inline-size: 18%;
+  }
+
+  .model-item-table td:last-child:not([colspan]) {
+    text-align: center;
+  }
+
+  .model-item-table ol,
+  .model-item-table ul {
+    margin-block: 0.35rem;
+    padding-inline-start: 1.5rem;
+  }
+
+  .model-item-table p {
+    margin-block: 0.35rem;
+  }
+
   blockquote {
     margin-inline: 0;
     padding-inline-start: 1rem;
