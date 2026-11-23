@@ -1,4 +1,4 @@
-use reqwest::Url;
+use reqwest::{Error as RequestError, Url};
 use reqwest::blocking;
 use std::collections::HashMap;
 use std::error::Error;
@@ -17,7 +17,12 @@ pub(crate) fn get(request: &GetRequestBuilder) -> Result<String, Box<dyn Error>>
         None => Url::parse(request.url)?, // No params, just parse the base URL
     };
 
-    let response_text = client.get(url).send()?.text()?;
+    let response_text = client
+        .get(url)
+        .send()
+        .map_err(RequestError::without_url)?
+        .text()
+        .map_err(RequestError::without_url)?;
 
     Ok(response_text)
 }
