@@ -48,7 +48,7 @@
   {@render children()}
 </div>
 
-{#if !isWorkspace && !isArticlePage}
+{#if !isWorkspace && !isArticlePage && !isHome}
   <footer class="site-footer">
     <LicenseLink variant="footer" />
   </footer>
